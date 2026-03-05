@@ -1,14 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
 @import "tailwindcss";
 
-@theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
-  --color-neon-yellow: #D9FF00;
-  --color-panel-dark: #1A1A1A;
-  --color-border-dark: #2A2A2A;
-}
-
 body {
   @apply bg-white dark:bg-black text-black dark:text-white font-sans antialiased;
 }
@@ -22,13 +14,13 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-gray-100 dark:bg-black;
+  @apply bg-gray-100 dark:bg-zinc-950;
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-gray-300 dark:bg-panel-dark rounded-full;
+  @apply bg-gray-300 dark:bg-zinc-800 rounded-full;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-gray-400 dark:bg-border-dark;
+  @apply bg-gray-400 dark:bg-zinc-700;
 }
