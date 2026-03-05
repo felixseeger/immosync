@@ -65,14 +65,17 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    // Initialize dark class on mount
-    document.documentElement.classList.toggle('dark', isDarkMode);
+    // Initialize dark class on mount based on localStorage
+    const isDark = localStorage.getItem('theme-mode') ? localStorage.getItem('theme-mode') === 'dark' : true;
+    document.documentElement.classList.toggle('dark', isDark);
+    console.log('Dark mode initialized:', isDark, 'classList:', document.documentElement.classList.toString());
   }, []);
 
   useEffect(() => {
     // Update dark class and localStorage when mode changes
     document.documentElement.classList.toggle('dark', isDarkMode);
     localStorage.setItem('theme-mode', isDarkMode ? 'dark' : 'light');
+    console.log('Theme changed to:', isDarkMode ? 'dark' : 'light', 'classList:', document.documentElement.classList.toString());
   }, [isDarkMode]);
 
   const handleLogout = async () => {
