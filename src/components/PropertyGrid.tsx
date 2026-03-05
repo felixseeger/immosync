@@ -16,7 +16,7 @@ export default function PropertyGrid({ properties, onSelectProperty }: PropertyG
           key={property.id}
           layoutId={`property-${property.id}`}
           onClick={() => onSelectProperty(property)}
-          className="group relative bg-zinc-900 rounded-2xl overflow-hidden border border-zinc-800 hover:border-zinc-700 transition-colors cursor-pointer"
+          className="group relative bg-white dark:bg-zinc-900 rounded-2xl overflow-hidden border border-gray-300 dark:border-zinc-800 hover:border-gray-400 dark:hover:border-zinc-700 transition-colors cursor-pointer"
           whileHover={{ y: -4 }}
         >
           {/* Image Container */}
@@ -35,7 +35,7 @@ export default function PropertyGrid({ properties, onSelectProperty }: PropertyG
             
             <div className="absolute bottom-4 left-4 right-4">
               <h3 className="text-xl font-bold text-white mb-1 truncate">{property.title}</h3>
-              <div className="flex items-center text-zinc-400 text-sm">
+              <div className="flex items-center text-gray-200 dark:text-zinc-400 text-sm">
                 <MapPin size={14} className="mr-1" />
                 <span className="truncate">{property.address}</span>
               </div>
@@ -45,41 +45,41 @@ export default function PropertyGrid({ properties, onSelectProperty }: PropertyG
           {/* Details */}
           <div className="p-4">
             <div className="flex items-center justify-between mb-4">
-              <span className="text-2xl font-bold text-white">
+              <span className="text-2xl font-bold text-gray-900 dark:text-white">
                 ${property.price.toLocaleString()}
               </span>
-              <span className="text-xs text-zinc-500 uppercase tracking-wider font-medium">
+              <span className="text-xs text-gray-600 dark:text-zinc-500 uppercase tracking-wider font-medium">
                 {property.type}
               </span>
             </div>
 
-            <div className="grid grid-cols-3 gap-2 py-4 border-t border-zinc-800">
+            <div className="grid grid-cols-3 gap-2 py-4 border-t border-gray-300 dark:border-zinc-800">
               <div className="flex flex-col items-center text-center">
-                <div className="flex items-center text-zinc-400 mb-1">
+                <div className="flex items-center text-gray-600 dark:text-zinc-400 mb-1">
                   <Bed size={16} className="mr-1" />
                   <span className="text-sm font-medium">{property.bedrooms}</span>
                 </div>
-                <span className="text-[10px] text-zinc-600 uppercase tracking-wider">Beds</span>
+                <span className="text-[10px] text-gray-500 dark:text-zinc-600 uppercase tracking-wider">Beds</span>
               </div>
-              <div className="flex flex-col items-center text-center border-l border-zinc-800">
-                <div className="flex items-center text-zinc-400 mb-1">
+              <div className="flex flex-col items-center text-center border-l border-gray-300 dark:border-zinc-800">
+                <div className="flex items-center text-gray-600 dark:text-zinc-400 mb-1">
                   <Bath size={16} className="mr-1" />
                   <span className="text-sm font-medium">{property.bathrooms}</span>
                 </div>
-                <span className="text-[10px] text-zinc-600 uppercase tracking-wider">Baths</span>
+                <span className="text-[10px] text-gray-500 dark:text-zinc-600 uppercase tracking-wider">Baths</span>
               </div>
-              <div className="flex flex-col items-center text-center border-l border-zinc-800">
-                <div className="flex items-center text-zinc-400 mb-1">
+              <div className="flex flex-col items-center text-center border-l border-gray-300 dark:border-zinc-800">
+                <div className="flex items-center text-gray-600 dark:text-zinc-400 mb-1">
                   <Ruler size={16} className="mr-1" />
                   <span className="text-sm font-medium">{property.sqft}</span>
                 </div>
-                <span className="text-[10px] text-zinc-600 uppercase tracking-wider">Sq Ft</span>
+                <span className="text-[10px] text-gray-500 dark:text-zinc-600 uppercase tracking-wider">Sq Ft</span>
               </div>
             </div>
 
-            <div className="mt-4 pt-4 border-t border-zinc-800 flex justify-between items-center group/btn">
-              <span className="text-xs text-zinc-500">View Details</span>
-              <div className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center group-hover/btn:bg-neon-yellow group-hover/btn:text-black transition-colors">
+            <div className="mt-4 pt-4 border-t border-gray-300 dark:border-zinc-800 flex justify-between items-center group/btn">
+              <span className="text-xs text-gray-600 dark:text-zinc-500">View Details</span>
+              <div className="w-8 h-8 rounded-full bg-gray-300 dark:bg-zinc-800 flex items-center justify-center group-hover/btn:bg-neon-yellow group-hover/btn:text-black transition-colors text-gray-700 dark:text-gray-300 group-hover/btn:text-black">
                 <ArrowRight size={14} />
               </div>
             </div>

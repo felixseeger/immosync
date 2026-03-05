@@ -50,19 +50,19 @@ export default function PropertyDetail({ property, onClose, onDeleted }: Propert
     >
       <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose} />
       
-      <div className="relative w-full max-w-5xl bg-zinc-900 rounded-2xl overflow-hidden shadow-2xl border border-zinc-800 flex flex-col max-h-[90vh]">
+      <div className="relative w-full max-w-5xl bg-white dark:bg-zinc-900 rounded-2xl overflow-hidden shadow-2xl border border-gray-300 dark:border-zinc-800 flex flex-col max-h-[90vh]">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-zinc-800 bg-zinc-900/50 backdrop-blur-md sticky top-0 z-10">
+        <div className="flex items-center justify-between p-6 border-b border-gray-300 dark:border-zinc-800 bg-white/90 dark:bg-zinc-900/50 backdrop-blur-md sticky top-0 z-10">
           <div className="flex items-center gap-4">
             <button 
               onClick={onClose}
-              className="p-2 hover:bg-zinc-800 rounded-full transition-colors"
+              className="p-2 hover:bg-gray-200 dark:hover:bg-zinc-800 rounded-full transition-colors"
             >
-              <ArrowLeft size={20} className="text-zinc-400" />
+              <ArrowLeft size={20} className="text-gray-600 dark:text-zinc-400" />
             </button>
             <div>
-              <h2 className="text-2xl font-bold text-white">{property.title}</h2>
-              <div className="flex items-center text-zinc-400 text-sm">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{property.title}</h2>
+              <div className="flex items-center text-gray-600 dark:text-zinc-400 text-sm">
                 <MapPin size={14} className="mr-1" />
                 {property.address}
               </div>
@@ -78,20 +78,20 @@ export default function PropertyDetail({ property, onClose, onDeleted }: Propert
             </span>
             <button
               onClick={() => setShowEditPanel(true)}
-              className="p-2 hover:bg-zinc-800 rounded-full transition-colors text-zinc-400 hover:text-white"
+              className="p-2 hover:bg-gray-200 dark:hover:bg-zinc-800 rounded-full transition-colors text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
               title="Edit property"
             >
               <Pencil size={16} />
             </button>
             <button
               onClick={() => setShowDeleteConfirm(true)}
-              className="p-2 hover:bg-zinc-800 rounded-full transition-colors text-zinc-400 hover:text-red-400"
+              className="p-2 hover:bg-gray-200 dark:hover:bg-zinc-800 rounded-full transition-colors text-gray-600 dark:text-zinc-400 hover:text-red-600 dark:hover:text-red-400"
               title="Delete property"
             >
               <Trash2 size={16} />
             </button>
-            <button onClick={onClose} className="p-2 hover:bg-zinc-800 rounded-full transition-colors">
-              <X size={20} className="text-zinc-400" />
+            <button onClick={onClose} className="p-2 hover:bg-gray-200 dark:hover:bg-zinc-800 rounded-full transition-colors">
+              <X size={20} className="text-gray-600 dark:text-zinc-400" />
             </button>
           </div>
         </div>
@@ -101,14 +101,14 @@ export default function PropertyDetail({ property, onClose, onDeleted }: Propert
             {/* Main Content */}
             <div className="lg:col-span-2 space-y-8">
               {/* Main Image */}
-              <div className="aspect-video rounded-xl overflow-hidden bg-zinc-800 relative group">
+              <div className="aspect-video rounded-xl overflow-hidden bg-gray-300 dark:bg-zinc-800 relative group">
                 <img 
                   src={property.mainImage || `https://picsum.photos/seed/${property.id}/1200/800`} 
                   alt={property.title}
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-6">
-                  <button className="bg-white text-black px-4 py-2 rounded-lg font-medium text-sm hover:bg-zinc-200 transition-colors">
+                  <button className="bg-white dark:bg-white text-gray-900 dark:text-black px-4 py-2 rounded-lg font-medium text-sm hover:bg-gray-100 dark:hover:bg-gray-200 transition-colors">
                     View Full Screen
                   </button>
                 </div>
@@ -116,18 +116,18 @@ export default function PropertyDetail({ property, onClose, onDeleted }: Propert
 
               {/* Description */}
               <div>
-                <h3 className="text-lg font-bold text-white mb-4">About this property</h3>
-                <p className="text-zinc-400 leading-relaxed">
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">About this property</h3>
+                <p className="text-gray-600 dark:text-zinc-400 leading-relaxed">
                   {property.description || "No description available for this property."}
                 </p>
               </div>
 
               {/* Features */}
               <div>
-                <h3 className="text-lg font-bold text-white mb-4">Features</h3>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Features</h3>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                   {property.features?.map((feature, index) => (
-                    <div key={index} className="flex items-center gap-2 text-zinc-400 text-sm">
+                    <div key={index} className="flex items-center gap-2 text-gray-700 dark:text-zinc-400 text-sm">
                       <CheckCircle size={14} className="text-neon-yellow" />
                       {feature}
                     </div>
@@ -138,15 +138,15 @@ export default function PropertyDetail({ property, onClose, onDeleted }: Propert
               {/* Gallery */}
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-bold text-white">Gallery</h3>
-                  <span className="text-xs text-zinc-500">{property.images?.length || 0} photos</span>
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white">Gallery</h3>
+                  <span className="text-xs text-gray-600 dark:text-zinc-500">{property.images?.length || 0} photos</span>
                 </div>
                 
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                   {property.images?.map((image, index) => (
                     <div 
                       key={index} 
-                      className="aspect-square rounded-lg overflow-hidden bg-zinc-800 cursor-pointer hover:opacity-80 transition-opacity"
+                      className="aspect-square rounded-lg overflow-hidden bg-gray-300 dark:bg-zinc-800 cursor-pointer hover:opacity-80 transition-opacity"
                       onClick={() => setSelectedImage(image)}
                     >
                       <img src={image} alt={`Gallery ${index}`} className="w-full h-full object-cover" />
@@ -154,7 +154,7 @@ export default function PropertyDetail({ property, onClose, onDeleted }: Propert
                   ))}
                   
                   {/* Upload Placeholder */}
-                  <div className="aspect-square rounded-lg border-2 border-dashed border-zinc-800 flex flex-col items-center justify-center text-zinc-600 hover:border-zinc-600 hover:text-zinc-400 transition-colors cursor-pointer">
+                  <div className="aspect-square rounded-lg border-2 border-dashed border-gray-400 dark:border-zinc-800 flex flex-col items-center justify-center text-gray-500 dark:text-zinc-600 hover:border-gray-600 dark:hover:border-zinc-600 hover:text-gray-700 dark:hover:text-zinc-400 transition-colors cursor-pointer">
                     <ImageIcon size={24} className="mb-2" />
                     <span className="text-xs">Add Photo</span>
                   </div>
@@ -166,43 +166,43 @@ export default function PropertyDetail({ property, onClose, onDeleted }: Propert
 
             {/* Sidebar */}
             <div className="space-y-6">
-              <div className="bg-zinc-800/50 rounded-xl p-6 border border-zinc-800">
-                <div className="text-3xl font-bold text-white mb-1">
+              <div className="bg-white dark:bg-zinc-800/50 rounded-xl p-6 border border-gray-300 dark:border-zinc-800">
+                <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
                   ${property.price.toLocaleString()}
                 </div>
-                <div className="text-zinc-500 text-sm mb-6">
+                <div className="text-gray-600 dark:text-zinc-500 text-sm mb-6">
                   Est. Mortgage: ${Math.round(property.price * 0.0045).toLocaleString()}/mo
                 </div>
 
                 <div className="grid grid-cols-3 gap-4 mb-6">
-                  <div className="text-center p-3 bg-zinc-900 rounded-lg border border-zinc-800">
-                    <Bed size={20} className="mx-auto mb-1 text-zinc-400" />
-                    <div className="text-lg font-bold text-white">{property.bedrooms}</div>
-                    <div className="text-[10px] text-zinc-600 uppercase">Beds</div>
+                  <div className="text-center p-3 bg-gray-100 dark:bg-zinc-900 rounded-lg border border-gray-300 dark:border-zinc-800">
+                    <Bed size={20} className="mx-auto mb-1 text-gray-600 dark:text-zinc-400" />
+                    <div className="text-lg font-bold text-gray-900 dark:text-white">{property.bedrooms}</div>
+                    <div className="text-[10px] text-gray-600 dark:text-zinc-600 uppercase">Beds</div>
                   </div>
-                  <div className="text-center p-3 bg-zinc-900 rounded-lg border border-zinc-800">
-                    <Bath size={20} className="mx-auto mb-1 text-zinc-400" />
-                    <div className="text-lg font-bold text-white">{property.bathrooms}</div>
-                    <div className="text-[10px] text-zinc-600 uppercase">Baths</div>
+                  <div className="text-center p-3 bg-gray-100 dark:bg-zinc-900 rounded-lg border border-gray-300 dark:border-zinc-800">
+                    <Bath size={20} className="mx-auto mb-1 text-gray-600 dark:text-zinc-400" />
+                    <div className="text-lg font-bold text-gray-900 dark:text-white">{property.bathrooms}</div>
+                    <div className="text-[10px] text-gray-600 dark:text-zinc-600 uppercase">Baths</div>
                   </div>
-                  <div className="text-center p-3 bg-zinc-900 rounded-lg border border-zinc-800">
-                    <Ruler size={20} className="mx-auto mb-1 text-zinc-400" />
-                    <div className="text-lg font-bold text-white">{property.sqft}</div>
-                    <div className="text-[10px] text-zinc-600 uppercase">Sq Ft</div>
+                  <div className="text-center p-3 bg-gray-100 dark:bg-zinc-900 rounded-lg border border-gray-300 dark:border-zinc-800">
+                    <Ruler size={20} className="mx-auto mb-1 text-gray-600 dark:text-zinc-400" />
+                    <div className="text-lg font-bold text-gray-900 dark:text-white">{property.sqft}</div>
+                    <div className="text-[10px] text-gray-600 dark:text-zinc-600 uppercase">Sq Ft</div>
                   </div>
                 </div>
 
-                <button className="w-full bg-neon-yellow text-black font-bold py-3 rounded-xl hover:bg-yellow-400 transition-colors mb-3">
+                <button className="w-full bg-neon-yellow text-black font-bold py-3 rounded-xl hover:bg-neon-yellow/90 transition-colors mb-3">
                   Schedule Tour
                 </button>
-                <button className="w-full bg-zinc-900 text-white font-medium py-3 rounded-xl border border-zinc-700 hover:bg-zinc-800 transition-colors">
+                <button className="w-full bg-gray-200 dark:bg-zinc-900 text-gray-900 dark:text-white font-medium py-3 rounded-xl border border-gray-300 dark:border-zinc-700 hover:bg-gray-300 dark:hover:bg-zinc-800 transition-colors">
                   Contact Agent
                 </button>
               </div>
 
               {/* Upload Section */}
-              <div className="bg-zinc-800/30 rounded-xl p-6 border border-zinc-800">
-                <h4 className="text-sm font-bold text-white mb-4 uppercase tracking-wider">Manage Photos</h4>
+              <div className="bg-gray-100 dark:bg-zinc-800/30 rounded-xl p-6 border border-gray-300 dark:border-zinc-800">
+                <h4 className="text-sm font-bold text-gray-900 dark:text-white mb-4 uppercase tracking-wider">Manage Photos</h4>
                 <ImageUpload 
                   propertyId={property.id} 
                   onUploadComplete={handleUploadComplete} 
@@ -224,7 +224,7 @@ export default function PropertyDetail({ property, onClose, onDeleted }: Propert
             onClick={() => setSelectedImage(null)}
           >
             <button 
-              className="absolute top-4 right-4 p-2 bg-zinc-800 rounded-full text-white hover:bg-zinc-700"
+              className="absolute top-4 right-4 p-2 bg-black/50 rounded-full text-white hover:bg-black/70 transition-colors"
               onClick={() => setSelectedImage(null)}
             >
               <X size={24} />
@@ -251,24 +251,23 @@ export default function PropertyDetail({ property, onClose, onDeleted }: Propert
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-zinc-900 border border-zinc-700 rounded-2xl p-6 max-w-sm w-full shadow-2xl"
+              className="bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded-2xl p-6 max-w-sm w-full shadow-2xl"
             >
               <div className="flex items-center gap-3 mb-3">
                 <div className="p-2 bg-red-500/10 rounded-full">
                   <Trash2 size={20} className="text-red-400" />
                 </div>
-                <h3 className="text-lg font-bold text-white">Delete Property?</h3>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white">Delete Property?</h3>
               </div>
-              <p className="text-sm text-zinc-400 mb-6">
+              <p className="text-sm text-gray-600 dark:text-zinc-400 mb-6">
                 This will permanently delete{' '}
-                <span className="text-white font-medium">{property.title}</span>{' '}
-                and all associated images. This action cannot be undone.
+                <span className="text-gray-900 dark:text-white font-medium">{property.title}</span>{' '}                and all associated images. This action cannot be undone.
               </p>
               <div className="flex gap-3">
                 <button
                   onClick={() => setShowDeleteConfirm(false)}
                   disabled={isDeleting}
-                  className="flex-1 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white text-sm font-medium rounded-lg transition-colors"
+                  className="flex-1 py-2.5 bg-gray-200 dark:bg-zinc-800 hover:bg-gray-300 dark:hover:bg-zinc-700 text-gray-900 dark:text-white text-sm font-medium rounded-lg transition-colors"
                 >
                   Cancel
                 </button>

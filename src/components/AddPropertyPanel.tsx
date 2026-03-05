@@ -106,10 +106,10 @@ interface StagedFile {
 /* ─── Shared style tokens ───────────────────────────────────────────────────── */
 
 const inputCls =
-  'w-full bg-zinc-800 border border-zinc-700 text-white rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-neon-yellow transition-colors placeholder:text-zinc-600';
+  'w-full bg-white dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 text-gray-900 dark:text-white rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-neon-yellow transition-colors placeholder:text-gray-500 dark:placeholder:text-zinc-600';
 
 const Label = ({ children, required }: { children: React.ReactNode; required?: boolean }) => (
-  <label className="block text-[11px] font-semibold text-zinc-400 uppercase tracking-wider mb-1.5">
+  <label className="block text-[11px] font-semibold text-gray-600 dark:text-zinc-400 uppercase tracking-wider mb-1.5">
     {children}
     {required && <span className="text-neon-yellow ml-1">*</span>}
   </label>
@@ -142,7 +142,7 @@ function Step1({
 
       <div>
         <Label>Marketing Type</Label>
-        <div className="flex bg-zinc-800 rounded-lg p-1 border border-zinc-700 gap-1">
+        <div className="flex bg-white dark:bg-zinc-800 rounded-lg p-1 border border-gray-300 dark:border-zinc-700 gap-1">
           {(['Sale', 'Rent'] as const).map((t) => (
             <button
               key={t}
@@ -151,7 +151,7 @@ function Step1({
               className={`flex-1 py-2.5 rounded-md text-sm font-bold transition-all ${
                 form.marketingType === t
                   ? 'bg-neon-yellow text-black shadow'
-                  : 'text-zinc-400 hover:text-white'
+                  : 'text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
               For {t}
@@ -171,7 +171,7 @@ function Step1({
               className={`py-2 px-1 rounded-lg text-xs font-medium transition-all border ${
                 form.propertyType === t
                   ? 'bg-neon-yellow/10 border-neon-yellow/50 text-neon-yellow'
-                  : 'bg-zinc-800 border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-white'
+                  : 'bg-gray-100 dark:bg-zinc-800 border-gray-200 dark:border-zinc-700 text-gray-600 dark:text-zinc-400 hover:border-gray-300 dark:hover:border-zinc-500 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
               {t}
@@ -182,7 +182,7 @@ function Step1({
 
       <div>
         <Label>Status</Label>
-        <div className="flex bg-zinc-800 rounded-lg p-1 border border-zinc-700 gap-1">
+        <div className="flex bg-white dark:bg-zinc-800 rounded-lg p-1 border border-gray-300 dark:border-zinc-700 gap-1">
           {(['Active', 'Pending', 'Sold'] as const).map((s) => (
             <button
               key={s}
@@ -194,8 +194,8 @@ function Step1({
                     ? 'bg-neon-yellow text-black'
                     : s === 'Pending'
                     ? 'bg-blue-500 text-white'
-                    : 'bg-zinc-500 text-white'
-                  : 'text-zinc-400 hover:text-white'
+                    : 'bg-gray-400 dark:bg-zinc-500 text-white'
+                  : 'text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
               {s}
@@ -298,10 +298,10 @@ function Step2({
       </div>
 
       {/* Map preview placeholder */}
-      <div className="bg-zinc-800/40 border border-zinc-700/50 border-dashed rounded-xl h-28 flex items-center justify-center">
+      <div className="bg-gray-200 dark:bg-zinc-800/40 border border-gray-300 dark:border-zinc-700/50 border-dashed rounded-xl h-28 flex items-center justify-center">
         <div className="text-center">
-          <MapPin size={20} className="mx-auto mb-1 text-zinc-600" />
-          <p className="text-xs text-zinc-600">Map preview available after creation</p>
+          <MapPin size={20} className="mx-auto mb-1 text-gray-500 dark:text-zinc-600" />
+          <p className="text-xs text-gray-600 dark:text-zinc-600">Map preview available after creation</p>
         </div>
       </div>
     </div>
@@ -321,7 +321,7 @@ function Step3({
     <div className="space-y-7">
       {/* Physical */}
       <div>
-        <p className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest mb-3 flex items-center gap-2 before:flex-1 before:h-px before:bg-zinc-800 after:flex-1 after:h-px after:bg-zinc-800">
+        <p className="text-[11px] font-bold text-gray-600 dark:text-zinc-500 uppercase tracking-widest mb-3 flex items-center gap-2 before:flex-1 before:h-px before:bg-gray-300 dark:before:bg-zinc-800 after:flex-1 after:h-px after:bg-gray-300 dark:after:bg-zinc-800">
           <span>Physical Properties</span>
         </p>
         <div className="grid grid-cols-2 gap-3">
@@ -388,7 +388,7 @@ function Step3({
 
       {/* Pricing */}
       <div>
-        <p className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest mb-3 flex items-center gap-2 before:flex-1 before:h-px before:bg-zinc-800 after:flex-1 after:h-px after:bg-zinc-800">
+        <p className="text-[11px] font-bold text-gray-600 dark:text-zinc-500 uppercase tracking-widest mb-3 flex items-center gap-2 before:flex-1 before:h-px before:bg-gray-300 dark:before:bg-zinc-800 after:flex-1 after:h-px after:bg-gray-300 dark:after:bg-zinc-800">
           <span>Pricing</span>
         </p>
         <div className="space-y-3">
@@ -435,7 +435,7 @@ function Step3({
 
       {/* Energy & Legal */}
       <div>
-        <p className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest mb-3 flex items-center gap-2 before:flex-1 before:h-px before:bg-zinc-800 after:flex-1 after:h-px after:bg-zinc-800">
+        <p className="text-[11px] font-bold text-gray-600 dark:text-zinc-500 uppercase tracking-widest mb-3 flex items-center gap-2 before:flex-1 before:h-px before:bg-gray-300 dark:before:bg-zinc-800 after:flex-1 after:h-px after:bg-gray-300 dark:after:bg-zinc-800">
           <span>Energy &amp; Legal</span>
         </p>
         <div className="grid grid-cols-2 gap-3">
@@ -503,16 +503,16 @@ function Step4({
       {isEditing && propertyImages.length > 0 && (
         <div>
           <div className="flex items-center justify-between mb-3">
-            <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
+            <p className="text-xs font-semibold text-gray-600 dark:text-zinc-400 uppercase tracking-wider">
               {propertyImages.length} existing image{propertyImages.length !== 1 ? 's' : ''}
             </p>
-            <p className="text-[11px] text-zinc-600">Click image to delete</p>
+            <p className="text-[11px] text-gray-600 dark:text-zinc-600">Click image to delete</p>
           </div>
           <div className="grid grid-cols-3 gap-3">
             {propertyImages.map((imageUrl, i) => (
               <div
                 key={imageUrl}
-                className="relative group aspect-square rounded-xl overflow-hidden bg-zinc-800 ring-1 ring-zinc-700"
+                className="relative group aspect-square rounded-xl overflow-hidden bg-gray-300 dark:bg-zinc-800 ring-1 ring-gray-300 dark:ring-zinc-700"
               >
                 <img
                   src={imageUrl}
@@ -552,40 +552,40 @@ function Step4({
           className={`relative border-2 border-dashed rounded-xl p-10 flex flex-col items-center justify-center text-center transition-all cursor-pointer select-none ${
             isDragActive
               ? 'border-neon-yellow bg-neon-yellow/5 scale-[1.01]'
-              : 'border-zinc-700 hover:border-zinc-500 hover:bg-zinc-800/30'
+              : 'border-gray-300 dark:border-zinc-700 hover:border-gray-400 dark:hover:border-zinc-500 hover:bg-gray-100 dark:hover:bg-zinc-800/30'
           }`}
         >
           <input {...getInputProps()} />
         <div
           className={`w-14 h-14 rounded-full flex items-center justify-center mb-4 transition-colors ${
-            isDragActive ? 'bg-neon-yellow/20' : 'bg-zinc-800'
+            isDragActive ? 'bg-neon-yellow/20' : 'bg-gray-200 dark:bg-zinc-800'
           }`}
         >
           <UploadCloud
-            className={isDragActive ? 'text-neon-yellow' : 'text-zinc-500'}
+            className={isDragActive ? 'text-neon-yellow' : 'text-gray-600 dark:text-zinc-500'}
             size={26}
           />
         </div>
-        <p className="text-sm font-semibold text-white mb-1">
+        <p className="text-sm font-semibold text-gray-900 dark:text-white mb-1">
           {isDragActive ? 'Release to upload' : 'Drag & drop images here'}
         </p>
-          <p className="text-xs text-zinc-500">or click to browse · JPG, PNG, WebP · max 20 MB</p>
+          <p className="text-xs text-gray-600 dark:text-zinc-500">or click to browse · JPG, PNG, WebP · max 20 MB</p>
         </div>
 
         {/* Preview grid */}
         {stagedFiles.length > 0 && (
           <div>
             <div className="flex items-center justify-between mb-3">
-              <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
+              <p className="text-xs font-semibold text-gray-600 dark:text-zinc-400 uppercase tracking-wider">
                 {stagedFiles.length} image{stagedFiles.length !== 1 ? 's' : ''} staged
               </p>
-              <p className="text-[11px] text-zinc-600">First image = cover</p>
+              <p className="text-[11px] text-gray-600 dark:text-zinc-600">First image = cover</p>
             </div>
             <div className="grid grid-cols-3 gap-3">
               {stagedFiles.map((sf, i) => (
                 <div
                   key={i}
-                  className="relative group aspect-square rounded-xl overflow-hidden bg-zinc-800 ring-1 ring-zinc-700"
+                  className="relative group aspect-square rounded-xl overflow-hidden bg-gray-300 dark:bg-zinc-800 ring-1 ring-gray-300 dark:ring-zinc-700"
                 >
                   <img
                     src={sf.preview}
@@ -607,7 +607,7 @@ function Step4({
                     <X size={10} />
                   </button>
                   <div className="absolute inset-x-0 bottom-0 h-8 bg-linear-to-t from-black/60 to-transparent" />
-                  <span className="absolute bottom-1.5 right-2 text-[10px] text-zinc-400">
+                  <span className="absolute bottom-1.5 right-2 text-[10px] text-gray-600 dark:text-zinc-400">
                     {Math.round(sf.file.size / 1024)}KB
                   </span>
                 </div>
@@ -892,26 +892,26 @@ export default function AddPropertyPanel({ onClose, onSuccess, property }: AddPr
         animate={{ x: 0 }}
         exit={{ x: '100%' }}
         transition={{ type: 'spring', damping: 28, stiffness: 280 }}
-        className="fixed right-0 top-0 h-full w-full sm:w-135 bg-zinc-950 border-l border-zinc-800 z-50 flex flex-col shadow-[0_0_80px_rgba(0,0,0,0.8)]"
+        className="fixed right-0 top-0 h-full w-full sm:w-135 bg-white dark:bg-zinc-950 border-l border-gray-300 dark:border-zinc-800 z-50 flex flex-col shadow-[0_0_80px_rgba(0,0,0,0.8)]"
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-zinc-800 shrink-0">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-gray-300 dark:border-zinc-800 shrink-0">
           <div>
-            <h2 className="text-lg font-bold text-white tracking-tight">{isEditing ? 'Edit Property' : 'Add Property'}</h2>
-            <p className="text-[11px] text-zinc-500 mt-0.5 font-mono uppercase tracking-wider">
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white tracking-tight">{isEditing ? 'Edit Property' : 'Add Property'}</h2>
+            <p className="text-[11px] text-gray-600 dark:text-zinc-500 mt-0.5 font-mono uppercase tracking-wider">
               Step {step + 1} / {STEPS.length} — {STEPS[step]}
             </p>
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-zinc-800 rounded-full transition-colors text-zinc-400 hover:text-white"
+            className="p-2 hover:bg-gray-200 dark:hover:bg-zinc-800 rounded-full transition-colors text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
           >
             <X size={18} />
           </button>
         </div>
 
         {/* Step indicator */}
-        <div className="px-6 pt-5 pb-4 border-b border-zinc-800/60 shrink-0">
+        <div className="px-6 pt-5 pb-4 border-b border-gray-300 dark:border-zinc-800/60 shrink-0">
           <div className="flex items-center">
             {STEPS.map((label, i) => (
               <React.Fragment key={i}>
@@ -929,14 +929,14 @@ export default function AddPropertyPanel({ onClose, onSuccess, property }: AddPr
                         ? 'bg-neon-yellow text-black'
                         : i === step
                         ? 'bg-neon-yellow text-black ring-[3px] ring-neon-yellow/25'
-                        : 'bg-zinc-800 text-zinc-500 border border-zinc-700'
+                        : 'bg-gray-200 dark:bg-zinc-800 text-gray-600 dark:text-zinc-500 border border-gray-300 dark:border-zinc-700'
                     }`}
                   >
                     {i < step ? <Check size={12} strokeWidth={3} /> : i + 1}
                   </div>
                   <span
                     className={`text-xs font-semibold hidden sm:block whitespace-nowrap ${
-                      i === step ? 'text-white' : i < step ? 'text-neon-yellow' : 'text-zinc-600'
+                      i === step ? 'text-gray-900 dark:text-white' : i < step ? 'text-neon-yellow' : 'text-gray-600 dark:text-zinc-600'
                     }`}
                   >
                     {label}
@@ -945,7 +945,7 @@ export default function AddPropertyPanel({ onClose, onSuccess, property }: AddPr
                 {i < STEPS.length - 1 && (
                   <div
                     className={`flex-1 h-px mx-3 transition-colors ${
-                      i < step ? 'bg-neon-yellow/60' : 'bg-zinc-800'
+                      i < step ? 'bg-neon-yellow/60' : 'bg-gray-300 dark:bg-zinc-800'
                     }`}
                   />
                 )}

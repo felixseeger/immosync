@@ -31,7 +31,7 @@ import Properties from './components/Properties';
 const SidebarItem = ({ icon: Icon, label, active = false, onClick }: { icon: any, label: string, active?: boolean, onClick: () => void }) => (
   <div 
     onClick={onClick}
-    className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition-all duration-200 group ${active ? 'text-neon-yellow' : 'text-zinc-400 hover:text-white'}`}
+    className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition-all duration-200 group ${active ? 'text-neon-yellow' : 'text-gray-500 dark:text-zinc-400 hover:text-gray-700 dark:hover:text-white'}`}
   >
     <div className={`relative ${active ? 'text-neon-yellow' : ''}`}>
       <Icon size={20} />
@@ -75,12 +75,12 @@ export default function App() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-white dark:bg-black flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 bg-neon-yellow rounded-lg flex items-center justify-center animate-pulse">
             <div className="w-6 h-6 border-2 border-black rotate-45" />
           </div>
-          <p className="text-zinc-500 technical-label animate-pulse">Initializing SiteSync...</p>
+          <p className="text-gray-500 dark:text-zinc-500 technical-label animate-pulse">Initializing SiteSync...</p>
         </div>
       </div>
     );
@@ -91,16 +91,16 @@ export default function App() {
   }
 
   return (
-    <div className="flex h-screen bg-black overflow-hidden font-sans text-zinc-100">
+    <div className="flex h-screen bg-white dark:bg-black overflow-hidden font-sans text-gray-900 dark:text-zinc-100">
       {/* Sidebar */}
-      <aside className="w-64 border-r border-border-dark flex flex-col bg-black z-20">
+      <aside className="w-64 border-r border-gray-200 dark:border-border-dark flex flex-col bg-gray-50 dark:bg-black z-20">
         <div className="p-6 flex items-center gap-2">
           <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
             <rect width="32" height="32" rx="8" fill="#D9FF00"/>
             <polyline points="6,22 12,12 18,19 22,14 26,14" stroke="black" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
             <circle cx="26" cy="14" r="2.5" fill="black"/>
           </svg>
-          <h1 className="text-xl font-bold tracking-tighter text-white">SITESYNC<span className="text-neon-yellow">.IO</span></h1>
+          <h1 className="text-xl font-bold tracking-tighter text-gray-900 dark:text-white">SITESYNC<span className="text-neon-yellow">.IO</span></h1>
         </div>
 
         <nav className="flex-1 mt-4">
@@ -112,13 +112,13 @@ export default function App() {
           <SidebarItem icon={MessageSquare} label="Messages" active={activeTab === 'Messages'} onClick={() => setActiveTab('Messages')} />
         </nav>
 
-        <div className="p-4 border-t border-border-dark space-y-2">
+        <div className="p-4 border-t border-gray-200 dark:border-border-dark space-y-2">
           {/* Theme toggle */}
           <div className="flex items-center justify-between px-2 py-1">
-            <span className="text-xs text-zinc-600 uppercase tracking-wider font-medium">Theme</span>
+            <span className="text-xs text-gray-600 dark:text-zinc-600 uppercase tracking-wider font-medium">Theme</span>
             <button
               onClick={() => setIsDarkMode(d => !d)}
-              className="p-1.5 hover:bg-zinc-800 rounded-lg transition-colors text-zinc-400 hover:text-white"
+              className="p-1.5 hover:bg-gray-200 dark:hover:bg-zinc-800 rounded-lg transition-colors text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
               title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
             >
               {isDarkMode ? <Sun size={16} /> : <Moon size={16} />}
@@ -128,16 +128,16 @@ export default function App() {
           <div className="relative">
             <button
               onClick={() => setShowUserMenu(m => !m)}
-              className="flex items-center gap-3 p-2 rounded-xl hover:bg-zinc-800 transition-colors w-full text-left"
+              className="flex items-center gap-3 p-2 rounded-xl hover:bg-gray-200 dark:hover:bg-zinc-800 transition-colors w-full text-left"
             >
-              <div className="w-10 h-10 rounded-full bg-zinc-800 border border-border-dark overflow-hidden shrink-0">
+              <div className="w-10 h-10 rounded-full bg-gray-300 dark:bg-zinc-800 border border-gray-300 dark:border-border-dark overflow-hidden shrink-0">
                 <img src={user.photoURL || `https://picsum.photos/seed/${user.uid}/100/100`} alt="Avatar" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate text-white">{user.displayName || 'User'}</p>
-                <p className="text-xs text-zinc-500 truncate">{user.email}</p>
+                <p className="text-sm font-medium truncate text-gray-900 dark:text-white">{user.displayName || 'User'}</p>
+                <p className="text-xs text-gray-600 dark:text-zinc-500 truncate">{user.email}</p>
               </div>
-              <ChevronUp size={14} className={`text-zinc-500 transition-transform shrink-0 ${showUserMenu ? '' : 'rotate-180'}`} />
+              <ChevronUp size={14} className={`text-gray-600 dark:text-zinc-500 transition-transform shrink-0 ${showUserMenu ? '' : 'rotate-180'}`} />
             </button>
             <AnimatePresence>
               {showUserMenu && (
@@ -145,11 +145,11 @@ export default function App() {
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 8 }}
-                  className="absolute bottom-full left-0 right-0 mb-2 bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl overflow-hidden"
+                  className="absolute bottom-full left-0 right-0 mb-2 bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded-xl shadow-2xl overflow-hidden"
                 >
                   <button
                     onClick={handleLogout}
-                    className="flex items-center gap-3 px-4 py-3 w-full text-left text-sm text-red-400 hover:bg-zinc-800 transition-colors"
+                    className="flex items-center gap-3 px-4 py-3 w-full text-left text-sm text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-zinc-800 transition-colors"
                   >
                     <LogOut size={16} />
                     Sign Out
@@ -162,19 +162,19 @@ export default function App() {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-hidden relative bg-black">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,var(--tw-gradient-stops))] from-zinc-900/20 via-black to-black pointer-events-none" />
+      <main className="flex-1 overflow-hidden relative bg-white dark:bg-black">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,var(--tw-gradient-stops))] from-gray-100 dark:from-zinc-900/20 via-white dark:via-black to-white dark:to-black pointer-events-none" />
         
         {activeTab === 'Dashboard' && <Dashboard />}
         {activeTab === 'Properties' && <Properties />}
         
         {activeTab !== 'Dashboard' && activeTab !== 'Properties' && (
-          <div className="h-full flex items-center justify-center text-zinc-500">
+          <div className="h-full flex items-center justify-center text-gray-500 dark:text-zinc-500">
             <div className="text-center">
-              <div className="w-16 h-16 bg-zinc-900 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-gray-200 dark:bg-zinc-900 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Settings className="animate-spin-slow" size={32} />
               </div>
-              <h3 className="text-lg font-medium text-white mb-1">{activeTab} Module</h3>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-1">{activeTab} Module</h3>
               <p className="text-sm">This module is currently under development.</p>
             </div>
           </div>
