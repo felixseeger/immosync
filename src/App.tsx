@@ -50,7 +50,10 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('Dashboard');
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isDarkMode, setIsDarkMode] = useState(true);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const stored = localStorage.getItem('theme-mode');
+    return stored ? stored === 'dark' : true;
+  });
   const [showUserMenu, setShowUserMenu] = useState(false);
 
   useEffect(() => {
@@ -63,6 +66,7 @@ export default function App() {
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', isDarkMode);
+    localStorage.setItem('theme-mode', isDarkMode ? 'dark' : 'light');
   }, [isDarkMode]);
 
   const handleLogout = async () => {
