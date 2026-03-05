@@ -65,6 +65,12 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    // Initialize dark class on mount
+    document.documentElement.classList.toggle('dark', isDarkMode);
+  }, []);
+
+  useEffect(() => {
+    // Update dark class and localStorage when mode changes
     document.documentElement.classList.toggle('dark', isDarkMode);
     localStorage.setItem('theme-mode', isDarkMode ? 'dark' : 'light');
   }, [isDarkMode]);
