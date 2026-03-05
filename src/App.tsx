@@ -68,6 +68,11 @@ export default function App() {
     // Initialize dark class on mount based on localStorage
     const isDark = localStorage.getItem('theme-mode') ? localStorage.getItem('theme-mode') === 'dark' : true;
     document.documentElement.classList.toggle('dark', isDark);
+    if (isDark) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
     console.log('Dark mode initialized:', isDark, 'classList:', document.documentElement.classList.toString());
   }, []);
 

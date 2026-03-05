@@ -1,8 +1,19 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
 @import "tailwindcss";
 
-body {
-  @apply bg-white dark:bg-black text-black dark:text-white font-sans antialiased;
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  :root.dark {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-white dark:bg-black text-black dark:text-white font-sans antialiased;
+  }
 }
 
 .technical-label {

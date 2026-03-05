@@ -5,6 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>My Google AI Studio App</title>
     <script>
+      // Initialize dark mode before React renders to prevent flash
+      const themeMode = localStorage.getItem('theme-mode');
+      const isDark = themeMode ? themeMode === 'dark' : true;
+      if (isDark) {
+        document.documentElement.classList.add('dark');
+      }
+      
       // Fix for "Cannot set property fetch of #<Window> which has only a getter"
       // This error occurs when a library tries to overwrite window.fetch
       try {
