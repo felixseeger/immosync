@@ -67,20 +67,18 @@ export default function App() {
   useEffect(() => {
     // Initialize dark class on mount based on localStorage
     const isDark = localStorage.getItem('theme-mode') ? localStorage.getItem('theme-mode') === 'dark' : true;
-    document.documentElement.classList.toggle('dark', isDark);
-    if (isDark) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-    console.log('Dark mode initialized:', isDark, 'classList:', document.documentElement.classList.toString());
+    setIsDarkMode(isDark);
   }, []);
 
   useEffect(() => {
     // Update dark class and localStorage when mode changes
-    document.documentElement.classList.toggle('dark', isDarkMode);
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
     localStorage.setItem('theme-mode', isDarkMode ? 'dark' : 'light');
-    console.log('Theme changed to:', isDarkMode ? 'dark' : 'light', 'classList:', document.documentElement.classList.toString());
+    console.log('Theme toggled:', isDarkMode ? 'DARK' : 'LIGHT', 'html.classList:', Array.from(document.documentElement.classList));
   }, [isDarkMode]);
 
   const handleLogout = async () => {
@@ -131,16 +129,24 @@ export default function App() {
         </nav>
 
         <div className="p-4 border-t border-gray-200 dark:border-border-dark space-y-2">
-          {/* Theme toggle */}
+          {/* Theme toggle with visual feedback */}
           <div className="flex items-center justify-between px-2 py-1">
             <span className="text-xs text-gray-600 dark:text-zinc-600 uppercase tracking-wider font-medium">Theme</span>
-            <button
-              onClick={() => setIsDarkMode(d => !d)}
-              className="p-1.5 hover:bg-gray-200 dark:hover:bg-zinc-800 rounded-lg transition-colors text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
-              title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
-            >
-              {isDarkMode ? <Sun size={16} /> : <Moon size={16} />}
-            </button>
+            <div className="flex items-center gap-2">
+              <span className="text-xs px-2 py-1 rounded bg-gray-100 dark:bg-zinc-900 text-gray-600 dark:text-zinc-400">
+                {isDarkMode ? 'DARK' : 'LIGHT'}
+              </span>
+              <button
+                onClick={() => {
+                  console.log('Toggle clicked! Current isDarkMode:', isDarkMode);
+                  setIsDarkMode(d => !d);
+                }}
+                className="p-1.5 hover:bg-gray-200 dark:hover:bg-zinc-800 rounded-lg transition-colors text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
+                title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+              >
+                {isDarkMode ? <Sun size={16} /> : <Moon size={16} />}
+              </button>
+            </div>
           </div>
           {/* User badge with logout popover */}
           <div className="relative">

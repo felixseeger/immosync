@@ -3,11 +3,11 @@
 @import "tailwindcss";
 
 @layer base {
-  :root {
+  html {
     color-scheme: light;
   }
 
-  :root.dark {
+  html.dark {
     color-scheme: dark;
   }
 
