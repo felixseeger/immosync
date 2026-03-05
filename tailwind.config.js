@@ -1,15 +1,12 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  darkMode: 'class',
+  darkMode: ['selector', '.dark'],
   content: [
     './index.html',
-    './src/**/*.{js,ts,jsx,tsx}',
+    './src/**/*.tsx',
+    './src/**/*.ts',
   ],
   theme: {
-    fontFamily: {
-      sans: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],
-      mono: ["JetBrains Mono", "ui-monospace", "SFMono-Regular", "monospace"],
-    },
     extend: {
       colors: {
         'neon-yellow': '#D9FF00',
