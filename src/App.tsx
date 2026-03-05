@@ -18,7 +18,8 @@ import {
   Maximize2,
   ChevronRight,
   Settings,
-  LogOut
+  LogOut,
+  ChevronUp
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { onAuthStateChanged, signOut, User as FirebaseUser } from 'firebase/auth';
@@ -49,6 +50,8 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('Dashboard');
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isDarkMode, setIsDarkMode] = useState(true);
+  const [showUserMenu, setShowUserMenu] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -57,6 +60,10 @@ export default function App() {
     });
     return () => unsubscribe();
   }, []);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', isDarkMode);
+  }, [isDarkMode]);
 
   const handleLogout = async () => {
     try {
@@ -88,9 +95,11 @@ export default function App() {
       {/* Sidebar */}
       <aside className="w-64 border-r border-border-dark flex flex-col bg-black z-20">
         <div className="p-6 flex items-center gap-2">
-          <div className="w-8 h-8 bg-neon-yellow rounded-lg flex items-center justify-center">
-            <div className="w-4 h-4 border-2 border-black rotate-45" />
-          </div>
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
+            <rect width="32" height="32" rx="8" fill="#D9FF00"/>
+            <polyline points="6,22 12,12 18,19 22,14 26,14" stroke="black" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+            <circle cx="26" cy="14" r="2.5" fill="black"/>
+          </svg>
           <h1 className="text-xl font-bold tracking-tighter text-white">SITESYNC<span className="text-neon-yellow">.IO</span></h1>
         </div>
 
@@ -104,29 +113,57 @@ export default function App() {
         </nav>
 
         <div className="p-4 border-t border-border-dark space-y-2">
-          <div className="flex items-center gap-3 p-2 rounded-xl hover:bg-panel-dark transition-colors cursor-pointer group">
-            <div className="w-10 h-10 rounded-full bg-zinc-800 border border-border-dark overflow-hidden">
-              <img src={user.photoURL || `https://picsum.photos/seed/${user.uid}/100/100`} alt="Avatar" referrerPolicy="no-referrer" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate text-white">{user.displayName || 'User'}</p>
-              <p className="text-xs text-zinc-500 truncate">{user.email}</p>
-            </div>
-            <Settings size={16} className="text-zinc-500 group-hover:text-white" />
+          {/* Theme toggle */}
+          <div className="flex items-center justify-between px-2 py-1">
+            <span className="text-xs text-zinc-600 uppercase tracking-wider font-medium">Theme</span>
+            <button
+              onClick={() => setIsDarkMode(d => !d)}
+              className="p-1.5 hover:bg-zinc-800 rounded-lg transition-colors text-zinc-400 hover:text-white"
+              title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+            >
+              {isDarkMode ? <Sun size={16} /> : <Moon size={16} />}
+            </button>
           </div>
-          <button 
-            onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-4 py-2 text-zinc-500 hover:text-red-500 transition-colors text-sm font-medium"
-          >
-            <LogOut size={18} />
-            Sign Out
-          </button>
+          {/* User badge with logout popover */}
+          <div className="relative">
+            <button
+              onClick={() => setShowUserMenu(m => !m)}
+              className="flex items-center gap-3 p-2 rounded-xl hover:bg-zinc-800 transition-colors w-full text-left"
+            >
+              <div className="w-10 h-10 rounded-full bg-zinc-800 border border-border-dark overflow-hidden shrink-0">
+                <img src={user.photoURL || `https://picsum.photos/seed/${user.uid}/100/100`} alt="Avatar" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate text-white">{user.displayName || 'User'}</p>
+                <p className="text-xs text-zinc-500 truncate">{user.email}</p>
+              </div>
+              <ChevronUp size={14} className={`text-zinc-500 transition-transform shrink-0 ${showUserMenu ? '' : 'rotate-180'}`} />
+            </button>
+            <AnimatePresence>
+              {showUserMenu && (
+                <motion.div
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 8 }}
+                  className="absolute bottom-full left-0 right-0 mb-2 bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl overflow-hidden"
+                >
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center gap-3 px-4 py-3 w-full text-left text-sm text-red-400 hover:bg-zinc-800 transition-colors"
+                  >
+                    <LogOut size={16} />
+                    Sign Out
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
       </aside>
 
       {/* Main Content */}
       <main className="flex-1 overflow-hidden relative bg-black">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-zinc-900/20 via-black to-black pointer-events-none" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,var(--tw-gradient-stops))] from-zinc-900/20 via-black to-black pointer-events-none" />
         
         {activeTab === 'Dashboard' && <Dashboard />}
         {activeTab === 'Properties' && <Properties />}

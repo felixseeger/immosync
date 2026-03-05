@@ -1,16 +1,37 @@
 import React, { useState } from 'react';
 import { Property } from '../types';
+import MatchingProspects from './MatchingProspects';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, MapPin, Bed, Bath, Ruler, CheckCircle, Image as ImageIcon, ArrowLeft } from 'lucide-react';
+import { X, MapPin, Bed, Bath, Ruler, CheckCircle, Image as ImageIcon, ArrowLeft, Pencil, Trash2, Loader2 } from 'lucide-react';
 import ImageUpload from './ImageUpload';
+import AddPropertyPanel from './AddPropertyPanel';
+import { deleteProperty } from '../services/propertyService';
 
 interface PropertyDetailProps {
   property: Property;
   onClose: () => void;
+  onDeleted?: () => void;
 }
 
-export default function PropertyDetail({ property, onClose }: PropertyDetailProps) {
+export default function PropertyDetail({ property, onClose, onDeleted }: PropertyDetailProps) {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [showEditPanel, setShowEditPanel] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    try {
+      await deleteProperty(property.id);
+      onDeleted?.();
+      onClose();
+    } catch (err) {
+      console.error('Failed to delete property:', err);
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteConfirm(false);
+    }
+  };
 
   const handleUploadComplete = (url: string) => {
     // Optimistically update the local state or re-fetch
@@ -47,7 +68,7 @@ export default function PropertyDetail({ property, onClose }: PropertyDetailProp
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
             <span className={`px-3 py-1 rounded-full text-xs font-medium border ${
               property.status === 'Active' ? 'bg-neon-yellow/10 border-neon-yellow/20 text-neon-yellow' :
               property.status === 'Pending' ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' :
@@ -55,6 +76,20 @@ export default function PropertyDetail({ property, onClose }: PropertyDetailProp
             }`}>
               {property.status}
             </span>
+            <button
+              onClick={() => setShowEditPanel(true)}
+              className="p-2 hover:bg-zinc-800 rounded-full transition-colors text-zinc-400 hover:text-white"
+              title="Edit property"
+            >
+              <Pencil size={16} />
+            </button>
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              className="p-2 hover:bg-zinc-800 rounded-full transition-colors text-zinc-400 hover:text-red-400"
+              title="Delete property"
+            >
+              <Trash2 size={16} />
+            </button>
             <button onClick={onClose} className="p-2 hover:bg-zinc-800 rounded-full transition-colors">
               <X size={20} className="text-zinc-400" />
             </button>
@@ -72,7 +107,7 @@ export default function PropertyDetail({ property, onClose }: PropertyDetailProp
                   alt={property.title}
                   className="w-full h-full object-cover"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-6">
+                <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-6">
                   <button className="bg-white text-black px-4 py-2 rounded-lg font-medium text-sm hover:bg-zinc-200 transition-colors">
                     View Full Screen
                   </button>
@@ -126,6 +161,8 @@ export default function PropertyDetail({ property, onClose }: PropertyDetailProp
                 </div>
               </div>
             </div>
+
+            <MatchingProspects property={property} />
 
             {/* Sidebar */}
             <div className="space-y-6">
@@ -183,7 +220,7 @@ export default function PropertyDetail({ property, onClose }: PropertyDetailProp
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[60] bg-black/95 flex items-center justify-center p-4"
+            className="fixed inset-0 z-60 bg-black/95 flex items-center justify-center p-4"
             onClick={() => setSelectedImage(null)}
           >
             <button 
@@ -198,6 +235,68 @@ export default function PropertyDetail({ property, onClose }: PropertyDetailProp
               className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
             />
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Delete Confirmation Modal */}
+      <AnimatePresence>
+        {showDeleteConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-60 flex items-center justify-center p-6"
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-zinc-900 border border-zinc-700 rounded-2xl p-6 max-w-sm w-full shadow-2xl"
+            >
+              <div className="flex items-center gap-3 mb-3">
+                <div className="p-2 bg-red-500/10 rounded-full">
+                  <Trash2 size={20} className="text-red-400" />
+                </div>
+                <h3 className="text-lg font-bold text-white">Delete Property?</h3>
+              </div>
+              <p className="text-sm text-zinc-400 mb-6">
+                This will permanently delete{' '}
+                <span className="text-white font-medium">{property.title}</span>{' '}
+                and all associated images. This action cannot be undone.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowDeleteConfirm(false)}
+                  disabled={isDeleting}
+                  className="flex-1 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white text-sm font-medium rounded-lg transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDelete}
+                  disabled={isDeleting}
+                  className="flex-1 py-2.5 bg-red-500 hover:bg-red-600 text-white text-sm font-bold rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {isDeleting ? (
+                    <><Loader2 className="animate-spin" size={14} /> Deleting…</>
+                  ) : (
+                    'Delete'
+                  )}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Edit Panel */}
+      <AnimatePresence>
+        {showEditPanel && (
+          <AddPropertyPanel
+            property={property}
+            onClose={() => setShowEditPanel(false)}
+            onSuccess={() => setShowEditPanel(false)}
+          />
         )}
       </AnimatePresence>
     </motion.div>

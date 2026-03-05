@@ -5,6 +5,7 @@ import PropertyGrid from './PropertyGrid';
 import PropertyDetail from './PropertyDetail';
 import { Loader2, Plus, Filter, Search, Database } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import AddPropertyPanel from './AddPropertyPanel';
 
 export default function Properties() {
   const [properties, setProperties] = useState<Property[]>([]);
@@ -12,6 +13,7 @@ export default function Properties() {
   const [seeding, setSeeding] = useState(false);
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const [filter, setFilter] = useState('All');
+  const [showAddPanel, setShowAddPanel] = useState(false);
 
   const fetchProperties = async () => {
     try {
@@ -86,7 +88,7 @@ export default function Properties() {
               className="bg-zinc-900 border border-zinc-800 text-white text-sm rounded-lg pl-9 pr-4 py-2 focus:outline-none focus:border-neon-yellow w-64 transition-colors"
             />
           </div>
-          <button className="bg-neon-yellow text-black px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-yellow-400 transition-colors">
+          <button onClick={() => setShowAddPanel(true)} className="bg-neon-yellow text-black px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-yellow-400 transition-colors">
             <Plus size={16} />
             Add Property
           </button>
@@ -113,7 +115,7 @@ export default function Properties() {
                 {seeding ? <Loader2 className="animate-spin" size={16} /> : <Database size={16} />}
                 Load Demo Data
               </button>
-              <button className="px-4 py-2 bg-neon-yellow text-black hover:bg-yellow-400 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
+              <button onClick={() => setShowAddPanel(true)} className="px-4 py-2 bg-neon-yellow text-black hover:bg-yellow-400 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
                 <Plus size={16} />
                 Add Property
               </button>
@@ -133,6 +135,15 @@ export default function Properties() {
           <PropertyDetail 
             property={selectedProperty} 
             onClose={() => setSelectedProperty(null)} 
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showAddPanel && (
+          <AddPropertyPanel
+            onClose={() => setShowAddPanel(false)}
+            onSuccess={() => { setShowAddPanel(false); fetchProperties(); }}
           />
         )}
       </AnimatePresence>

@@ -7,6 +7,7 @@ export const uploadPropertyImage = async (
   onProgress: (progress: number) => void
 ): Promise<string> => {
   try {
+    console.log(`uploadPropertyImage starting for file: ${file.name}, propertyId: ${propertyId}`);
     const storageRef = ref(storage, `properties/${propertyId}/${file.name}-${Date.now()}`);
     const uploadTask = uploadBytesResumable(storageRef, file);
 
@@ -24,8 +25,10 @@ export const uploadPropertyImage = async (
         async () => {
           try {
             const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+            console.log(`uploadPropertyImage completed successfully: ${downloadURL}`);
             resolve(downloadURL);
           } catch (error) {
+            console.error('Error getting download URL:', error);
             reject(error);
           }
         }
