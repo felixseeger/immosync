@@ -11,9 +11,9 @@ import PropertyMap from './PropertyMap';
 import ActivityStream from './ActivityStream';
 
 const StatCard = ({ title, value, change, trend, icon: Icon }: { title: string, value: string, change: string, trend: 'up' | 'down', icon: any }) => (
-  <div className="bg-white dark:bg-panel-dark border border-gray-200 dark:border-border-dark rounded-xl p-6 hover:border-neon-yellow/50 transition-colors group">
+  <div className="bg-white dark:bg-zinc-900 dark:border-zinc-800 border border-gray-200 dark:border-zinc-800 rounded-xl p-6 hover:border-neon-yellow/50 transition-colors group">
     <div className="flex justify-between items-start mb-4">
-      <div className="p-2 bg-gray-100 dark:bg-zinc-900 rounded-lg group-hover:bg-neon-yellow/10 transition-colors">
+      <div className="p-2 bg-gray-100 dark:bg-zinc-800 rounded-lg group-hover:bg-neon-yellow/10 transition-colors">
         <Icon className="text-gray-600 dark:text-zinc-400 group-hover:text-neon-yellow transition-colors" size={20} />
       </div>
       <div className={`flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full ${
@@ -37,7 +37,7 @@ export default function Dashboard() {
           <p className="text-gray-600 dark:text-zinc-500 text-sm">Real-time insights and performance metrics</p>
         </div>
         <div className="flex gap-3">
-          <button className="px-4 py-2 bg-gray-100 dark:bg-zinc-900 border border-gray-300 dark:border-border-dark rounded-lg text-sm text-gray-700 dark:text-zinc-300 hover:text-gray-900 dark:hover:text-white hover:border-gray-400 dark:hover:border-zinc-700 transition-colors">
+          <button className="px-4 py-2 bg-gray-100 dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 rounded-lg text-sm text-gray-700 dark:text-zinc-300 hover:text-gray-900 dark:hover:text-white hover:border-gray-400 dark:hover:border-zinc-600 transition-colors">
             Export Report
           </button>
           <button className="px-4 py-2 bg-neon-yellow text-black font-bold rounded-lg text-sm hover:bg-neon-yellow/90 transition-colors">
@@ -74,8 +74,8 @@ export default function Dashboard() {
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 min-h-0">
         {/* Map Section */}
-        <div className="lg:col-span-2 bg-white dark:bg-panel-dark border border-gray-200 dark:border-border-dark rounded-xl p-1 flex flex-col h-[500px] lg:h-auto">
-          <div className="p-4 border-b border-gray-200 dark:border-border-dark flex justify-between items-center">
+        <div className="lg:col-span-2 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl p-1 flex flex-col h-[500px] lg:h-auto">
+          <div className="p-4 border-b border-gray-200 dark:border-zinc-800 flex justify-between items-center">
             <h3 className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
               <Activity size={16} className="text-neon-yellow" />
               Portfolio Map
@@ -91,8 +91,8 @@ export default function Dashboard() {
         </div>
 
         {/* Activity Stream Section */}
-        <div className="bg-white dark:bg-panel-dark border border-gray-200 dark:border-border-dark rounded-xl flex flex-col h-[500px] lg:h-auto overflow-hidden">
-          <div className="p-4 border-b border-gray-200 dark:border-border-dark">
+        <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl flex flex-col h-[500px] lg:h-auto overflow-hidden">
+          <div className="p-4 border-b border-gray-200 dark:border-zinc-800">
             <h3 className="font-bold text-gray-900 dark:text-white">Recent Activity</h3>
           </div>
           <div className="flex-1 p-4 overflow-hidden">
