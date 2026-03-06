@@ -27,6 +27,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { onAuthStateChanged, signOut, User as FirebaseUser } from 'firebase/auth';
 import { auth } from './firebase';
 import Auth from './components/Auth';
+import PasswordReset from './components/PasswordReset';
 import LandingPassword, { isGateUnlocked } from './components/LandingPassword';
 import Dashboard from './components/Dashboard';
 import Properties from './components/Properties';
@@ -73,6 +74,7 @@ export default function App() {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showUserSettings, setShowUserSettings] = useState(false);
   const [gateUnlocked, setGateUnlocked] = useState(() => isGateUnlocked());
+  const [showPasswordReset, setShowPasswordReset] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
@@ -131,7 +133,15 @@ export default function App() {
     if (!gateUnlocked) {
       return <LandingPassword onUnlock={() => setGateUnlocked(true)} />;
     }
-    return <Auth onSuccess={() => {}} />;
+    if (showPasswordReset) {
+      return <PasswordReset onBack={() => setShowPasswordReset(false)} />;
+    }
+    return (
+      <Auth
+        onSuccess={() => {}}
+        onForgotPassword={() => setShowPasswordReset(true)}
+      />
+    );
   }
 
   const closeSidebar = () => setSidebarOpen(false);
@@ -174,7 +184,7 @@ export default function App() {
                 <polyline points="6,22 12,12 18,19 22,14 26,14" stroke="black" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
                 <circle cx="26" cy="14" r="2.5" fill="black"/>
               </svg>
-              <h1 className="text-xl font-bold tracking-tighter text-gray-900 dark:text-white truncate">SITESYNC<span className="text-neon-yellow">.IO</span></h1>
+              <h1 className="text-xl font-bold tracking-tighter text-gray-900 dark:text-white truncate">SITESYNC</h1>
             </>
           )}
           {/* Mobile: close button */}

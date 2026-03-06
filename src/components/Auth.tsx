@@ -10,9 +10,10 @@ import { Mail, Lock, User, ArrowRight, Loader2, AlertCircle } from 'lucide-react
 
 interface AuthProps {
   onSuccess: () => void;
+  onForgotPassword?: () => void;
 }
 
-export default function Auth({ onSuccess }: AuthProps) {
+export default function Auth({ onSuccess, onForgotPassword }: AuthProps) {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -54,11 +55,11 @@ export default function Auth({ onSuccess }: AuthProps) {
         className="w-full max-w-md relative"
       >
         <div className="flex justify-center mb-8">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col items-center gap-3">
             <div className="w-10 h-10 bg-neon-yellow rounded-lg flex items-center justify-center">
               <div className="w-5 h-5 border-2 border-black rotate-45" />
             </div>
-            <h1 className="text-2xl font-bold tracking-tighter">SITESYNC<span className="text-neon-yellow">.IO</span></h1>
+            <h1 className="text-2xl font-bold tracking-tighter text-center">SITESYNC</h1>
           </div>
         </div>
 
@@ -104,7 +105,18 @@ export default function Auth({ onSuccess }: AuthProps) {
             </div>
 
             <div className="space-y-1.5">
-              <label className="technical-label text-zinc-400 ml-1">Password</label>
+              <div className="flex items-center justify-between ml-1">
+                <label className="technical-label text-zinc-400">Password</label>
+                {onForgotPassword && (
+                  <button
+                    type="button"
+                    onClick={onForgotPassword}
+                    className="technical-label text-neon-yellow hover:underline"
+                  >
+                    Forgot password?
+                  </button>
+                )}
+              </div>
               <div className="relative group">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-neon-yellow transition-colors" size={18} />
                 <input 
@@ -132,7 +144,7 @@ export default function Auth({ onSuccess }: AuthProps) {
             <button 
               type="submit"
               disabled={loading}
-              className="w-full flex items-center justify-center gap-2 bg-neon-yellow text-black font-bold py-3 rounded-lg hover:bg-neon-yellow/90 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed mt-4"
+              className="w-full flex items-center justify-center gap-2 bg-black border border-neon-yellow text-neon-yellow font-bold py-3 rounded-lg hover:bg-neon-yellow/10 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed mt-4"
             >
               {loading ? (
                 <Loader2 className="animate-spin" size={20} />
