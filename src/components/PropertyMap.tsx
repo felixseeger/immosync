@@ -376,7 +376,7 @@ export default function PropertyMap({ properties, isDarkMode = true, onSelectPro
               <div className="p-3">
                 <h4 className="font-bold text-gray-900 dark:text-white text-sm truncate">{popupProperty.property.title}</h4>
                 <p className="text-xs text-neon-green mt-0.5 font-medium">
-                  ${popupProperty.property.price?.toLocaleString()}
+                  €{popupProperty.property.price?.toLocaleString()}
                 </p>
                 <div className="flex items-center gap-3 mt-2 text-[11px] text-gray-500 dark:text-zinc-400">
                   <span className="flex items-center gap-1"><Bed size={12} /> {popupProperty.property.bedrooms ?? '—'}</span>

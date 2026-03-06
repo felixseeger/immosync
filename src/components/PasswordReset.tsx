@@ -20,7 +20,12 @@ export default function PasswordReset({ onBack }: PasswordResetProps) {
     setError(null);
 
     try {
-      await sendPasswordResetEmail(auth, email);
+      const trimmed = email.trim().toLowerCase();
+      const origin = typeof window !== 'undefined' ? window.location.origin : '';
+      const actionCodeSettings = origin
+        ? { url: `${origin}/`, handleCodeInApp: false }
+        : undefined;
+      await sendPasswordResetEmail(auth, trimmed, actionCodeSettings);
       setSent(true);
     } catch (err: unknown) {
       const message = err && typeof err === 'object' && 'message' in err
@@ -67,9 +72,14 @@ export default function PasswordReset({ onBack }: PasswordResetProps) {
             >
               <div className="flex items-center gap-3 p-4 bg-accent/10 border border-accent/20 rounded-lg text-accent">
                 <CheckCircle size={24} className="shrink-0" />
-                <p className="text-sm">
-                  If an account exists for <strong className="text-white">{email}</strong>, you’ll receive a password reset link. Check your inbox and spam folder.
-                </p>
+                <div className="text-sm space-y-1">
+                  <p>
+                    If an account exists for <strong className="text-white">{email}</strong>, you’ll receive a password reset link.
+                  </p>
+                  <p className="text-zinc-400 text-xs">
+                    Check spam/junk and the email you use to sign in. If you still don’t see it, the account may not exist for this address—try signing up or use another sign-in method.
+                  </p>
+                </div>
               </div>
               <button
                 type="button"

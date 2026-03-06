@@ -98,8 +98,8 @@ export default function Properties({
               key={status}
               onClick={() => setFilter(status)}
               className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                filter === status 
-                  ? 'bg-gray-300 dark:bg-zinc-800 text-gray-900 dark:text-white shadow-sm' 
+                filter === status
+                  ? 'bg-gray-300 dark:bg-zinc-800 text-accent shadow-sm'
                   : 'text-gray-600 dark:text-zinc-500 hover:text-gray-800 dark:hover:text-zinc-300'
               }`}
             >

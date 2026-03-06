@@ -4,9 +4,9 @@ import { DollarSign, User, Building2 } from 'lucide-react';
 import type { Deal } from '../types';
 
 function formatValue(value: number, dealType: 'sale' | 'rental'): string {
-  if (value >= 1_000_000) return `$${(value / 1_000_000).toFixed(1)}M`;
-  if (value >= 1_000) return `$${(value / 1_000).toFixed(0)}K`;
-  return `$${value.toLocaleString()}`;
+  if (value >= 1_000_000) return `€${(value / 1_000_000).toFixed(1)}M`;
+  if (value >= 1_000) return `€${(value / 1_000).toFixed(0)}K`;
+  return `€${value.toLocaleString()}`;
 }
 
 interface DealCardProps {

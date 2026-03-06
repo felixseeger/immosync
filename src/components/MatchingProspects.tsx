@@ -43,7 +43,7 @@ function formatBudget(sp: Contact['searchProfile']): string | null {
   const max = sp.maxPrice;
   if (min == null && max == null) return null;
   const fmt = (v: number) =>
-    v >= 1_000_000 ? `$${(v / 1_000_000).toFixed(v % 1_000_000 === 0 ? 0 : 1)}M` : `$${(v / 1000).toFixed(0)}K`;
+    v >= 1_000_000 ? `€${(v / 1_000_000).toFixed(v % 1_000_000 === 0 ? 0 : 1)}M` : `€${(v / 1000).toFixed(0)}K`;
   if (min != null && max != null) return `${fmt(min)} – ${fmt(max)}`;
   if (max != null) return `up to ${fmt(max)}`;
   return `from ${fmt(min!)}`;

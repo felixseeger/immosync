@@ -61,9 +61,9 @@ const StatCard = ({
 );
 
 function formatCurrency(n: number): string {
-  if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000) return `$${(n / 1_000).toFixed(0)}K`;
-  return `$${n.toLocaleString()}`;
+  if (n >= 1_000_000) return `€${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1_000) return `€${(n / 1_000).toFixed(0)}K`;
+  return `€${n.toLocaleString()}`;
 }
 
 function getGreeting(): string {
@@ -260,7 +260,7 @@ export default function Dashboard({ user, onAddProperty, onSelectProperty, onOpe
                   <div className="text-[10px] text-gray-500 dark:text-zinc-500 flex flex-col justify-between py-1">
                     <span>{formatCurrency(chartMax)}</span>
                     <span>{formatCurrency(Math.round(chartMax / 2))}</span>
-                    <span>$0</span>
+                    <span>€0</span>
                   </div>
                   <div className="flex-1 min-w-0 overflow-hidden">
                     <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="w-full h-[100px]" preserveAspectRatio="none" aria-hidden>

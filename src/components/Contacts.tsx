@@ -242,7 +242,7 @@ export default function Contacts({
                       </td>
                       <td className="px-4 py-3">
                         {c.category ? (
-                          <span className="inline-flex px-2 py-0.5 rounded-md text-xs font-medium bg-accent/15 text-accent border border-accent/25">
+                          <span className="inline-flex px-2 py-0.5 rounded-md text-xs font-medium bg-[#9372c9]/15 text-[#9372c9] border border-[#9372c9]/25">
                             {CATEGORY_LABELS[c.category]}
                           </span>
                         ) : (
@@ -271,7 +271,7 @@ export default function Contacts({
                               <AnimatedLink
                                 key={propertyId}
                                 onClick={() => onSelectProperty?.(propertyId)}
-                                className="text-left truncate max-w-[140px] inline-block"
+                                className="!text-blue-600 dark:!text-blue-400 text-left truncate max-w-[140px] inline-block"
                                 title={propertyTitles[propertyId] || propertyId}
                               >
                                 {propertyTitles[propertyId] || propertyId}
@@ -284,14 +284,14 @@ export default function Contacts({
                         <div className="flex items-center gap-1">
                           <button
                             onClick={() => setPanelContact(c)}
-                            className="p-2 rounded-lg text-accent hover:bg-accent/15 border border-transparent hover:border-accent/40 transition-colors focus:outline-none focus:ring-2 focus:ring-accent/50"
+                            className="p-2 rounded-lg text-blue-600 dark:text-blue-400 hover:bg-blue-500/15 dark:hover:bg-blue-500/15 border border-transparent hover:border-blue-500/40 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500/50"
                             title="Edit"
                           >
                             <Pencil size={14} />
                           </button>
                           <button
                             onClick={() => setDeleteConfirm(c)}
-                            className="p-2 rounded-lg text-accent hover:bg-accent/15 border border-transparent hover:border-accent/40 transition-colors focus:outline-none focus:ring-2 focus:ring-accent/50"
+                            className="p-2 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-500/15 dark:hover:bg-red-500/15 border border-transparent hover:border-red-500/40 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500/50"
                             title="Delete"
                           >
                             <Trash2 size={14} />

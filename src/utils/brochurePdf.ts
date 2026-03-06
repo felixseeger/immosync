@@ -86,7 +86,7 @@ export async function generateBrochurePdf(property: Property, logoBase64: string
   doc.setFontSize(18);
   doc.setTextColor(0, 0, 0);
   doc.setFont('helvetica', 'bold');
-  doc.text(`$${property.price.toLocaleString()}`, MARGIN, 72);
+  doc.text(`€${property.price.toLocaleString()}`, MARGIN, 72);
 
   const mainImageUrl = property.mainImage || (property.images && property.images[0]);
   if (mainImageUrl) {
@@ -119,7 +119,7 @@ export async function generateBrochurePdf(property: Property, logoBase64: string
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(40, 40, 40);
   const details = [
-    `Price: $${property.price.toLocaleString()}`,
+    `Price: €${property.price.toLocaleString()}`,
     `Beds: ${property.bedrooms ?? '—'}  |  Baths: ${property.bathrooms ?? '—'}  |  Sq Ft: ${property.sqft ?? '—'}`,
     `Type: ${property.type ?? '—'}  |  Status: ${property.status}`,
     `Address: ${property.address || '—'}`,

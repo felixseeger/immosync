@@ -191,10 +191,10 @@ export default function PropertyDetail({ property, onClose, onDeleted }: Propert
             <div className="space-y-6 max-[1560px]:space-y-4 max-[1560px]:lg:col-span-1">
               <div className="bg-white dark:bg-zinc-800/50 rounded-xl p-6 max-[1560px]:p-4 border border-gray-300 dark:border-zinc-800">
                 <div className="text-3xl max-[1560px]:text-2xl font-bold text-gray-900 dark:text-white mb-1">
-                  ${property.price.toLocaleString()}
+                  €{property.price.toLocaleString()}
                 </div>
                 <div className="text-gray-600 dark:text-zinc-500 text-sm max-[1560px]:text-xs mb-6 max-[1560px]:mb-4">
-                  Est. Mortgage: ${Math.round(property.price * 0.0045).toLocaleString()}/mo
+                  Est. Mortgage: €{Math.round(property.price * 0.0045).toLocaleString()}/mo
                 </div>
 
                 <div className="grid grid-cols-3 max-[1560px]:gap-3 gap-4 mb-6 max-[1560px]:mb-4">

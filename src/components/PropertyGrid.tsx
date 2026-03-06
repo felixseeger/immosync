@@ -46,7 +46,7 @@ export default function PropertyGrid({ properties, onSelectProperty }: PropertyG
           <div className="p-4">
             <div className="flex items-center justify-between mb-4">
               <span className="text-2xl font-bold text-gray-900 dark:text-white">
-                ${property.price.toLocaleString()}
+                €{property.price.toLocaleString()}
               </span>
               <span className="text-xs text-gray-600 dark:text-zinc-500 uppercase tracking-wider font-medium">
                 {property.type}
@@ -79,7 +79,7 @@ export default function PropertyGrid({ properties, onSelectProperty }: PropertyG
 
             <div className="mt-4 pt-4 border-t border-gray-300 dark:border-zinc-800 flex justify-between items-center group/btn">
               <span className="text-xs text-gray-600 dark:text-zinc-500">View Details</span>
-              <div className="w-8 h-8 rounded-full bg-gray-300 dark:bg-zinc-800 flex items-center justify-center group-hover/btn:bg-accent group-hover/btn:text-white dark:group-hover/btn:text-black transition-colors text-gray-700 dark:text-gray-300 group-hover/btn:text-black">
+              <div className="w-8 h-8 rounded-full bg-gray-300 dark:bg-zinc-800 flex items-center justify-center group-hover/btn:bg-accent group-hover/btn:text-white dark:group-hover/btn:text-black transition-colors text-blue-600 dark:text-blue-400 group-hover/btn:text-black">
                 <ArrowRight size={14} />
               </div>
             </div>
