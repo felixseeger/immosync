@@ -5,7 +5,7 @@ import PropertyGrid from './PropertyGrid';
 import PropertyList from './PropertyList';
 import PropertyMap from './PropertyMap';
 import PropertyDetail from './PropertyDetail';
-import { Loader2, Plus, Filter, Search, Database, LayoutGrid, List, Map as MapIcon } from 'lucide-react';
+import { Loader2, Plus, Filter, Database, LayoutGrid, List, Map as MapIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import AddPropertyPanel from './AddPropertyPanel';
 
@@ -85,13 +85,13 @@ export default function Properties({
   }
 
   return (
-    <div className="h-full flex flex-col bg-white dark:bg-black relative">
+    <div className="h-full flex flex-col bg-white dark:bg-app-dark relative">
       {/* Toolbar */}
-      <div className="p-6 border-b border-gray-200 dark:border-zinc-800 flex items-center justify-between bg-white/90 dark:bg-black/50 backdrop-blur-md sticky top-0 z-10">
+      <div className="p-6 border-b border-gray-200 dark:border-zinc-800 flex items-center justify-between bg-white/90 dark:bg-app-dark/50 backdrop-blur-md sticky top-0 z-10">
         <div className="flex items-center gap-4">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">Properties</h2>
-          <div className="h-6 w-px bg-gray-200 dark:bg-zinc-800" />
-          <div className="flex items-center gap-2 bg-gray-100 dark:bg-zinc-900 rounded-lg p-1 border border-gray-300 dark:border-zinc-800">
+          <div className="hidden lg:block h-6 w-px bg-gray-200 dark:bg-zinc-800" />
+          <div className="hidden lg:flex items-center gap-2 bg-gray-100 dark:bg-zinc-900 rounded-lg p-1 border border-gray-300 dark:border-zinc-800">
             {['All', 'Active', 'Pending', 'Sold'].map((status) => (
               <button
                 key={status}
@@ -132,14 +132,6 @@ export default function Properties({
             >
               <MapIcon size={18} />
             </button>
-          </div>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-zinc-500" size={16} />
-            <input 
-              type="text" 
-              placeholder="Search properties..." 
-              className="bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-800 text-gray-900 dark:text-white text-sm rounded-lg pl-9 pr-4 py-2 focus:outline-none focus:border-neon-yellow w-64 transition-colors placeholder-gray-500 dark:placeholder-zinc-400"
-            />
           </div>
           <button
             onClick={() => setShowAddPanel(true)}

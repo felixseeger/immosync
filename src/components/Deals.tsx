@@ -119,8 +119,8 @@ export default function Deals({
   }
 
   return (
-    <div className="h-full flex flex-col bg-white dark:bg-black">
-      <div className="p-6 border-b border-gray-200 dark:border-zinc-800 flex items-center justify-between bg-white/90 dark:bg-black/50 backdrop-blur-md sticky top-0 z-10">
+    <div className="h-full flex flex-col bg-white dark:bg-app-dark">
+      <div className="p-6 border-b border-gray-200 dark:border-zinc-800 flex items-center justify-between bg-white/90 dark:bg-app-dark/50 backdrop-blur-md sticky top-0 z-10">
         <div className="flex items-center gap-4">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight flex items-center gap-2">
             <Briefcase size={28} className="text-neon-yellow" />
@@ -165,7 +165,7 @@ export default function Deals({
               >
                 <div className={`p-3 border-b-2 border-gray-200 dark:border-zinc-700 flex items-center justify-between ${colors.headerBg}`}>
                   <h3 className={`text-sm ${colors.headerText}`}>{stage.label}</h3>
-                  <span className="text-xs font-medium text-gray-600 dark:text-zinc-400 bg-white/60 dark:bg-black/30 px-2.5 py-1 rounded-full">
+                  <span className="text-xs font-medium text-gray-600 dark:text-zinc-400 bg-white/60 dark:bg-app-dark/30 px-2.5 py-1 rounded-full">
                     {(dealsByStage[stage.id] ?? []).length}
                   </span>
                 </div>

@@ -208,8 +208,7 @@ export default function Dashboard({ user, onAddProperty, onSelectProperty, onOpe
 
   return (
     <div className="h-full flex flex-col p-6 overflow-y-auto custom-scrollbar">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">CRM Dashboard</h2>
+      <div className="flex justify-end items-center mb-6">
         <div className="flex gap-3">
           <button
             type="button"

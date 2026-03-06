@@ -127,8 +127,8 @@ export default function MessagesView({ currentUser }: MessagesViewProps) {
   );
 
   return (
-    <div className="h-full flex flex-col bg-white dark:bg-black">
-      <div className="p-4 md:p-6 border-b border-gray-200 dark:border-zinc-800 flex items-center justify-between bg-white/90 dark:bg-black/50 backdrop-blur-md sticky top-0 z-10 shrink-0">
+    <div className="h-full flex flex-col bg-white dark:bg-app-dark">
+      <div className="p-4 md:p-6 border-b border-gray-200 dark:border-zinc-800 flex items-center justify-between bg-white/90 dark:bg-app-dark/50 backdrop-blur-md sticky top-0 z-10 shrink-0">
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">Messages</h2>
         <button
           type="button"
@@ -196,7 +196,7 @@ export default function MessagesView({ currentUser }: MessagesViewProps) {
         </aside>
 
         {/* Thread */}
-        <main className="flex-1 flex flex-col min-w-0 bg-white dark:bg-black">
+        <main className="flex-1 flex flex-col min-w-0 bg-white dark:bg-app-dark">
           {selectedId ? (
             <>
               <div className="shrink-0 px-4 py-3 border-b border-gray-200 dark:border-zinc-800 flex items-center gap-3">

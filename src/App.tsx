@@ -38,6 +38,7 @@ import MessagesView from './components/MessagesView';
 import GlobalSearchBar from './components/GlobalSearchBar';
 import UserSettings from './components/UserSettings';
 import { upsertUserProfile } from './services/usersService';
+import { sfx } from './utils/sfx';
 
 const SidebarItem = ({ icon: Icon, label, active = false, onClick, collapsed = false }: { icon: React.ComponentType<{ size?: number }>, label: string, active?: boolean, onClick: () => void; collapsed?: boolean }) => (
   <div 
@@ -77,6 +78,14 @@ export default function App() {
   const [showPasswordReset, setShowPasswordReset] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [isMdOrLarger, setIsMdOrLarger] = useState(() => typeof window !== 'undefined' && window.matchMedia('(min-width: 768px)').matches);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 768px)');
+    const handler = () => setIsMdOrLarger(mq.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -118,7 +127,7 @@ export default function App() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white dark:bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-white dark:bg-app-dark flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 bg-neon-yellow rounded-lg flex items-center justify-center animate-pulse">
             <div className="w-6 h-6 border-2 border-black rotate-45" />
@@ -144,14 +153,22 @@ export default function App() {
     );
   }
 
-  const closeSidebar = () => setSidebarOpen(false);
+  const closeSidebar = () => {
+    sfx.menuClose();
+    setSidebarOpen(false);
+  };
+  const openSidebar = () => {
+    sfx.menuOpen();
+    setSidebarOpen(true);
+  };
   const goTo = (tab: string) => {
+    sfx.menuSelect();
     setActiveTab(tab);
-    closeSidebar();
+    setSidebarOpen(false);
   };
 
   return (
-    <div className="flex h-screen bg-white dark:bg-black overflow-hidden font-sans text-gray-900 dark:text-zinc-100">
+    <div className="flex h-screen bg-white dark:bg-app-dark overflow-hidden font-sans text-gray-900 dark:text-zinc-100">
       {/* Mobile overlay when sidebar open */}
       <AnimatePresence>
         {sidebarOpen && (
@@ -169,15 +186,23 @@ export default function App() {
 
       {/* Sidebar: drawer on mobile (<768px), foldable on desktop */}
       <aside
-        className={`fixed md:relative inset-y-0 left-0 z-30 flex flex-col bg-gray-50 dark:bg-black border-r border-gray-200 dark:border-border-dark ease-out
+        className={`fixed md:relative inset-y-0 left-0 z-30 flex flex-col bg-gray-50 dark:bg-app-dark border-r border-gray-200 dark:border-border-dark ease-out
           w-64 md:transition-[width] md:duration-200
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
           ${sidebarCollapsed ? 'md:w-[72px]' : 'md:w-64'}
           transition-transform duration-200 md:transform-none
         `}
       >
-        <div className={`relative flex items-center gap-2 shrink-0 border-b border-gray-200 dark:border-border-dark ${sidebarCollapsed ? 'p-3 md:justify-center md:flex-col' : 'p-6 md:px-4'} transition-all duration-200 min-h-[72px]`}>
-          {!sidebarCollapsed && (
+        <div className={`relative flex items-center gap-2 shrink-0 border-b border-gray-200 dark:border-border-dark ${(sidebarCollapsed && isMdOrLarger) ? 'p-3 md:justify-center md:flex-col md:gap-2 min-h-[72px]' : 'p-4 md:px-4 h-[72px]'} transition-all duration-200`}>
+          {(sidebarCollapsed && isMdOrLarger) ? (
+            <>
+              <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0 hidden md:block">
+                <rect width="32" height="32" rx="8" fill="#D9FF00"/>
+                <polyline points="6,22 12,12 18,19 22,14 26,14" stroke="black" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+                <circle cx="26" cy="14" r="2.5" fill="black"/>
+              </svg>
+            </>
+          ) : (
             <>
               <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
                 <rect width="32" height="32" rx="8" fill="#D9FF00"/>
@@ -196,24 +221,26 @@ export default function App() {
           >
             <X size={20} />
           </button>
-          {/* Desktop: collapse toggle */}
-          <button
-            type="button"
-            onClick={() => setSidebarCollapsed(c => !c)}
-            className={`hidden md:flex p-2 rounded-lg text-gray-500 dark:text-zinc-400 hover:bg-gray-200 dark:hover:bg-zinc-800 ${sidebarCollapsed ? '' : 'ml-auto'}`}
-            aria-label="Toggle sidebar"
-          >
-            <ChevronLeft size={20} className={sidebarCollapsed ? 'rotate-180' : ''} />
-          </button>
+          {/* Desktop: collapse toggle (only when expanded; when collapsed, toggle is in header) */}
+          {!sidebarCollapsed && (
+            <button
+              type="button"
+              onClick={() => setSidebarCollapsed(true)}
+              className="hidden md:flex ml-auto p-2 rounded-lg text-gray-500 dark:text-zinc-400 hover:bg-gray-200 dark:hover:bg-zinc-800"
+              aria-label="Collapse sidebar"
+            >
+              <ChevronLeft size={20} />
+            </button>
+          )}
         </div>
 
         <nav className="flex-1 mt-4 overflow-y-auto custom-scrollbar">
-          <SidebarItem icon={LayoutDashboard} label="Dashboard" active={activeTab === 'Dashboard'} onClick={() => goTo('Dashboard')} collapsed={sidebarCollapsed} />
-          <SidebarItem icon={Building2} label="Properties" active={activeTab === 'Properties'} onClick={() => goTo('Properties')} collapsed={sidebarCollapsed} />
-          <SidebarItem icon={Users} label="Contacts" active={activeTab === 'Contacts'} onClick={() => goTo('Contacts')} collapsed={sidebarCollapsed} />
-          <SidebarItem icon={Briefcase} label="Deals" active={activeTab === 'Deals'} onClick={() => goTo('Deals')} collapsed={sidebarCollapsed} />
-          <SidebarItem icon={Calendar} label="Calendar" active={activeTab === 'Calendar'} onClick={() => goTo('Calendar')} collapsed={sidebarCollapsed} />
-          <SidebarItem icon={MessageSquare} label="Messages" active={activeTab === 'Messages'} onClick={() => goTo('Messages')} collapsed={sidebarCollapsed} />
+          <SidebarItem icon={LayoutDashboard} label="Dashboard" active={activeTab === 'Dashboard'} onClick={() => goTo('Dashboard')} collapsed={sidebarCollapsed && isMdOrLarger} />
+          <SidebarItem icon={Building2} label="Properties" active={activeTab === 'Properties'} onClick={() => goTo('Properties')} collapsed={sidebarCollapsed && isMdOrLarger} />
+          <SidebarItem icon={Users} label="Contacts" active={activeTab === 'Contacts'} onClick={() => goTo('Contacts')} collapsed={sidebarCollapsed && isMdOrLarger} />
+          <SidebarItem icon={Briefcase} label="Deals" active={activeTab === 'Deals'} onClick={() => goTo('Deals')} collapsed={sidebarCollapsed && isMdOrLarger} />
+          <SidebarItem icon={Calendar} label="Calendar" active={activeTab === 'Calendar'} onClick={() => goTo('Calendar')} collapsed={sidebarCollapsed && isMdOrLarger} />
+          <SidebarItem icon={MessageSquare} label="Messages" active={activeTab === 'Messages'} onClick={() => goTo('Messages')} collapsed={sidebarCollapsed && isMdOrLarger} />
         </nav>
 
         <div className={`p-4 border-t border-gray-200 dark:border-border-dark space-y-2 ${sidebarCollapsed ? 'md:px-2' : ''}`}>
@@ -257,20 +284,43 @@ export default function App() {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-hidden relative bg-white dark:bg-black flex flex-col">
+      <main className="flex-1 overflow-hidden relative bg-white dark:bg-app-dark flex flex-col">
         {/* Background gradient behind content so map/live view is not covered */}
         <div className="absolute inset-0 z-0 bg-[radial-gradient(ellipse_at_top_right,var(--tw-gradient-stops))] from-gray-100 dark:from-zinc-900/20 via-white dark:via-black to-white dark:to-black pointer-events-none" />
 
         {/* Global header with search */}
-        <header className="relative z-10 shrink-0 h-14 px-4 flex items-center gap-4 border-b border-gray-200 dark:border-zinc-800 bg-white/80 dark:bg-black/80 backdrop-blur-md">
+        <header className="relative z-10 shrink-0 h-[72px] min-h-[72px] px-4 flex items-center gap-4 border-b border-gray-200 dark:border-zinc-800 bg-white/80 dark:bg-app-dark/80 backdrop-blur-md">
           <button
             type="button"
-            onClick={() => setSidebarOpen(true)}
+            onClick={openSidebar}
             className="md:hidden p-2 -ml-2 rounded-lg text-gray-600 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 hover:text-gray-900 dark:hover:text-white"
             aria-label="Open menu"
           >
             <Menu size={24} />
           </button>
+          {/* Mobile: logo between burger and search */}
+          <div className="md:hidden flex items-center gap-2 shrink-0">
+            <svg width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
+              <rect width="32" height="32" rx="8" fill="#D9FF00"/>
+              <polyline points="6,22 12,12 18,19 22,14 26,14" stroke="black" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+              <circle cx="26" cy="14" r="2.5" fill="black"/>
+            </svg>
+            <h1 className="text-lg font-bold tracking-tighter text-gray-900 dark:text-white truncate">SITESYNC</h1>
+          </div>
+          {/* When aside collapsed (desktop): logo text + expand toggle in header */}
+          {sidebarCollapsed && (
+            <div className="hidden md:flex items-center gap-2 shrink-0">
+              <h1 className="text-lg font-bold tracking-tighter text-gray-900 dark:text-white truncate">SITESYNC</h1>
+              <button
+                type="button"
+                onClick={() => setSidebarCollapsed(false)}
+                className="p-2 rounded-lg text-gray-500 dark:text-zinc-400 hover:bg-gray-200 dark:hover:bg-zinc-800 hover:text-gray-900 dark:hover:text-white"
+                aria-label="Expand sidebar"
+              >
+                <ChevronRight size={20} />
+              </button>
+            </div>
+          )}
           <GlobalSearchBar
             className="ml-auto"
             placeholder=""

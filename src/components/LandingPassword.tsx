@@ -34,7 +34,7 @@ export default function LandingPassword({ onUnlock }: LandingPasswordProps) {
   };
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center p-6">
+    <div className="min-h-screen bg-app-dark flex items-center justify-center p-6">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-neon-yellow/5 rounded-full blur-[120px]" />
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-neon-yellow/5 rounded-full blur-[120px]" />
@@ -79,7 +79,7 @@ export default function LandingPassword({ onUnlock }: LandingPasswordProps) {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Password"
                   autoComplete="off"
-                  className="w-full bg-black border border-zinc-700 rounded-lg py-2.5 pl-10 pr-4 text-white text-sm focus:outline-none focus:border-neon-yellow transition-colors placeholder:text-zinc-500"
+                  className="w-full bg-app-dark border border-zinc-700 rounded-lg py-2.5 pl-10 pr-4 text-white text-sm focus:outline-none focus:border-neon-yellow transition-colors placeholder:text-zinc-500"
                 />
               </div>
             </div>

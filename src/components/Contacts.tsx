@@ -129,8 +129,8 @@ export default function Contacts({
   };
 
   return (
-    <div className="h-full flex flex-col bg-white dark:bg-black relative">
-      <div className="p-6 border-b border-gray-200 dark:border-zinc-800 flex items-center justify-between bg-white/90 dark:bg-black/50 backdrop-blur-md sticky top-0 z-10">
+    <div className="h-full flex flex-col bg-white dark:bg-app-dark relative">
+      <div className="p-6 border-b border-gray-200 dark:border-zinc-800 flex items-center justify-between bg-white/90 dark:bg-app-dark/50 backdrop-blur-md sticky top-0 z-10">
         <div className="flex items-center gap-4">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
             Contacts
