@@ -1,18 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  TrendingUp, 
-  Users, 
-  DollarSign, 
-  ArrowUpRight, 
+import {
+  TrendingUp,
+  Users,
+  DollarSign,
+  ArrowUpRight,
   ArrowDownRight,
-  Activity,
   Building2,
-  Loader2
+  Loader2,
+  Calendar as CalendarIcon,
+  ChevronRight,
 } from 'lucide-react';
+import { format, isToday } from 'date-fns';
 import ActivityStream from './ActivityStream';
 import { getProperties } from '../services/propertyService';
 import { subscribeToContacts } from '../services/contactsService';
-import type { Property } from '../types';
+import { subscribeToViewings } from '../services/viewingsService';
+import { subscribeToDealsSimple } from '../services/dealsService';
+import type { Property, Viewing, Deal } from '../types';
+import type { User as FirebaseUser } from 'firebase/auth';
 
 const StatCard = ({
   title,
@@ -39,9 +44,11 @@ const StatCard = ({
         <Icon className="text-gray-600 dark:text-zinc-400 group-hover:text-neon-yellow transition-colors" size={20} />
       </div>
       {change != null && trend != null && (
-        <div className={`flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full ${
-          trend === 'up' ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'
-        }`}>
+        <div
+          className={`flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full ${
+            trend === 'up' ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'
+          }`}
+        >
           {trend === 'up' ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
           {change}
         </div>
@@ -58,24 +65,67 @@ function formatCurrency(n: number): string {
   return `$${n.toLocaleString()}`;
 }
 
-interface DashboardProps {
-  onAddProperty?: () => void;
-  onSelectProperty?: (propertyId: string) => void;
+function getGreeting(): string {
+  const h = new Date().getHours();
+  if (h < 12) return 'Good morning';
+  if (h < 18) return 'Good afternoon';
+  return 'Good evening';
 }
 
-export default function Dashboard({ onAddProperty, onSelectProperty }: DashboardProps) {
+function getFirstName(user: FirebaseUser | null | undefined): string {
+  if (!user) return 'there';
+  const name = user.displayName?.trim();
+  if (name) {
+    const first = name.split(/\s+/)[0];
+    return first || 'there';
+  }
+  const email = user.email?.trim();
+  if (email) {
+    const local = email.split('@')[0];
+    return local ? local.charAt(0).toUpperCase() + local.slice(1).toLowerCase() : 'there';
+  }
+  return 'there';
+}
+
+function getViewingDate(v: Viewing): Date | null {
+  const raw = v.scheduledAt;
+  if (!raw) return null;
+  if (typeof raw.toDate === 'function') return raw.toDate();
+  if (raw instanceof Date) return raw;
+  const d = new Date(raw);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+interface DashboardProps {
+  user?: FirebaseUser | null;
+  onAddProperty?: () => void;
+  onSelectProperty?: (propertyId: string) => void;
+  onOpenCalendar?: () => void;
+}
+
+export default function Dashboard({ user, onAddProperty, onSelectProperty, onOpenCalendar }: DashboardProps) {
   const [properties, setProperties] = useState<Property[]>([]);
   const [contactsCount, setContactsCount] = useState(0);
+  const [viewings, setViewings] = useState<Viewing[]>([]);
+  const [deals, setDeals] = useState<Deal[]>([]);
   const [statsLoading, setStatsLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
     setStatsLoading(true);
     getProperties()
-      .then((list) => { if (!cancelled) setProperties(list); })
-      .catch(() => { if (!cancelled) setProperties([]); })
-      .finally(() => { if (!cancelled) setStatsLoading(false); });
-    return () => { cancelled = true; };
+      .then((list) => {
+        if (!cancelled) setProperties(list);
+      })
+      .catch(() => {
+        if (!cancelled) setProperties([]);
+      })
+      .finally(() => {
+        if (!cancelled) setStatsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
@@ -83,10 +133,28 @@ export default function Dashboard({ onAddProperty, onSelectProperty }: Dashboard
     return unsub;
   }, []);
 
+  useEffect(() => {
+    const unsub = subscribeToViewings(setViewings);
+    return unsub;
+  }, []);
+
+  useEffect(() => {
+    const unsub = subscribeToDealsSimple(setDeals);
+    return unsub;
+  }, []);
+
+  const todayViewings = viewings.filter((v) => {
+    const d = getViewingDate(v);
+    return d && isToday(d) && v.status !== 'cancelled';
+  });
+  const newLeadsCount = deals.filter((d) => d.stageId === 'lead').length;
+  const activeDealsCount = deals.filter((d) => d.stageId !== 'closed').length;
+
   const activeListings = properties.filter((p) => p.status === 'Active').length;
   const portfolioValue = properties
     .filter((p) => p.status === 'Active')
     .reduce((sum, p) => sum + (p.price ?? 0), 0);
+  const ytdRevenue = portfolioValue;
 
   const handleExportReport = () => {
     const report = {
@@ -110,13 +178,14 @@ export default function Dashboard({ onAddProperty, onSelectProperty }: Dashboard
     URL.revokeObjectURL(url);
   };
 
+  const greeting = getGreeting();
+  const firstName = getFirstName(user);
+  const todayFormatted = format(new Date(), 'EEEE, MMMM do, yyyy');
+
   return (
     <div className="h-full flex flex-col p-6 overflow-y-auto custom-scrollbar">
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">Dashboard Overview</h2>
-          <p className="text-gray-600 dark:text-zinc-500 text-sm">Real-time insights and performance metrics</p>
-        </div>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">CRM Dashboard</h2>
         <div className="flex gap-3">
           <button
             type="button"
@@ -136,7 +205,71 @@ export default function Dashboard({ onAddProperty, onSelectProperty }: Dashboard
         </div>
       </div>
 
-      {/* Stats Grid */}
+      {/* Welcome + Daily Agenda row */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <div className="lg:col-span-2">
+          <h3 className="text-xl md:text-2xl text-gray-900 dark:text-white mb-1">
+            {greeting},{' '}
+            <span className="text-neon-yellow font-bold">{firstName}</span>
+          </h3>
+          <p className="text-gray-600 dark:text-zinc-400 text-sm">
+            You have <strong>{todayViewings.length}</strong> viewings scheduled for today and{' '}
+            <strong>{newLeadsCount}</strong> new leads waiting for review.
+          </p>
+        </div>
+        <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl p-5 flex flex-col">
+          <h3 className="font-bold text-gray-900 dark:text-white mb-1">Daily Agenda</h3>
+          <p className="text-sm text-gray-500 dark:text-zinc-500 mb-4">{todayFormatted}</p>
+          {todayViewings.length === 0 ? (
+            <div className="flex-1 flex flex-col items-center justify-center py-6 text-center">
+              <CalendarIcon className="text-gray-400 dark:text-zinc-500 mb-2" size={28} />
+              <p className="text-sm text-gray-600 dark:text-zinc-400">No tasks or events scheduled for today.</p>
+            </div>
+          ) : (
+            <ul className="space-y-2 flex-1">
+              {todayViewings.map((v) => {
+                const d = getViewingDate(v);
+                return (
+                  <li key={v.id} className="text-sm text-gray-700 dark:text-zinc-300">
+                    {d ? format(d, 'HH:mm') : '—'} Viewing
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+          {onOpenCalendar && (
+            <button
+              type="button"
+              onClick={onOpenCalendar}
+              className="mt-4 flex items-center gap-1 text-sm font-medium text-neon-yellow hover:text-neon-yellow/90 transition-colors"
+            >
+              View Full Calendar
+              <ChevronRight size={16} />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Revenue Overview */}
+      <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl p-6 mb-6">
+        <h3 className="font-bold text-gray-900 dark:text-white mb-2">Revenue Overview</h3>
+        {statsLoading ? (
+          <div className="flex items-center gap-2 text-gray-500 dark:text-zinc-400">
+            <Loader2 size={20} className="animate-spin" />
+            <span>Loading...</span>
+          </div>
+        ) : (
+          <p className="text-2xl font-bold text-gray-900 dark:text-white">{formatCurrency(ytdRevenue)} YTD</p>
+        )}
+      </div>
+
+      {/* Active Deals + New Leads */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+        <StatCard title="Active Deals" value={String(activeDealsCount)} icon={TrendingUp} />
+        <StatCard title="New Leads" value={String(newLeadsCount)} icon={Users} />
+      </div>
+
+      {/* Stats: Active Listings, Contacts, Portfolio (optional) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         {statsLoading ? (
           <>
@@ -152,29 +285,16 @@ export default function Dashboard({ onAddProperty, onSelectProperty }: Dashboard
           </>
         ) : (
           <>
-            <StatCard
-              title="Active Listings"
-              value={String(activeListings)}
-              icon={TrendingUp}
-            />
-            <StatCard
-              title="Contacts"
-              value={String(contactsCount)}
-              icon={Users}
-            />
-            <StatCard
-              title="Portfolio Value (Active)"
-              value={formatCurrency(portfolioValue)}
-              icon={DollarSign}
-            />
+            <StatCard title="Active Listings" value={String(activeListings)} icon={TrendingUp} />
+            <StatCard title="Contacts" value={String(contactsCount)} icon={Users} />
+            <StatCard title="Portfolio Value (Active)" value={formatCurrency(portfolioValue)} icon={DollarSign} />
           </>
         )}
       </div>
 
-      {/* Main Content */}
+      {/* Recent Activity */}
       <div className="flex-1 min-h-0 flex flex-col">
-        {/* Activity Stream Section */}
-        <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl flex flex-col h-[500px] lg:h-auto overflow-hidden flex-1">
+        <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl flex flex-col h-[400px] lg:h-[500px] overflow-hidden flex-1">
           <div className="p-4 border-b border-gray-200 dark:border-zinc-800">
             <h3 className="font-bold text-gray-900 dark:text-white">Recent Activity</h3>
           </div>

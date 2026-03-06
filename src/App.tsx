@@ -201,8 +201,10 @@ export default function App() {
         <div className="relative z-10 flex-1 overflow-hidden min-h-0">
           {activeTab === 'Dashboard' && (
             <Dashboard
+              user={user}
               onAddProperty={() => { setActiveTab('Properties'); setShowPropertiesAddPanel(true); }}
               onSelectProperty={(id) => { setActiveTab('Properties'); setInitialSelectedPropertyId(id); }}
+              onOpenCalendar={() => setActiveTab('Calendar')}
             />
           )}
           {activeTab === 'Properties' && (
