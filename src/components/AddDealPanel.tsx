@@ -1,14 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion } from 'motion/react';
-import { X, Loader2 } from 'lucide-react';
+import { X, Loader2, Briefcase } from 'lucide-react';
 import { createDeal, DEAL_STAGES, addDealActivity } from '../services/dealsService';
+import { sfx } from '../utils/sfx';
 import type { DealType, DealStageId } from '../types';
 import type { Contact } from '../types';
 import type { Property } from '../types';
 
 const inputCls =
-  'w-full bg-white dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 text-gray-900 dark:text-white rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-neon-yellow';
+  'w-full bg-white dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 text-gray-900 dark:text-white rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#D9FF00] focus:ring-2 focus:ring-[#D9FF00]/30 transition-colors placeholder:text-gray-500 dark:placeholder:text-zinc-600';
+const selectCls = (hasValue: boolean) =>
+  inputCls + (hasValue ? ' text-[#D9FF00] border-[#D9FF00]' : '');
 
 interface AddDealPanelProps {
   onClose: () => void;
@@ -25,6 +28,15 @@ export default function AddDealPanel({ onClose, onSuccess, contacts, properties 
   const [financialValue, setFinancialValue] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const handleClose = useCallback(() => {
+    sfx.menuClose();
+    onClose();
+  }, [onClose]);
+
+  useEffect(() => {
+    sfx.menuOpen();
+  }, []);
 
   const handleSubmit = async () => {
     const value = Number(financialValue);
@@ -60,7 +72,7 @@ export default function AddDealPanel({ onClose, onSuccess, contacts, properties 
       className="fixed inset-0 flex justify-end"
       style={{ zIndex: 9999 }}
     >
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} aria-hidden />
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={handleClose} aria-hidden />
       <motion.div
         initial={{ x: '100%' }}
         animate={{ x: 0 }}
@@ -72,15 +84,20 @@ export default function AddDealPanel({ onClose, onSuccess, contacts, properties 
         aria-modal="true"
       >
         <div className="p-4 border-b border-gray-200 dark:border-zinc-800 flex items-center justify-between">
-          <h2 className="text-lg font-bold text-gray-900 dark:text-white">New deal</h2>
-          <button type="button" onClick={onClose} className="p-2 rounded-lg text-gray-500 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800">
+          <div className="flex items-center gap-2">
+            <div className="p-2 rounded-lg bg-[#D9FF00]/15 border-2 border-[#D9FF00]/40">
+              <Briefcase size={18} className="text-[#D9FF00]" />
+            </div>
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white">New deal</h2>
+          </div>
+          <button type="button" onClick={handleClose} className="p-2 rounded-lg text-gray-500 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-[#D9FF00]/50">
             <X size={20} />
           </button>
         </div>
         <div className="p-4 overflow-y-auto space-y-4">
           <div>
             <label className="block text-[11px] font-semibold text-gray-600 dark:text-zinc-400 uppercase tracking-wider mb-1.5">Contact</label>
-            <select value={contactId} onChange={(e) => setContactId(e.target.value)} className={inputCls} required>
+            <select value={contactId} onChange={(e) => { sfx.menuSelect(); setContactId(e.target.value); }} className={selectCls(!!contactId)} required>
               <option value="">— Select —</option>
               {contacts.map((c) => (
                 <option key={c.id} value={c.id}>{c.name}</option>
@@ -89,7 +106,7 @@ export default function AddDealPanel({ onClose, onSuccess, contacts, properties 
           </div>
           <div>
             <label className="block text-[11px] font-semibold text-gray-600 dark:text-zinc-400 uppercase tracking-wider mb-1.5">Property</label>
-            <select value={propertyId} onChange={(e) => setPropertyId(e.target.value)} className={inputCls} required>
+            <select value={propertyId} onChange={(e) => { sfx.menuSelect(); setPropertyId(e.target.value); }} className={selectCls(!!propertyId)} required>
               <option value="">— Select —</option>
               {properties.map((p) => (
                 <option key={p.id} value={p.id}>{p.title}</option>
@@ -98,14 +115,14 @@ export default function AddDealPanel({ onClose, onSuccess, contacts, properties 
           </div>
           <div>
             <label className="block text-[11px] font-semibold text-gray-600 dark:text-zinc-400 uppercase tracking-wider mb-1.5">Type</label>
-            <select value={dealType} onChange={(e) => setDealType(e.target.value as DealType)} className={inputCls}>
+            <select value={dealType} onChange={(e) => { sfx.menuSelect(); setDealType(e.target.value as DealType); }} className={selectCls(!!dealType)}>
               <option value="sale">Sale</option>
               <option value="rental">Rental</option>
             </select>
           </div>
           <div>
             <label className="block text-[11px] font-semibold text-gray-600 dark:text-zinc-400 uppercase tracking-wider mb-1.5">Stage</label>
-            <select value={stageId} onChange={(e) => setStageId(e.target.value as DealStageId)} className={inputCls}>
+            <select value={stageId} onChange={(e) => { sfx.menuSelect(); setStageId(e.target.value as DealStageId); }} className={selectCls(!!stageId)}>
               {DEAL_STAGES.map((s) => (
                 <option key={s.id} value={s.id}>{s.label}</option>
               ))}
@@ -122,7 +139,7 @@ export default function AddDealPanel({ onClose, onSuccess, contacts, properties 
               value={financialValue}
               onChange={(e) => setFinancialValue(e.target.value)}
               placeholder="0"
-              className={inputCls}
+              className={inputCls + (financialValue ? ' text-[#D9FF00]' : '')}
             />
           </div>
           {error && (
@@ -131,14 +148,14 @@ export default function AddDealPanel({ onClose, onSuccess, contacts, properties 
             </div>
           )}
           <div className="flex gap-2 pt-2">
-            <button type="button" onClick={onClose} className="flex-1 py-2.5 bg-gray-200 dark:bg-zinc-800 text-gray-900 dark:text-white rounded-xl font-medium text-sm">
+            <button type="button" onClick={handleClose} className="flex-1 py-2.5 bg-gray-200 dark:bg-zinc-800 text-gray-900 dark:text-white rounded-xl font-medium text-sm hover:border-[#D9FF00]/50 focus:outline-none focus:ring-2 focus:ring-[#D9FF00]/50 transition-colors">
               Cancel
             </button>
             <button
               type="button"
-              onClick={handleSubmit}
+              onClick={() => { sfx.menuSelect(); handleSubmit(); }}
               disabled={saving}
-              className="flex-1 py-2.5 bg-neon-yellow text-black font-bold rounded-xl text-sm flex items-center justify-center gap-2 disabled:opacity-50"
+              className="flex-1 py-2.5 bg-[#D9FF00] text-black font-bold rounded-xl text-sm flex items-center justify-center gap-2 disabled:opacity-50 hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-[#D9FF00] focus:ring-offset-2"
             >
               {saving ? <Loader2 size={18} className="animate-spin" /> : null}
               Create deal

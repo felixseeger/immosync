@@ -37,6 +37,7 @@ export async function createViewing(
   const payload = stripUndefined({
     propertyId: data.propertyId,
     contactId: data.contactId,
+    eventType: data.eventType ?? 'viewing',
     scheduledAt: data.scheduledAt,
     status: data.status ?? 'scheduled',
     ...(data.note?.trim() ? { note: data.note.trim() } : {}),

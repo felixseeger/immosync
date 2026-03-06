@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Property } from '../types';
 import MatchingProspects from './MatchingProspects';
 import { motion, AnimatePresence } from 'motion/react';
@@ -8,6 +8,7 @@ import AddPropertyPanel from './AddPropertyPanel';
 import ScheduleViewingModal from './ScheduleViewingModal';
 import { deleteProperty } from '../services/propertyService';
 import { downloadBrochurePdf } from '../utils/brochurePdf';
+import { sfx } from '../utils/sfx';
 
 interface PropertyDetailProps {
   property: Property;
@@ -52,6 +53,15 @@ export default function PropertyDetail({ property, onClose, onDeleted }: Propert
     }
   };
 
+  const handleClose = useCallback(() => {
+    sfx.menuClose();
+    onClose();
+  }, [onClose]);
+
+  useEffect(() => {
+    sfx.menuOpen();
+  }, []);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -59,17 +69,17 @@ export default function PropertyDetail({ property, onClose, onDeleted }: Propert
       exit={{ opacity: 0, y: 20 }}
       className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
     >
-      <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={handleClose} />
       
       <div className="relative w-full max-w-5xl bg-white dark:bg-zinc-900 rounded-2xl overflow-hidden shadow-2xl border border-gray-300 dark:border-zinc-800 flex flex-col max-h-[90vh]">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-300 dark:border-zinc-800 bg-white/90 dark:bg-zinc-900/50 backdrop-blur-md sticky top-0 z-10">
           <div className="flex items-center gap-4">
             <button 
-              onClick={onClose}
-              className="p-2 hover:bg-gray-200 dark:hover:bg-zinc-800 rounded-full transition-colors"
+              onClick={handleClose}
+              className="p-2 hover:bg-gray-200 dark:hover:bg-zinc-800 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#D9FF00]/50 text-gray-600 dark:text-zinc-400"
             >
-              <ArrowLeft size={20} className="text-gray-600 dark:text-zinc-400" />
+              <ArrowLeft size={20} />
             </button>
             <div>
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{property.title}</h2>
@@ -80,28 +90,28 @@ export default function PropertyDetail({ property, onClose, onDeleted }: Propert
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <span className={`px-3 py-1 rounded-full text-xs font-medium border ${
-              property.status === 'Active' ? 'bg-neon-yellow/10 border-neon-yellow/20 text-neon-yellow' :
-              property.status === 'Pending' ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' :
+            <span className={`px-3 py-1 rounded-full text-xs font-medium border-2 ${
+              property.status === 'Active' ? 'bg-[#D9FF00]/15 border-[#D9FF00] text-[#D9FF00]' :
+              property.status === 'Pending' ? 'bg-blue-500/10 border-blue-500/30 text-blue-400' :
               'bg-zinc-500/10 border-zinc-500/20 text-zinc-400'
             }`}>
               {property.status}
             </span>
             <button
-              onClick={() => setShowEditPanel(true)}
-              className="p-2 hover:bg-gray-200 dark:hover:bg-zinc-800 rounded-full transition-colors text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
+              onClick={() => { sfx.menuSelect(); setShowEditPanel(true); }}
+              className="p-2 hover:bg-gray-200 dark:hover:bg-zinc-800 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#D9FF00]/50 text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
               title="Edit property"
             >
               <Pencil size={16} />
             </button>
             <button
-              onClick={() => setShowDeleteConfirm(true)}
-              className="p-2 hover:bg-gray-200 dark:hover:bg-zinc-800 rounded-full transition-colors text-gray-600 dark:text-zinc-400 hover:text-red-600 dark:hover:text-red-400"
+              onClick={() => { sfx.menuSelect(); setShowDeleteConfirm(true); }}
+              className="p-2 hover:bg-gray-200 dark:hover:bg-zinc-800 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#D9FF00]/50 text-gray-600 dark:text-zinc-400 hover:text-red-600 dark:hover:text-red-400"
               title="Delete property"
             >
               <Trash2 size={16} />
             </button>
-            <button onClick={onClose} className="p-2 hover:bg-gray-200 dark:hover:bg-zinc-800 rounded-full transition-colors">
+            <button onClick={handleClose} className="p-2 hover:bg-gray-200 dark:hover:bg-zinc-800 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#D9FF00]/50">
               <X size={20} className="text-gray-600 dark:text-zinc-400" />
             </button>
           </div>
@@ -119,7 +129,10 @@ export default function PropertyDetail({ property, onClose, onDeleted }: Propert
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-6">
-                  <button className="bg-white dark:bg-white text-gray-900 dark:text-black px-4 py-2 rounded-lg font-medium text-sm hover:bg-gray-100 dark:hover:bg-gray-200 transition-colors">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); sfx.menuSelect(); setSelectedImage(property.mainImage || null); }}
+                    className="bg-[#D9FF00] text-black px-4 py-2 rounded-lg font-bold text-sm hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-[#D9FF00] focus:ring-offset-2 focus:ring-offset-black/60"
+                  >
                     View Full Screen
                   </button>
                 </div>
@@ -139,7 +152,7 @@ export default function PropertyDetail({ property, onClose, onDeleted }: Propert
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                   {property.features?.map((feature, index) => (
                     <div key={index} className="flex items-center gap-2 text-gray-700 dark:text-zinc-400 text-sm">
-                      <CheckCircle size={14} className="text-neon-yellow" />
+                      <CheckCircle size={14} className="text-[#D9FF00] shrink-0" />
                       {feature}
                     </div>
                   ))}
@@ -157,15 +170,20 @@ export default function PropertyDetail({ property, onClose, onDeleted }: Propert
                   {property.images?.map((image, index) => (
                     <div 
                       key={index} 
-                      className="aspect-square rounded-lg overflow-hidden bg-gray-300 dark:bg-zinc-800 cursor-pointer hover:opacity-80 transition-opacity"
-                      onClick={() => setSelectedImage(image)}
+                      className={`aspect-square rounded-lg overflow-hidden bg-gray-300 dark:bg-zinc-800 cursor-pointer transition-all ring-2 ${
+                        selectedImage === image ? 'ring-[#D9FF00] ring-offset-2 ring-offset-white dark:ring-offset-zinc-900' : 'ring-transparent hover:opacity-90'
+                      }`}
+                      onClick={() => { sfx.menuSelect(); setSelectedImage(image); }}
                     >
                       <img src={image} alt={`Gallery ${index}`} className="w-full h-full object-cover" />
                     </div>
                   ))}
                   
                   {/* Upload Placeholder */}
-                  <div className="aspect-square rounded-lg border-2 border-dashed border-gray-400 dark:border-zinc-800 flex flex-col items-center justify-center text-gray-500 dark:text-zinc-600 hover:border-gray-600 dark:hover:border-zinc-600 hover:text-gray-700 dark:hover:text-zinc-400 transition-colors cursor-pointer">
+                  <div
+                    className="aspect-square rounded-lg border-2 border-dashed border-gray-400 dark:border-zinc-800 flex flex-col items-center justify-center text-gray-500 dark:text-zinc-600 hover:border-[#D9FF00] hover:text-[#D9FF00] transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#D9FF00]/50"
+                    onClick={() => sfx.menuSelect()}
+                  >
                     <ImageIcon size={24} className="mb-2" />
                     <span className="text-xs">Add Photo</span>
                   </div>
@@ -186,17 +204,17 @@ export default function PropertyDetail({ property, onClose, onDeleted }: Propert
                 </div>
 
                 <div className="grid grid-cols-3 gap-4 mb-6">
-                  <div className="text-center p-3 bg-gray-100 dark:bg-zinc-900 rounded-lg border border-gray-300 dark:border-zinc-800">
+                  <div className="text-center p-3 bg-gray-100 dark:bg-zinc-900 rounded-lg border-2 border-gray-300 dark:border-zinc-800 hover:border-[#D9FF00]/50 transition-colors">
                     <Bed size={20} className="mx-auto mb-1 text-gray-600 dark:text-zinc-400" />
                     <div className="text-lg font-bold text-gray-900 dark:text-white">{property.bedrooms}</div>
                     <div className="text-[10px] text-gray-600 dark:text-zinc-600 uppercase">Beds</div>
                   </div>
-                  <div className="text-center p-3 bg-gray-100 dark:bg-zinc-900 rounded-lg border border-gray-300 dark:border-zinc-800">
+                  <div className="text-center p-3 bg-gray-100 dark:bg-zinc-900 rounded-lg border-2 border-gray-300 dark:border-zinc-800 hover:border-[#D9FF00]/50 transition-colors">
                     <Bath size={20} className="mx-auto mb-1 text-gray-600 dark:text-zinc-400" />
                     <div className="text-lg font-bold text-gray-900 dark:text-white">{property.bathrooms}</div>
                     <div className="text-[10px] text-gray-600 dark:text-zinc-600 uppercase">Baths</div>
                   </div>
-                  <div className="text-center p-3 bg-gray-100 dark:bg-zinc-900 rounded-lg border border-gray-300 dark:border-zinc-800">
+                  <div className="text-center p-3 bg-gray-100 dark:bg-zinc-900 rounded-lg border-2 border-gray-300 dark:border-zinc-800 hover:border-[#D9FF00]/50 transition-colors">
                     <Ruler size={20} className="mx-auto mb-1 text-gray-600 dark:text-zinc-400" />
                     <div className="text-lg font-bold text-gray-900 dark:text-white">{property.sqft}</div>
                     <div className="text-[10px] text-gray-600 dark:text-zinc-600 uppercase">Sq Ft</div>
@@ -205,22 +223,26 @@ export default function PropertyDetail({ property, onClose, onDeleted }: Propert
 
                 <button
                   type="button"
-                  onClick={handleGenerateBrochure}
+                  onClick={() => { sfx.menuSelect(); handleGenerateBrochure(); }}
                   disabled={generatingBrochure}
-                  className="w-full bg-gray-200 dark:bg-zinc-800 text-gray-900 dark:text-white font-medium py-3 rounded-xl border border-gray-300 dark:border-zinc-700 hover:bg-gray-300 dark:hover:bg-zinc-700 transition-colors mb-3 flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="w-full bg-gray-200 dark:bg-zinc-800 text-gray-900 dark:text-white font-medium py-3 rounded-xl border-2 border-gray-300 dark:border-zinc-700 hover:border-[#D9FF00]/50 focus:outline-none focus:ring-2 focus:ring-[#D9FF00]/50 transition-colors mb-3 flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   {generatingBrochure ? <Loader2 size={18} className="animate-spin" /> : <FileDown size={18} />}
                   {generatingBrochure ? 'Generating…' : 'Generate Brochure'}
                 </button>
                 <button
                   type="button"
-                  onClick={() => setShowScheduleViewing(true)}
-                  className="w-full bg-neon-yellow text-black font-bold py-3 rounded-xl hover:bg-neon-yellow/90 transition-colors mb-3 flex items-center justify-center gap-2"
+                  onClick={() => { sfx.menuSelect(); setShowScheduleViewing(true); }}
+                  className="w-full bg-[#D9FF00] text-black font-bold py-3 rounded-xl hover:opacity-90 transition-opacity mb-3 flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-[#D9FF00] focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-zinc-900"
                 >
                   <Calendar size={18} />
                   Schedule Viewing
                 </button>
-                <button className="w-full bg-gray-200 dark:bg-zinc-900 text-gray-900 dark:text-white font-medium py-3 rounded-xl border border-gray-300 dark:border-zinc-700 hover:bg-gray-300 dark:hover:bg-zinc-800 transition-colors">
+                <button
+                  type="button"
+                  onClick={() => sfx.menuSelect()}
+                  className="w-full bg-gray-200 dark:bg-zinc-900 text-gray-900 dark:text-white font-medium py-3 rounded-xl border-2 border-gray-300 dark:border-zinc-700 hover:border-[#D9FF00]/50 focus:outline-none focus:ring-2 focus:ring-[#D9FF00]/50 transition-colors"
+                >
                   Contact Agent
                 </button>
               </div>
@@ -246,11 +268,11 @@ export default function PropertyDetail({ property, onClose, onDeleted }: Propert
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-60 bg-black/95 flex items-center justify-center p-4"
-            onClick={() => setSelectedImage(null)}
+            onClick={() => { sfx.menuSelect(); setSelectedImage(null); }}
           >
             <button 
-              className="absolute top-4 right-4 p-2 bg-black/50 rounded-full text-white hover:bg-black/70 transition-colors"
-              onClick={() => setSelectedImage(null)}
+              className="absolute top-4 right-4 p-2 bg-black/50 rounded-full text-white hover:bg-[#D9FF00]/20 hover:text-[#D9FF00] transition-colors focus:outline-none focus:ring-2 focus:ring-[#D9FF00]"
+              onClick={(e) => { e.stopPropagation(); sfx.menuSelect(); setSelectedImage(null); }}
             >
               <X size={24} />
             </button>
@@ -290,16 +312,16 @@ export default function PropertyDetail({ property, onClose, onDeleted }: Propert
               </p>
               <div className="flex gap-3">
                 <button
-                  onClick={() => setShowDeleteConfirm(false)}
+                  onClick={() => { sfx.menuSelect(); setShowDeleteConfirm(false); }}
                   disabled={isDeleting}
-                  className="flex-1 py-2.5 bg-gray-200 dark:bg-zinc-800 hover:bg-gray-300 dark:hover:bg-zinc-700 text-gray-900 dark:text-white text-sm font-medium rounded-lg transition-colors"
+                  className="flex-1 py-2.5 bg-gray-200 dark:bg-zinc-800 hover:bg-gray-300 dark:hover:bg-zinc-700 hover:border-[#D9FF00]/50 border-2 border-transparent text-gray-900 dark:text-white text-sm font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-[#D9FF00]/50"
                 >
                   Cancel
                 </button>
                 <button
-                  onClick={handleDelete}
+                  onClick={() => { sfx.menuSelect(); handleDelete(); }}
                   disabled={isDeleting}
-                  className="flex-1 py-2.5 bg-red-500 hover:bg-red-600 text-white text-sm font-bold rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="flex-1 py-2.5 bg-red-500 hover:bg-red-600 text-white text-sm font-bold rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-red-400"
                 >
                   {isDeleting ? (
                     <><Loader2 className="animate-spin" size={14} /> Deleting…</>

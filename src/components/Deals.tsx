@@ -14,6 +14,7 @@ import { subscribeToContacts } from '../services/contactsService';
 import DealCard from './DealCard';
 import DealDetailSlideOver from './DealDetailSlideOver';
 import AddDealPanel from './AddDealPanel';
+import { sfx } from '../utils/sfx';
 
 const TRACK_OPTIONS: { value: 'all' | DealType; label: string }[] = [
   { value: 'all', label: 'All' },
@@ -145,8 +146,8 @@ export default function Deals({
         </div>
         <button
           type="button"
-          onClick={() => setShowAddDeal(true)}
-          className="flex items-center gap-2 px-5 py-2.5 bg-neon-green text-[#3A96DD] dark:!text-[#D9FF00] font-bold rounded-lg text-sm border border-[#D9FF00] hover:bg-black hover:text-[#3A96DD] dark:hover:!text-[#D9FF00] transition-colors [&_svg]:text-current dark:[&_svg]:!text-[#D9FF00]"
+          onClick={() => { sfx.menuSelect(); setShowAddDeal(true); }}
+          className="flex items-center gap-2 px-5 py-2.5 bg-[#D9FF00] text-black font-bold rounded-lg text-sm hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-[#D9FF00] focus:ring-offset-2 [&_svg]:text-current"
         >
           <Plus size={18} />
           Create Deal

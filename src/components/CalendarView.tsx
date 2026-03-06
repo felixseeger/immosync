@@ -28,15 +28,18 @@ import { getProperties } from '../services/propertyService';
 import { subscribeToContacts } from '../services/contactsService';
 import { logActivity } from '../services/activityService';
 import AddViewingModal from './AddViewingModal';
-import type { Viewing, Property, Contact } from '../types';
+import type { Viewing, Property, Contact, ViewingEventType } from '../types';
+import { VIEWING_EVENT_TYPE_LABELS } from '../types';
 
 function getViewingDate(v: Viewing): Date | null {
-  const raw = v.scheduledAt;
-  if (!raw) return null;
-  if (typeof (raw as { toDate?: () => Date }).toDate === 'function') return (raw as { toDate: () => Date }).toDate();
-  if (raw instanceof Date) return raw;
-  const d = new Date(raw);
-  return isNaN(d.getTime()) ? null : d;
+  if (!v?.scheduledAt) return null;
+  const t = v.scheduledAt?.toDate?.?.() ?? v.scheduledAt;
+  return t instanceof Date ? t : new Date(t);
+}
+
+function getEventTypeLabel(v: Viewing): string {
+  const type = (v.eventType ?? 'viewing') as ViewingEventType;
+  return VIEWING_EVENT_TYPE_LABELS[type] ?? 'Viewing';
 }
 
 export default function CalendarView() {
@@ -309,6 +312,7 @@ export default function CalendarView() {
                         <div className="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-white">
                           <Clock size={14} className="text-gray-500 dark:text-zinc-400 shrink-0" />
                           {vd ? format(vd, 'HH:mm') : '—'}
+                          <span className="text-[#D9FF00] font-semibold">{getEventTypeLabel(v)}</span>
                         </div>
                         <div className="mt-1 flex items-center gap-1.5 text-xs text-gray-600 dark:text-zinc-400">
                           <Building2 size={12} />
@@ -358,7 +362,7 @@ export default function CalendarView() {
               className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 rounded-xl shadow-xl w-full max-w-sm overflow-hidden"
             >
               <div className="p-4 border-b border-gray-200 dark:border-zinc-800 flex items-center justify-between">
-                <h3 className="font-semibold text-gray-900 dark:text-white">Viewing</h3>
+                <h3 className="font-semibold text-gray-900 dark:text-white">{detailViewing ? getEventTypeLabel(detailViewing) : 'Event'}</h3>
                 <button
                   type="button"
                   onClick={() => setDetailViewing(null)}

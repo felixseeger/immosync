@@ -1,13 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Loader2, Trash2, User, Building2, Unlink } from 'lucide-react';
 import { createContact, updateContact, deleteContact, getLinkedPropertyIdsForContact, linkContactToProperty, unlinkContactFromProperty } from '../services/contactsService';
 import { getProperties } from '../services/propertyService';
+import { sfx } from '../utils/sfx';
 import type { Contact, ContactCategory, LeadStatus, MarketingType, Property } from '../types';
 
 const inputCls =
-  'w-full bg-white dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 text-gray-900 dark:text-white rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-neon-yellow transition-colors placeholder:text-gray-500 dark:placeholder:text-zinc-600';
+  'w-full bg-white dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 text-gray-900 dark:text-white rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#D9FF00] focus:ring-2 focus:ring-[#D9FF00]/30 transition-colors placeholder:text-gray-500 dark:placeholder:text-zinc-600';
+const selectCls = (hasValue: boolean) =>
+  inputCls + (hasValue ? ' text-[#D9FF00] border-[#D9FF00]' : '');
 
 const Label = ({ children, required }: { children: React.ReactNode; required?: boolean }) => (
   <label className="block text-[11px] font-semibold text-gray-600 dark:text-zinc-400 uppercase tracking-wider mb-1.5">
@@ -135,8 +138,18 @@ export default function ContactSlideOverPanel({ contact, onClose, onSuccess }: C
   }, [contact]);
 
   const set = (key: keyof FormState) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    if (['category', 'leadStatus', 'marketingType'].includes(key)) sfx.menuSelect();
     setForm((prev) => ({ ...prev, [key]: e.target.value }));
   };
+
+  const handleClose = useCallback(() => {
+    sfx.menuClose();
+    onClose();
+  }, [onClose]);
+
+  useEffect(() => {
+    sfx.menuOpen();
+  }, []);
 
   const handleSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -205,7 +218,7 @@ export default function ContactSlideOverPanel({ contact, onClose, onSuccess }: C
         className="fixed inset-0 flex justify-end"
         style={{ zIndex: 9999 }}
       >
-        <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} aria-hidden />
+        <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={handleClose} aria-hidden />
         <motion.div
           initial={{ x: '100%' }}
           animate={{ x: 0 }}
@@ -219,8 +232,8 @@ export default function ContactSlideOverPanel({ contact, onClose, onSuccess }: C
         >
           <div className="p-4 border-b border-gray-200 dark:border-zinc-800 flex items-center justify-between shrink-0">
             <div className="flex items-center gap-2">
-              <div className="p-2 rounded-lg bg-neon-yellow/10 border border-neon-yellow/20">
-                <User size={18} className="text-neon-yellow" />
+              <div className="p-2 rounded-lg bg-[#D9FF00]/15 border-2 border-[#D9FF00]/40">
+                <User size={18} className="text-[#D9FF00]" />
               </div>
               <h2 id="contact-panel-title" className="text-lg font-bold text-gray-900 dark:text-white">
                 {isEditing ? 'Edit Contact' : 'New Contact'}
@@ -228,8 +241,8 @@ export default function ContactSlideOverPanel({ contact, onClose, onSuccess }: C
             </div>
             <button
               type="button"
-              onClick={onClose}
-              className="p-2 hover:bg-gray-200 dark:hover:bg-zinc-800 rounded-lg transition-colors text-gray-600 dark:text-zinc-400"
+              onClick={handleClose}
+              className="p-2 hover:bg-gray-200 dark:hover:bg-zinc-800 rounded-lg transition-colors text-gray-600 dark:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#D9FF00]/50"
             >
               <X size={20} />
             </button>
@@ -264,7 +277,7 @@ export default function ContactSlideOverPanel({ contact, onClose, onSuccess }: C
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label>Category</Label>
-                <select value={form.category} onChange={set('category')} className={inputCls}>
+                <select value={form.category} onChange={set('category')} className={selectCls(!!form.category)}>
                   <option value="">—</option>
                   {CATEGORIES.map((c) => (
                     <option key={c} value={c}>{c}</option>
@@ -273,7 +286,7 @@ export default function ContactSlideOverPanel({ contact, onClose, onSuccess }: C
               </div>
               <div>
                 <Label>Lead status</Label>
-                <select value={form.leadStatus} onChange={set('leadStatus')} className={inputCls}>
+                <select value={form.leadStatus} onChange={set('leadStatus')} className={selectCls(!!form.leadStatus)}>
                   <option value="">—</option>
                   {LEAD_STATUSES.map((s) => (
                     <option key={s} value={s}>{s}</option>
@@ -299,7 +312,7 @@ export default function ContactSlideOverPanel({ contact, onClose, onSuccess }: C
               <div className="space-y-3">
                 <div>
                   <Label>Marketing type</Label>
-                  <select value={form.marketingType} onChange={set('marketingType')} className={inputCls}>
+                  <select value={form.marketingType} onChange={set('marketingType')} className={selectCls(!!form.marketingType)}>
                     <option value="">—</option>
                     {MARKETING_TYPES.map((m) => (
                       <option key={m} value={m}>{m}</option>
@@ -365,8 +378,8 @@ export default function ContactSlideOverPanel({ contact, onClose, onSuccess }: C
                   <div className="flex gap-2">
                     <select
                       value={assignPropertyId}
-                      onChange={(e) => setAssignPropertyId(e.target.value)}
-                      className={inputCls + ' flex-1'}
+                      onChange={(e) => { sfx.menuSelect(); setAssignPropertyId(e.target.value); }}
+                      className={(assignPropertyId ? ' text-[#D9FF00] border-[#D9FF00] ' : ' ') + inputCls + ' flex-1'}
                     >
                       <option value="">Assign to property…</option>
                       {allProperties
@@ -377,9 +390,9 @@ export default function ContactSlideOverPanel({ contact, onClose, onSuccess }: C
                     </select>
                     <button
                       type="button"
-                      onClick={handleLinkProperty}
+                      onClick={() => { sfx.menuSelect(); handleLinkProperty(); }}
                       disabled={!assignPropertyId || linking}
-                      className="px-4 py-2.5 bg-neon-yellow/20 border border-neon-yellow/40 text-neon-yellow font-semibold rounded-lg text-sm hover:bg-neon-yellow/30 transition-colors disabled:opacity-50 flex items-center gap-1.5"
+                      className="px-4 py-2.5 bg-[#D9FF00]/20 border-2 border-[#D9FF00]/50 text-[#D9FF00] font-semibold rounded-lg text-sm hover:bg-[#D9FF00]/30 transition-colors disabled:opacity-50 flex items-center gap-1.5"
                     >
                       {linking ? <Loader2 size={16} className="animate-spin" /> : <Building2 size={16} />}
                       Add
@@ -398,8 +411,8 @@ export default function ContactSlideOverPanel({ contact, onClose, onSuccess }: C
               <button
                 type="button"
                 disabled={saving || !form.name.trim()}
-                onClick={() => handleSubmit()}
-                className="w-full py-3 bg-neon-yellow text-black font-bold rounded-xl hover:bg-neon-yellow/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                onClick={() => { sfx.menuSelect(); handleSubmit(); }}
+                className="w-full py-3 bg-[#D9FF00] text-black font-bold rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-[#D9FF00] focus:ring-offset-2"
               >
                 {saving ? <Loader2 size={18} className="animate-spin" /> : null}
                 {isEditing ? 'Save changes' : 'Create contact'}
@@ -407,7 +420,7 @@ export default function ContactSlideOverPanel({ contact, onClose, onSuccess }: C
               {isEditing && (
                 <button
                   type="button"
-                  onClick={() => setShowDeleteConfirm(true)}
+                  onClick={() => { sfx.menuSelect(); setShowDeleteConfirm(true); }}
                   className="w-full py-2.5 border border-red-500/50 text-red-500 dark:text-red-400 rounded-xl hover:bg-red-500/10 transition-colors text-sm font-medium"
                 >
                   Delete contact
@@ -440,7 +453,7 @@ export default function ContactSlideOverPanel({ contact, onClose, onSuccess }: C
               <div className="flex gap-3">
                 <button
                   type="button"
-                  onClick={() => setShowDeleteConfirm(false)}
+                  onClick={() => { sfx.menuSelect(); setShowDeleteConfirm(false); }}
                   disabled={deleting}
                   className="flex-1 py-2.5 bg-gray-200 dark:bg-zinc-800 text-gray-900 dark:text-white rounded-xl font-medium text-sm"
                 >
@@ -448,7 +461,7 @@ export default function ContactSlideOverPanel({ contact, onClose, onSuccess }: C
                 </button>
                 <button
                   type="button"
-                  onClick={handleDelete}
+                  onClick={() => { sfx.menuSelect(); handleDelete(); }}
                   disabled={deleting}
                   className="flex-1 py-2.5 bg-red-500 text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 disabled:opacity-50"
                 >

@@ -13,6 +13,7 @@ import {
   ExternalLink,
   Activity,
   FolderOpen,
+  Briefcase,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import {
@@ -159,13 +160,18 @@ export default function DealDetailSlideOver({
           aria-labelledby="deal-panel-title"
         >
           <div className="p-4 border-b border-gray-200 dark:border-zinc-800 flex items-center justify-between shrink-0">
-            <h2 id="deal-panel-title" className="text-lg font-bold text-gray-900 dark:text-white">
-              Deal details
-            </h2>
+            <div className="flex items-center gap-2">
+              <span className="p-2 rounded-lg bg-[#D9FF00]/15 border-2 border-[#D9FF00]/40">
+                <Briefcase size={18} className="text-[#D9FF00]" />
+              </span>
+              <h2 id="deal-panel-title" className="text-lg font-bold text-gray-900 dark:text-white">
+                Deal details
+              </h2>
+            </div>
             <button
               type="button"
               onClick={onClose}
-              className="p-2 rounded-lg text-gray-500 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 hover:text-gray-900 dark:hover:text-white transition-colors"
+              className="p-2 rounded-lg text-gray-500 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 hover:text-gray-900 dark:hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-[#D9FF00]/50"
               aria-label="Close"
             >
               <X size={20} />
@@ -186,7 +192,7 @@ export default function DealDetailSlideOver({
                     <button
                       type="button"
                       onClick={() => { onSelectContact(deal.contactId); onClose(); }}
-                      className="text-xs font-medium text-neon-yellow hover:underline flex items-center gap-1 shrink-0"
+                      className="text-xs font-medium text-[#D9FF00] hover:underline flex items-center gap-1 shrink-0"
                     >
                       <ExternalLink size={12} />
                       View contact
@@ -200,7 +206,7 @@ export default function DealDetailSlideOver({
                     <button
                       type="button"
                       onClick={() => { onSelectProperty(deal.propertyId); onClose(); }}
-                      className="text-xs font-medium text-neon-yellow hover:underline flex items-center gap-1 shrink-0"
+                      className="text-xs font-medium text-[#D9FF00] hover:underline flex items-center gap-1 shrink-0"
                     >
                       <ExternalLink size={12} />
                       View property
@@ -324,7 +330,7 @@ export default function DealDetailSlideOver({
                   type="button"
                   onClick={handleAddNote}
                   disabled={!note.trim() || addingNote}
-                  className="px-4 py-2.5 bg-neon-yellow text-black font-bold rounded-lg text-sm hover:bg-neon-yellow/90 disabled:opacity-50 flex items-center gap-2"
+                  className="px-4 py-2.5 bg-[#D9FF00] text-black font-bold rounded-lg text-sm border-2 border-[#D9FF00] hover:opacity-90 disabled:opacity-50 flex items-center gap-2"
                 >
                   {addingNote ? <Loader2 size={16} className="animate-spin" /> : null}
                   Add

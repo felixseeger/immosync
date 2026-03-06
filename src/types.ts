@@ -144,11 +144,24 @@ export interface DealDocument {
   uploadedAt: any;
 }
 
-/** Scheduled viewing / appointment for a property with a contact */
+/** Event type for calendar viewings/appointments */
+export type ViewingEventType = 'signing' | 'viewing' | 'payment' | 'negotiation' | 'notar';
+
+export const VIEWING_EVENT_TYPE_LABELS: Record<ViewingEventType, string> = {
+  signing: 'Signing',
+  viewing: 'Viewing',
+  payment: 'Payment',
+  negotiation: 'Negotiation',
+  notar: 'Notar',
+};
+
+/** Scheduled event (viewing, signing, etc.) for a property with a contact */
 export interface Viewing {
   id: string;
   propertyId: string;
   contactId: string;
+  /** Type of event: Signing, Viewing, Payment, Negotiation, Notar */
+  eventType?: ViewingEventType;
   scheduledAt: any; // Firestore Timestamp
   status?: 'scheduled' | 'completed' | 'cancelled' | 'no_show';
   note?: string;

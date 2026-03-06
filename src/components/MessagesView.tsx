@@ -13,6 +13,7 @@ import { subscribeToConversations, subscribeToMessages, createMessage, getOrCrea
 import { subscribeToUsers } from '../services/usersService';
 import type { Conversation, Message, UserProfile } from '../types';
 import type { User as FirebaseUser } from 'firebase/auth';
+import { sfx } from '../utils/sfx';
 
 function getMessageDate(m: Message): Date | null {
   const raw = m.createdAt;
@@ -132,11 +133,11 @@ export default function MessagesView({ currentUser }: MessagesViewProps) {
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">Messages</h2>
         <button
           type="button"
-          onClick={() => setShowNewModal(true)}
-          className="flex items-center gap-2 px-5 py-2.5 bg-neon-yellow dark:bg-transparent dark:border dark:border-neon-yellow font-bold rounded-lg text-sm hover:opacity-90 dark:hover:bg-neon-yellow/10 transition-opacity text-black dark:!text-[#D9FF00] [&_svg]:text-black dark:[&_svg]:!text-[#D9FF00]"
+          onClick={() => { sfx.menuSelect(); setShowNewModal(true); }}
+          className="flex items-center gap-2 px-5 py-2.5 bg-neon-yellow dark:bg-transparent dark:border dark:border-neon-yellow font-bold rounded-lg text-sm hover:opacity-90 dark:hover:bg-neon-yellow/10 transition-opacity text-black dark:text-[#D9FF00]! [&_svg]:text-black dark:[&_svg]:text-[#D9FF00]!"
         >
           <Plus size={18} />
-          <span className="text-black dark:!text-[#D9FF00]">New conversation</span>
+          <span className="text-black dark:text-[#D9FF00]!">New conversation</span>
         </button>
       </div>
 
@@ -151,11 +152,11 @@ export default function MessagesView({ currentUser }: MessagesViewProps) {
                 </p>
                 <button
                   type="button"
-                  onClick={() => setShowNewModal(true)}
-                  className="flex items-center gap-2 px-4 py-2.5 bg-neon-yellow dark:bg-transparent dark:border dark:border-neon-yellow font-bold rounded-lg text-sm hover:opacity-90 dark:hover:bg-neon-yellow/10 transition-opacity text-black dark:!text-[#D9FF00] [&_svg]:text-black dark:[&_svg]:!text-[#D9FF00]"
+                  onClick={() => { sfx.menuSelect(); setShowNewModal(true); }}
+                  className="flex items-center gap-2 px-4 py-2.5 bg-neon-yellow dark:bg-transparent dark:border dark:border-neon-yellow font-bold rounded-lg text-sm hover:opacity-90 dark:hover:bg-neon-yellow/10 transition-opacity text-black dark:text-[#D9FF00]! [&_svg]:text-black dark:[&_svg]:text-[#D9FF00]!"
                 >
                   <Plus size={18} />
-                  <span className="text-black dark:!text-[#D9FF00]">Start conversation</span>
+                  <span className="text-black dark:text-[#D9FF00]!">Start conversation</span>
                 </button>
               </div>
             ) : (
@@ -223,7 +224,7 @@ export default function MessagesView({ currentUser }: MessagesViewProps) {
                             : 'bg-gray-200 dark:bg-zinc-700 text-gray-900 dark:text-white rounded-bl-md'
                         }`}
                       >
-                        <p className={`text-sm whitespace-pre-wrap break-words ${isOut ? 'text-black dark:text-white' : ''}`}>{m.body ?? ''}</p>
+                        <p className={`text-sm whitespace-pre-wrap wrap-break-word ${isOut ? 'text-black dark:text-white' : ''}`}>{m.body ?? ''}</p>
                         {d && (
                           <p className={`text-[10px] mt-1 ${isOut ? 'text-black/70 dark:text-white/80' : 'text-gray-500 dark:text-zinc-400'}`}>
                             {format(d, 'MMM d, HH:mm')}
@@ -281,7 +282,7 @@ export default function MessagesView({ currentUser }: MessagesViewProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
-            onClick={() => setShowNewModal(false)}
+            onClick={() => { sfx.menuClose(); setShowNewModal(false); }}
           >
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
@@ -291,11 +292,18 @@ export default function MessagesView({ currentUser }: MessagesViewProps) {
               className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 rounded-2xl shadow-xl w-full max-w-sm overflow-hidden transition-colors duration-200"
             >
               <div className="p-4 border-b border-gray-200 dark:border-zinc-800 flex items-center justify-between transition-colors duration-200">
-                <h3 className="text-lg font-bold text-gray-900 dark:text-white transition-colors duration-200">New conversation</h3>
+                <div className="flex items-center gap-2">
+                  <span className="p-2 rounded-lg bg-[#D9FF00]/15 border-2 border-[#D9FF00]/40">
+                    <MessageSquare size={18} className="text-[#D9FF00]" />
+                  </span>
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white transition-colors duration-200">
+                    New conversation
+                  </h3>
+                </div>
                 <button
                   type="button"
-                  onClick={() => setShowNewModal(false)}
-                  className="p-2 rounded-lg text-gray-500 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 hover:text-gray-900 dark:hover:text-white transition-colors duration-200"
+                  onClick={() => { sfx.menuClose(); setShowNewModal(false); }}
+                  className="p-2 rounded-lg text-gray-500 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 hover:text-gray-900 dark:hover:text-white transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#D9FF00]/50"
                 >
                   <X size={20} />
                 </button>
@@ -307,8 +315,11 @@ export default function MessagesView({ currentUser }: MessagesViewProps) {
                   </label>
                   <select
                     value={newContactId}
-                    onChange={(e) => setNewContactId(e.target.value)}
-                    className="w-full bg-white dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 text-gray-900 dark:text-white rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-neon-yellow"
+                    onChange={(e) => { sfx.menuSelect(); setNewContactId(e.target.value); }}
+                    className={
+                      'w-full bg-white dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#D9FF00] focus:ring-2 focus:ring-[#D9FF00]/30 transition-colors ' +
+                      (newContactId ? 'text-[#D9FF00] border-[#D9FF00]' : 'text-gray-900 dark:text-white')
+                    }
                   >
                     <option value="">— Select user —</option>
                     {selectableUsers.map((u) => (
@@ -321,18 +332,18 @@ export default function MessagesView({ currentUser }: MessagesViewProps) {
                 <div className="flex gap-2">
                   <button
                     type="button"
-                    onClick={() => setShowNewModal(false)}
-                    className="flex-1 py-2.5 bg-gray-200 dark:bg-zinc-800 text-gray-900 dark:text-white rounded-xl font-medium text-sm transition-colors duration-200 border border-transparent dark:border-zinc-700 hover:bg-gray-300 dark:hover:bg-zinc-700"
+                    onClick={() => { sfx.menuClose(); setShowNewModal(false); }}
+                    className="flex-1 py-2.5 bg-gray-200 dark:bg-zinc-800 text-gray-900 dark:text-white rounded-xl font-medium text-sm transition-colors duration-200 border border-transparent dark:border-zinc-700 hover:bg-gray-300 dark:hover:bg-zinc-700 hover:border-[#D9FF00]/50 focus:outline-none focus:ring-2 focus:ring-[#D9FF00]/50"
                   >
                     Cancel
                   </button>
                   <button
                     type="button"
-                    onClick={handleStartConversation}
+                    onClick={() => { sfx.menuSelect(); handleStartConversation(); }}
                     disabled={!newContactId.trim() || starting}
-                    className="flex-1 py-2.5 bg-neon-yellow dark:bg-neon-yellow text-black dark:text-black font-bold rounded-xl text-sm flex items-center justify-center gap-2 disabled:opacity-50 transition-colors duration-200 border border-neon-yellow dark:border-neon-yellow/80 hover:opacity-90 [&_svg]:text-black"
+                    className="flex-1 py-2.5 bg-transparent text-[#D9FF00] font-bold rounded-xl text-sm flex items-center justify-center gap-2 disabled:opacity-50 transition-colors duration-200 border-2 border-[#D9FF00] hover:bg-[#D9FF00]/10 [&_svg]:text-[#D9FF00]"
                   >
-                    {starting ? <Loader2 size={18} className="animate-spin text-black" /> : null}
+                    {starting ? <Loader2 size={18} className="animate-spin text-[#D9FF00]" /> : null}
                     Start
                   </button>
                 </div>

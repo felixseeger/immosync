@@ -1,15 +1,26 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'motion/react';
 import { X, Calendar, User, Building2, Loader2 } from 'lucide-react';
 import { createViewing } from '../services/viewingsService';
 import { subscribeToContacts } from '../services/contactsService';
 import { getProperties } from '../services/propertyService';
-import type { Property, Contact } from '../types';
+import type { Property, Contact, ViewingEventType } from '../types';
+
+const EVENT_TYPES: { value: ViewingEventType; label: string }[] = [
+  { value: 'viewing', label: 'Viewing' },
+  { value: 'signing', label: 'Signing' },
+  { value: 'payment', label: 'Payment' },
+  { value: 'negotiation', label: 'Negotiation' },
+  { value: 'notar', label: 'Notar' },
+];
 import { Timestamp } from 'firebase/firestore';
 import { setHours, setMinutes } from 'date-fns';
+import { sfx } from '../utils/sfx';
 
 const inputCls =
-  'w-full bg-white dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 text-gray-900 dark:text-white rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-neon-yellow';
+  'w-full bg-white dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 text-gray-900 dark:text-white rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#D9FF00] focus:ring-2 focus:ring-[#D9FF00]/30 transition-colors placeholder:text-gray-500 dark:placeholder:text-zinc-600';
+const selectCls = (hasValue: boolean) =>
+  inputCls + (hasValue ? ' text-[#D9FF00] border-[#D9FF00]' : '');
 
 interface AddViewingModalProps {
   /** Optional initial date (yyyy-MM-dd) when opening from a specific day */
@@ -23,6 +34,7 @@ export default function AddViewingModal({ initialDate, onClose, onSuccess }: Add
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [propertyId, setPropertyId] = useState('');
   const [contactId, setContactId] = useState('');
+  const [eventType, setEventType] = useState<ViewingEventType>('viewing');
   const [date, setDate] = useState(initialDate ?? '');
   const [time, setTime] = useState('10:00');
   const [note, setNote] = useState('');
@@ -39,6 +51,15 @@ export default function AddViewingModal({ initialDate, onClose, onSuccess }: Add
   useEffect(() => {
     if (initialDate) setDate(initialDate);
   }, [initialDate]);
+
+  const handleClose = useCallback(() => {
+    sfx.menuClose();
+    onClose();
+  }, [onClose]);
+
+  useEffect(() => {
+    sfx.menuOpen();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,6 +87,7 @@ export default function AddViewingModal({ initialDate, onClose, onSuccess }: Add
         {
           propertyId,
           contactId,
+          eventType,
           scheduledAt: Timestamp.fromDate(scheduled),
           status: 'scheduled',
           note: note.trim() || undefined,
@@ -94,8 +116,8 @@ export default function AddViewingModal({ initialDate, onClose, onSuccess }: Add
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
-      onClick={onClose}
+      className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+      onClick={handleClose}
     >
       <motion.div
         initial={{ scale: 0.95, opacity: 0 }}
@@ -106,13 +128,15 @@ export default function AddViewingModal({ initialDate, onClose, onSuccess }: Add
       >
         <div className="p-4 border-b border-gray-200 dark:border-zinc-800 flex items-center justify-between">
           <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <Calendar size={20} className="text-neon-yellow" />
+            <span className="p-2 rounded-lg bg-[#D9FF00]/15 border-2 border-[#D9FF00]/40">
+              <Calendar size={18} className="text-[#D9FF00]" />
+            </span>
             New viewing
           </h3>
           <button
             type="button"
-            onClick={onClose}
-            className="p-2 rounded-lg text-gray-500 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 hover:text-gray-900 dark:hover:text-white"
+            onClick={handleClose}
+            className="p-2 rounded-lg text-gray-500 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 hover:text-gray-900 dark:hover:text-white focus:outline-none focus:ring-2 focus:ring-[#D9FF00]/50"
           >
             <X size={20} />
           </button>
@@ -124,11 +148,17 @@ export default function AddViewingModal({ initialDate, onClose, onSuccess }: Add
               Property
             </label>
             <div className="relative">
-              <Building2 size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-zinc-500" />
+              <Building2
+                size={16}
+                className={
+                  'absolute left-3 top-1/2 -translate-y-1/2 transition-colors ' +
+                  (propertyId ? 'text-[#D9FF00]' : 'text-gray-400 dark:text-zinc-500')
+                }
+              />
               <select
                 value={propertyId}
-                onChange={(e) => setPropertyId(e.target.value)}
-                className={inputCls + ' pl-9'}
+                onChange={(e) => { sfx.menuSelect(); setPropertyId(e.target.value); }}
+                className={selectCls(!!propertyId) + ' pl-9'}
                 required
               >
                 <option value="">— Select property —</option>
@@ -146,11 +176,17 @@ export default function AddViewingModal({ initialDate, onClose, onSuccess }: Add
               Contact
             </label>
             <div className="relative">
-              <User size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-zinc-500" />
+              <User
+                size={16}
+                className={
+                  'absolute left-3 top-1/2 -translate-y-1/2 transition-colors ' +
+                  (contactId ? 'text-[#D9FF00]' : 'text-gray-400 dark:text-zinc-500')
+                }
+              />
               <select
                 value={contactId}
-                onChange={(e) => setContactId(e.target.value)}
-                className={inputCls + ' pl-9'}
+                onChange={(e) => { sfx.menuSelect(); setContactId(e.target.value); }}
+                className={selectCls(!!contactId) + ' pl-9'}
                 required
               >
                 <option value="">— Select contact —</option>
@@ -164,6 +200,21 @@ export default function AddViewingModal({ initialDate, onClose, onSuccess }: Add
             </div>
           </div>
 
+          <div>
+            <label className="block text-[11px] font-semibold text-gray-600 dark:text-zinc-400 uppercase tracking-wider mb-1.5">
+              Type of event
+            </label>
+            <select
+              value={eventType}
+              onChange={(e) => { sfx.menuSelect(); setEventType(e.target.value as ViewingEventType); }}
+              className={selectCls(true)}
+            >
+              {EVENT_TYPES.map(({ value, label }) => (
+                <option key={value} value={value}>{label}</option>
+              ))}
+            </select>
+          </div>
+
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-[11px] font-semibold text-gray-600 dark:text-zinc-400 uppercase tracking-wider mb-1.5">
@@ -172,9 +223,9 @@ export default function AddViewingModal({ initialDate, onClose, onSuccess }: Add
               <input
                 type="date"
                 value={date}
-                onChange={(e) => setDate(e.target.value)}
+                onChange={(e) => { sfx.menuSelect(); setDate(e.target.value); }}
                 min={today}
-                className={inputCls}
+                className={inputCls + (date ? ' text-[#D9FF00]' : '')}
                 required
               />
             </div>
@@ -182,7 +233,11 @@ export default function AddViewingModal({ initialDate, onClose, onSuccess }: Add
               <label className="block text-[11px] font-semibold text-gray-600 dark:text-zinc-400 uppercase tracking-wider mb-1.5">
                 Time
               </label>
-              <select value={time} onChange={(e) => setTime(e.target.value)} className={inputCls}>
+              <select
+                value={time}
+                onChange={(e) => { sfx.menuSelect(); setTime(e.target.value); }}
+                className={selectCls(!!time)}
+              >
                 {timeOptions.map((t) => (
                   <option key={t} value={t}>
                     {t}
@@ -214,15 +269,16 @@ export default function AddViewingModal({ initialDate, onClose, onSuccess }: Add
           <div className="flex gap-3 pt-2">
             <button
               type="button"
-              onClick={onClose}
-              className="flex-1 py-2.5 bg-gray-200 dark:bg-zinc-800 text-gray-900 dark:text-white rounded-xl font-medium text-sm"
+              onClick={handleClose}
+              className="flex-1 py-2.5 bg-gray-200 dark:bg-zinc-800 text-gray-900 dark:text-white rounded-xl font-medium text-sm hover:border-[#D9FF00]/50 focus:outline-none focus:ring-2 focus:ring-[#D9FF00]/50 transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={saving}
-              className="flex-1 py-2.5 bg-neon-yellow text-black font-bold rounded-xl text-sm flex items-center justify-center gap-2 disabled:opacity-50"
+              onClick={() => sfx.menuSelect()}
+              className="flex-1 py-2.5 bg-[#D9FF00] text-black font-bold rounded-xl text-sm flex items-center justify-center gap-2 disabled:opacity-50 hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-[#D9FF00] focus:ring-offset-2"
             >
               {saving ? <Loader2 size={18} className="animate-spin" /> : <Calendar size={18} />}
               {saving ? 'Saving…' : 'Schedule'}

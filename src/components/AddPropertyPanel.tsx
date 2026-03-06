@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useDropzone } from 'react-dropzone';
 import {
@@ -15,6 +15,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { createProperty, updatePropertyImages, updateProperty, deletePropertyImage } from '../services/propertyService';
+import { sfx } from '../utils/sfx';
 import { uploadPropertyImage } from '../services/storageService';
 import { auth } from '../firebase';
 import type { MarketingType, HeatingType, Property } from '../types';
@@ -106,7 +107,7 @@ interface StagedFile {
 /* ─── Shared style tokens ───────────────────────────────────────────────────── */
 
 const inputCls =
-  'w-full bg-white dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 text-gray-900 dark:text-white rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-neon-yellow transition-colors placeholder:text-gray-500 dark:placeholder:text-zinc-600';
+  'w-full bg-white dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 text-gray-900 dark:text-white rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#D9FF00] focus:ring-2 focus:ring-[#D9FF00]/30 transition-colors placeholder:text-gray-500 dark:placeholder:text-zinc-600';
 
 const Label = ({ children, required }: { children: React.ReactNode; required?: boolean }) => (
   <label className="block text-[11px] font-semibold text-gray-600 dark:text-zinc-400 uppercase tracking-wider mb-1.5">
@@ -121,10 +122,12 @@ function Step1({
   form,
   set,
   setForm,
+  onSelect,
 }: {
   form: FormState;
   set: (f: keyof FormState) => (e: React.ChangeEvent<any>) => void;
   setForm: React.Dispatch<React.SetStateAction<FormState>>;
+  onSelect?: () => void;
 }) {
   return (
     <div className="space-y-5">
@@ -147,11 +150,14 @@ function Step1({
             <button
               key={t}
               type="button"
-              onClick={() => setForm((f) => ({ ...f, marketingType: t }))}
-              className={`flex-1 py-2.5 rounded-md text-sm font-bold transition-all ${
+              onClick={() => {
+                onSelect?.();
+                setForm((f) => ({ ...f, marketingType: t }));
+              }}
+              className={`flex-1 py-2.5 rounded-md text-sm font-bold transition-all border-2 ${
                 form.marketingType === t
-                  ? 'bg-neon-yellow text-black shadow'
-                  : 'text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white'
+                  ? 'border-[#D9FF00] bg-[#D9FF00]/15 text-[#D9FF00]'
+                  : 'border-transparent text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
               For {t}
@@ -167,11 +173,14 @@ function Step1({
             <button
               key={t}
               type="button"
-              onClick={() => setForm((f) => ({ ...f, propertyType: t }))}
-              className={`py-2 px-1 rounded-lg text-xs font-medium transition-all border ${
+              onClick={() => {
+                onSelect?.();
+                setForm((f) => ({ ...f, propertyType: t }));
+              }}
+              className={`py-2 px-1 rounded-lg text-xs font-medium transition-all border-2 ${
                 form.propertyType === t
-                  ? 'bg-neon-yellow/10 border-neon-yellow/50 text-neon-yellow'
-                  : 'bg-gray-100 dark:bg-zinc-800 border-gray-200 dark:border-zinc-700 text-gray-600 dark:text-zinc-400 hover:border-gray-300 dark:hover:border-zinc-500 hover:text-gray-900 dark:hover:text-white'
+                  ? 'border-[#D9FF00] bg-[#D9FF00]/10 text-[#D9FF00]'
+                  : 'border-gray-200 dark:border-zinc-700 bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-400 hover:border-gray-300 dark:hover:border-zinc-500 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
               {t}
@@ -187,15 +196,18 @@ function Step1({
             <button
               key={s}
               type="button"
-              onClick={() => setForm((f) => ({ ...f, status: s }))}
-              className={`flex-1 py-2 rounded-md text-xs font-bold transition-all ${
+              onClick={() => {
+                onSelect?.();
+                setForm((f) => ({ ...f, status: s }));
+              }}
+              className={`flex-1 py-2 rounded-md text-xs font-bold transition-all ring-2 ${
                 form.status === s
                   ? s === 'Active'
-                    ? 'bg-neon-yellow text-black'
+                    ? 'ring-[#D9FF00] bg-[#D9FF00]/15 text-[#D9FF00]'
                     : s === 'Pending'
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-gray-400 dark:bg-zinc-500 text-white'
-                  : 'text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white'
+                    ? 'ring-[#D9FF00] bg-blue-500/90 text-white'
+                    : 'ring-[#D9FF00] bg-gray-400 dark:bg-zinc-500 text-white'
+                  : 'ring-transparent text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
               {s}
@@ -697,6 +709,15 @@ export default function AddPropertyPanel({ onClose, onSuccess, property }: AddPr
     });
   };
 
+  const handleClose = useCallback(() => {
+    sfx.menuClose();
+    onClose();
+  }, [onClose]);
+
+  useEffect(() => {
+    sfx.menuOpen();
+  }, []);
+
   const handleDeleteImage = async (imageUrl: string) => {
     if (!property) return;
     setIsDeleting(true);
@@ -883,7 +904,7 @@ export default function AddPropertyPanel({ onClose, onSuccess, property }: AddPr
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         className="fixed inset-0 bg-black/65 backdrop-blur-sm z-40"
-        onClick={onClose}
+        onClick={handleClose}
       />
 
       {/* Panel */}
@@ -903,7 +924,7 @@ export default function AddPropertyPanel({ onClose, onSuccess, property }: AddPr
             </p>
           </div>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="p-2 hover:bg-gray-200 dark:hover:bg-zinc-800 rounded-full transition-colors text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
           >
             <X size={18} />
@@ -917,7 +938,12 @@ export default function AddPropertyPanel({ onClose, onSuccess, property }: AddPr
               <React.Fragment key={i}>
                 <button
                   type="button"
-                  onClick={() => i <= step && setStep(i)}
+                  onClick={() => {
+                    if (i <= step) {
+                      sfx.menuSelect();
+                      setStep(i);
+                    }
+                  }}
                   disabled={i > step}
                   className={`flex items-center gap-2 transition-all ${
                     i > step ? 'cursor-not-allowed' : 'cursor-pointer'
@@ -926,9 +952,9 @@ export default function AddPropertyPanel({ onClose, onSuccess, property }: AddPr
                   <div
                     className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all shrink-0 ${
                       i < step
-                        ? 'bg-neon-yellow text-black'
+                        ? 'bg-neon-yellow text-neon-yellow'
                         : i === step
-                        ? 'bg-neon-yellow text-black ring-[3px] ring-neon-yellow/25'
+                        ? 'border-2 border-[#D9FF00] bg-zinc-800 dark:bg-zinc-800 text-white'
                         : 'bg-gray-200 dark:bg-zinc-800 text-gray-600 dark:text-zinc-500 border border-gray-300 dark:border-zinc-700'
                     }`}
                   >
@@ -964,7 +990,7 @@ export default function AddPropertyPanel({ onClose, onSuccess, property }: AddPr
               exit={{ opacity: 0, x: -16 }}
               transition={{ duration: 0.18, ease: 'easeOut' }}
             >
-              {step === 0 && <Step1 form={form} set={set} setForm={setForm} />}
+              {step === 0 && <Step1 form={form} set={set} setForm={setForm} onSelect={() => sfx.menuSelect()} />}
               {step === 1 && <Step2 form={form} set={set} />}
               {step === 2 && <Step3 form={form} set={set} />}
               {step === 3 && (
@@ -1001,7 +1027,14 @@ export default function AddPropertyPanel({ onClose, onSuccess, property }: AddPr
           <div className="flex items-center gap-3">
             <button
               type="button"
-              onClick={() => (step > 0 ? setStep((s) => s - 1) : onClose())}
+              onClick={() => {
+                if (step > 0) {
+                  sfx.menuSelect();
+                  setStep((s) => s - 1);
+                } else {
+                  handleClose();
+                }
+              }}
               disabled={submitting}
               className="flex items-center gap-2 px-4 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 shrink-0"
             >
@@ -1014,9 +1047,12 @@ export default function AddPropertyPanel({ onClose, onSuccess, property }: AddPr
             {step < STEPS.length - 1 ? (
               <button
                 type="button"
-                onClick={() => setStep((s) => s + 1)}
+                onClick={() => {
+                  sfx.menuSelect();
+                  setStep((s) => s + 1);
+                }}
                 disabled={!canAdvance()}
-                className="flex items-center gap-2 px-5 py-2.5 bg-neon-yellow text-black text-sm font-bold rounded-lg hover:bg-yellow-400 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                className="flex items-center gap-2 px-5 py-2.5 bg-[#D9FF00] text-black text-sm font-bold rounded-lg hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 Continue
                 <ChevronRight size={16} />
@@ -1026,7 +1062,7 @@ export default function AddPropertyPanel({ onClose, onSuccess, property }: AddPr
                 type="button"
                 onClick={handleSubmit}
                 disabled={submitting}
-                className="flex items-center gap-2 px-5 py-2.5 bg-neon-yellow text-black text-sm font-bold rounded-lg hover:bg-yellow-400 transition-colors disabled:opacity-50 min-w-40 justify-center"
+                className="flex items-center gap-2 px-5 py-2.5 bg-[#D9FF00] text-black text-sm font-bold rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 min-w-40 justify-center"
               >
                 {submitting ? (
                   <>

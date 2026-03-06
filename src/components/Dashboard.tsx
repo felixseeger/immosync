@@ -16,7 +16,8 @@ import { getProperties } from '../services/propertyService';
 import { subscribeToContacts } from '../services/contactsService';
 import { subscribeToViewings } from '../services/viewingsService';
 import { subscribeToDealsSimple } from '../services/dealsService';
-import type { Property, Viewing, Deal } from '../types';
+import type { Property, Viewing, Deal, ViewingEventType } from '../types';
+import { VIEWING_EVENT_TYPE_LABELS } from '../types';
 import type { User as FirebaseUser } from 'firebase/auth';
 
 const StatCard = ({
@@ -311,9 +312,11 @@ export default function Dashboard({ user, onAddProperty, onSelectProperty, onOpe
               <ul className="space-y-2 flex-1">
                 {todayViewings.map((v) => {
                   const d = getViewingDate(v);
+                  const type = (v.eventType ?? 'viewing') as ViewingEventType;
+                  const label = VIEWING_EVENT_TYPE_LABELS[type] ?? 'Viewing';
                   return (
                     <li key={v.id} className="text-sm text-gray-700 dark:text-zinc-300">
-                      {d ? format(d, 'HH:mm') : '—'} Viewing
+                      {d ? format(d, 'HH:mm') : '—'} {label}
                     </li>
                   );
                 })}
