@@ -52,14 +52,14 @@ export default function ImageUpload({ propertyId, onUploadComplete }: ImageUploa
       <div
         {...getRootProps()}
         className={`relative border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center text-center transition-colors cursor-pointer
-          ${isDragActive ? 'border-neon-yellow bg-neon-yellow/10' : 'border-zinc-700 hover:border-zinc-500 hover:bg-zinc-800/50'}
+          ${isDragActive ? 'border-accent bg-accent/10' : 'border-zinc-700 hover:border-zinc-500 hover:bg-zinc-800/50'}
           ${uploading ? 'pointer-events-none opacity-50' : ''}
         `}
       >
         <input {...getInputProps()} />
         
         <div className="w-12 h-12 rounded-full bg-zinc-800 flex items-center justify-center mb-4">
-          <UploadCloud className={`text-zinc-400 ${isDragActive ? 'text-neon-yellow' : ''}`} size={24} />
+          <UploadCloud className={`text-zinc-400 ${isDragActive ? 'text-accent' : ''}`} size={24} />
         </div>
         
         <h3 className="text-lg font-medium text-white mb-1">
@@ -71,7 +71,7 @@ export default function ImageUpload({ propertyId, onUploadComplete }: ImageUploa
         
         {uploading && (
           <div className="absolute inset-0 bg-black/80 backdrop-blur-sm rounded-xl flex flex-col items-center justify-center">
-            <Loader2 className="animate-spin text-neon-yellow mb-2" size={32} />
+            <Loader2 className="animate-spin text-accent mb-2" size={32} />
             <span className="text-white font-medium">{Math.round(progress)}% Uploading...</span>
           </div>
         )}

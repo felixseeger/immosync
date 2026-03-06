@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Search, Building2, User, Loader2, Briefcase, Calendar } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { searchFirestoreGrouped, type SearchResultsByCategory, type SearchResultItem } from '../services/searchService';
+import LiquidGradientBackground from './LiquidGradientBackground';
 
 const DEBOUNCE_MS = 300;
 
@@ -113,19 +114,26 @@ export default function GlobalSearchBar({
 
   return (
     <div ref={wrapperRef} className={`relative w-full max-w-xl ${className}`}>
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-zinc-500" size={18} />
-        <input
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          onFocus={() => query.length >= 2 && setOpen(true)}
-          placeholder={placeholder}
-          className="w-full bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 text-gray-900 dark:text-white rounded-xl pl-10 pr-4 py-2.5 text-sm placeholder-gray-500 dark:placeholder-zinc-500 focus:outline-none focus:border-neon-yellow transition-colors"
+      <div className="relative rounded-xl overflow-hidden border border-gray-300 dark:border-zinc-700 focus-within:border-accent focus-within:ring-2 focus-within:ring-accent/30">
+        <LiquidGradientBackground
+          className="absolute inset-0 rounded-xl pointer-events-none"
+          color1={[0.85, 1, 0]}   /* #D9FF00 */
+          color2={[0.06, 0.06, 0.08]}
         />
-        {loading && (
-          <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-neon-yellow" size={18} />
-        )}
+        <div className="relative z-10 flex items-center">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 z-20 text-gray-400 dark:text-zinc-500 pointer-events-none shrink-0" size={18} aria-hidden />
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onFocus={() => query.length >= 2 && setOpen(true)}
+            placeholder={placeholder}
+            className="w-full bg-white/60 dark:bg-zinc-900/60 backdrop-blur-sm text-gray-900 dark:text-white rounded-xl pl-10 pr-4 py-2.5 text-sm placeholder-gray-500 dark:placeholder-zinc-500 focus:outline-none border-0"
+          />
+          {loading && (
+            <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-accent pointer-events-none" size={18} />
+          )}
+        </div>
       </div>
 
       <AnimatePresence>
@@ -155,7 +163,7 @@ export default function GlobalSearchBar({
                 )}
                 {renderSection(
                   'Properties',
-                  <Building2 size={14} className="text-neon-yellow shrink-0" />,
+                  <Building2 size={14} className="text-accent shrink-0" />,
                   results.properties,
                   'No properties'
                 )}

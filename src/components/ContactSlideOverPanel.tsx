@@ -8,14 +8,14 @@ import { sfx } from '../utils/sfx';
 import type { Contact, ContactCategory, LeadStatus, MarketingType, Property } from '../types';
 
 const inputCls =
-  'w-full bg-white dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 text-gray-900 dark:text-white rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#D9FF00] focus:ring-2 focus:ring-[#D9FF00]/30 transition-colors placeholder:text-gray-500 dark:placeholder:text-zinc-600';
+  'w-full bg-white dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 text-gray-900 dark:text-white rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-colors placeholder:text-gray-500 dark:placeholder:text-zinc-600';
 const selectCls = (hasValue: boolean) =>
-  inputCls + (hasValue ? ' text-[#D9FF00] border-[#D9FF00]' : '');
+  inputCls + (hasValue ? ' text-accent border-accent' : '');
 
 const Label = ({ children, required }: { children: React.ReactNode; required?: boolean }) => (
   <label className="block text-[11px] font-semibold text-gray-600 dark:text-zinc-400 uppercase tracking-wider mb-1.5">
     {children}
-    {required && <span className="text-neon-yellow ml-1">*</span>}
+    {required && <span className="text-accent ml-1">*</span>}
   </label>
 );
 
@@ -232,8 +232,8 @@ export default function ContactSlideOverPanel({ contact, onClose, onSuccess }: C
         >
           <div className="p-4 border-b border-gray-200 dark:border-zinc-800 flex items-center justify-between shrink-0">
             <div className="flex items-center gap-2">
-              <div className="p-2 rounded-lg bg-[#D9FF00]/15 border-2 border-[#D9FF00]/40">
-                <User size={18} className="text-[#D9FF00]" />
+              <div className="p-2 rounded-lg bg-accent/15 border-2 border-accent/40">
+                <User size={18} className="text-accent" />
               </div>
               <h2 id="contact-panel-title" className="text-lg font-bold text-gray-900 dark:text-white">
                 {isEditing ? 'Edit Contact' : 'New Contact'}
@@ -242,7 +242,7 @@ export default function ContactSlideOverPanel({ contact, onClose, onSuccess }: C
             <button
               type="button"
               onClick={handleClose}
-              className="p-2 hover:bg-gray-200 dark:hover:bg-zinc-800 rounded-lg transition-colors text-gray-600 dark:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#D9FF00]/50"
+              className="p-2 hover:bg-gray-200 dark:hover:bg-zinc-800 rounded-lg transition-colors text-gray-600 dark:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-accent/50"
             >
               <X size={20} />
             </button>
@@ -379,7 +379,7 @@ export default function ContactSlideOverPanel({ contact, onClose, onSuccess }: C
                     <select
                       value={assignPropertyId}
                       onChange={(e) => { sfx.menuSelect(); setAssignPropertyId(e.target.value); }}
-                      className={(assignPropertyId ? ' text-[#D9FF00] border-[#D9FF00] ' : ' ') + inputCls + ' flex-1'}
+                      className={(assignPropertyId ? ' text-accent border-accent ' : ' ') + inputCls + ' flex-1'}
                     >
                       <option value="">Assign to property…</option>
                       {allProperties
@@ -392,7 +392,7 @@ export default function ContactSlideOverPanel({ contact, onClose, onSuccess }: C
                       type="button"
                       onClick={() => { sfx.menuSelect(); handleLinkProperty(); }}
                       disabled={!assignPropertyId || linking}
-                      className="px-4 py-2.5 bg-[#D9FF00]/20 border-2 border-[#D9FF00]/50 text-[#D9FF00] font-semibold rounded-lg text-sm hover:bg-[#D9FF00]/30 transition-colors disabled:opacity-50 flex items-center gap-1.5"
+                      className="px-4 py-2.5 font-semibold rounded-lg text-sm btn-outline-accent disabled:opacity-50 flex items-center gap-1.5 [&_svg]:text-current"
                     >
                       {linking ? <Loader2 size={16} className="animate-spin" /> : <Building2 size={16} />}
                       Add
@@ -412,7 +412,7 @@ export default function ContactSlideOverPanel({ contact, onClose, onSuccess }: C
                 type="button"
                 disabled={saving || !form.name.trim()}
                 onClick={() => { sfx.menuSelect(); handleSubmit(); }}
-                className="w-full py-3 bg-[#D9FF00] text-black font-bold rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-[#D9FF00] focus:ring-offset-2"
+                className="w-full py-3 bg-accent text-white dark:text-black font-bold rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2"
               >
                 {saving ? <Loader2 size={18} className="animate-spin" /> : null}
                 {isEditing ? 'Save changes' : 'Create contact'}

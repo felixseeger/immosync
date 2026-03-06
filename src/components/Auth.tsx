@@ -45,8 +45,8 @@ export default function Auth({ onSuccess, onForgotPassword }: AuthProps) {
   return (
     <div className="min-h-screen bg-app-dark flex items-center justify-center p-6">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-neon-yellow/5 rounded-full blur-[120px]" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-neon-yellow/5 rounded-full blur-[120px]" />
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-accent/5 rounded-full blur-[120px]" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-accent/5 rounded-full blur-[120px]" />
       </div>
 
       <motion.div 
@@ -56,7 +56,7 @@ export default function Auth({ onSuccess, onForgotPassword }: AuthProps) {
       >
         <div className="flex justify-center mb-8">
           <div className="flex flex-col items-center gap-3">
-            <div className="w-10 h-10 bg-neon-yellow rounded-lg flex items-center justify-center">
+            <div className="w-10 h-10 bg-accent rounded-lg flex items-center justify-center">
               <div className="w-5 h-5 border-2 border-black rotate-45" />
             </div>
             <h1 className="text-2xl font-bold tracking-tighter text-center">SITESYNC</h1>
@@ -76,14 +76,14 @@ export default function Auth({ onSuccess, onForgotPassword }: AuthProps) {
               <div className="space-y-1.5">
                 <label className="technical-label text-zinc-400 ml-1">Full Name</label>
                 <div className="relative group">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-neon-yellow transition-colors" size={18} />
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-accent transition-colors" size={18} />
                   <input 
                     type="text" 
                     required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="John Doe" 
-                    className="w-full bg-app-dark border border-border-dark rounded-lg py-2.5 pl-10 pr-4 text-sm focus:outline-none focus:border-neon-yellow/50 transition-all"
+                    className="w-full bg-app-dark border border-border-dark rounded-lg py-2.5 pl-10 pr-4 text-sm focus:outline-none focus:border-accent/50 transition-all"
                   />
                 </div>
               </div>
@@ -92,14 +92,14 @@ export default function Auth({ onSuccess, onForgotPassword }: AuthProps) {
             <div className="space-y-1.5">
               <label className="technical-label text-zinc-400 ml-1">Email Address</label>
               <div className="relative group">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-neon-yellow transition-colors" size={18} />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-accent transition-colors" size={18} />
                 <input 
                   type="email" 
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@example.com" 
-                  className="w-full bg-app-dark border border-border-dark rounded-lg py-2.5 pl-10 pr-4 text-sm focus:outline-none focus:border-neon-yellow/50 transition-all"
+                  className="w-full bg-app-dark border border-border-dark rounded-lg py-2.5 pl-10 pr-4 text-sm focus:outline-none focus:border-accent/50 transition-all"
                 />
               </div>
             </div>
@@ -111,21 +111,21 @@ export default function Auth({ onSuccess, onForgotPassword }: AuthProps) {
                   <button
                     type="button"
                     onClick={onForgotPassword}
-                    className="technical-label text-neon-yellow hover:underline"
+                    className="technical-label text-accent hover:underline"
                   >
                     Forgot password?
                   </button>
                 )}
               </div>
               <div className="relative group">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-neon-yellow transition-colors" size={18} />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-accent transition-colors" size={18} />
                 <input 
                   type="password" 
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••" 
-                  className="w-full bg-app-dark border border-border-dark rounded-lg py-2.5 pl-10 pr-4 text-sm focus:outline-none focus:border-neon-yellow/50 transition-all"
+                  className="w-full bg-app-dark border border-border-dark rounded-lg py-2.5 pl-10 pr-4 text-sm focus:outline-none focus:border-accent/50 transition-all"
                 />
               </div>
             </div>
@@ -144,7 +144,7 @@ export default function Auth({ onSuccess, onForgotPassword }: AuthProps) {
             <button 
               type="submit"
               disabled={loading}
-              className="w-full flex items-center justify-center gap-2 bg-app-dark border border-neon-yellow text-neon-yellow font-bold py-3 rounded-lg hover:bg-neon-yellow/10 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed mt-4"
+              className="w-full flex items-center justify-center gap-2 bg-app-dark border border-accent text-accent font-bold py-3 rounded-lg hover:bg-accent/10 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed mt-4"
             >
               {loading ? (
                 <Loader2 className="animate-spin" size={20} />
@@ -162,7 +162,7 @@ export default function Auth({ onSuccess, onForgotPassword }: AuthProps) {
               {isLogin ? "Don't have an account?" : "Already have an account?"}
               <button 
                 onClick={() => setIsLogin(!isLogin)}
-                className="ml-2 text-neon-yellow font-bold hover:underline"
+                className="ml-2 text-accent font-bold hover:underline"
               >
                 {isLogin ? 'Register Now' : 'Sign In'}
               </button>

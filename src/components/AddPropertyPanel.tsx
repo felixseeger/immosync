@@ -107,12 +107,12 @@ interface StagedFile {
 /* ─── Shared style tokens ───────────────────────────────────────────────────── */
 
 const inputCls =
-  'w-full bg-white dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 text-gray-900 dark:text-white rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#D9FF00] focus:ring-2 focus:ring-[#D9FF00]/30 transition-colors placeholder:text-gray-500 dark:placeholder:text-zinc-600';
+  'w-full bg-white dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 text-gray-900 dark:text-white rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-colors placeholder:text-gray-500 dark:placeholder:text-zinc-600';
 
 const Label = ({ children, required }: { children: React.ReactNode; required?: boolean }) => (
   <label className="block text-[11px] font-semibold text-gray-600 dark:text-zinc-400 uppercase tracking-wider mb-1.5">
     {children}
-    {required && <span className="text-neon-yellow ml-1">*</span>}
+    {required && <span className="text-accent ml-1">*</span>}
   </label>
 );
 
@@ -156,7 +156,7 @@ function Step1({
               }}
               className={`flex-1 py-2.5 rounded-md text-sm font-bold transition-all border-2 ${
                 form.marketingType === t
-                  ? 'border-[#D9FF00] bg-[#D9FF00]/15 text-[#D9FF00]'
+                  ? 'border-accent bg-accent/15 text-accent'
                   : 'border-transparent text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
@@ -179,7 +179,7 @@ function Step1({
               }}
               className={`py-2 px-1 rounded-lg text-xs font-medium transition-all border-2 ${
                 form.propertyType === t
-                  ? 'border-[#D9FF00] bg-[#D9FF00]/10 text-[#D9FF00]'
+                  ? 'border-accent bg-accent/10 text-accent'
                   : 'border-gray-200 dark:border-zinc-700 bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-400 hover:border-gray-300 dark:hover:border-zinc-500 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
@@ -203,10 +203,10 @@ function Step1({
               className={`flex-1 py-2 rounded-md text-xs font-bold transition-all ring-2 ${
                 form.status === s
                   ? s === 'Active'
-                    ? 'ring-[#D9FF00] bg-[#D9FF00]/15 text-[#D9FF00]'
+                    ? 'ring-accent bg-accent/15 text-accent'
                     : s === 'Pending'
-                    ? 'ring-[#D9FF00] bg-blue-500/90 text-white'
-                    : 'ring-[#D9FF00] bg-gray-400 dark:bg-zinc-500 text-white'
+                    ? 'ring-accent bg-blue-500/90 text-white'
+                    : 'ring-accent bg-gray-400 dark:bg-zinc-500 text-white'
                   : 'ring-transparent text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
@@ -507,7 +507,7 @@ function Step4({
     <div className="space-y-5">
       <p className="text-sm text-zinc-400 leading-relaxed">
         Upload property photos to Firebase Storage. The{' '}
-        <span className="text-neon-yellow font-semibold">first image</span> becomes the cover photo
+        <span className="text-accent font-semibold">first image</span> becomes the cover photo
         on the dashboard grid. Drag to reorder in the preview below.
       </p>
 
@@ -532,7 +532,7 @@ function Step4({
                   className="w-full h-full object-cover"
                 />
                 {i === 0 && (
-                  <div className="absolute top-2 left-2 bg-neon-yellow text-black text-[9px] font-black px-1.5 py-0.5 rounded flex items-center gap-1 shadow">
+                  <div className="absolute top-2 left-2 bg-accent text-white dark:text-black text-[9px] font-black px-1.5 py-0.5 rounded flex items-center gap-1 shadow">
                     <Star size={8} fill="currentColor" />
                     COVER
                   </div>
@@ -563,18 +563,18 @@ function Step4({
           {...getRootProps()}
           className={`relative border-2 border-dashed rounded-xl p-10 flex flex-col items-center justify-center text-center transition-all cursor-pointer select-none ${
             isDragActive
-              ? 'border-neon-yellow bg-neon-yellow/5 scale-[1.01]'
+              ? 'border-accent bg-accent/5 scale-[1.01]'
               : 'border-gray-300 dark:border-zinc-700 hover:border-gray-400 dark:hover:border-zinc-500 hover:bg-gray-100 dark:hover:bg-zinc-800/30'
           }`}
         >
           <input {...getInputProps()} />
         <div
           className={`w-14 h-14 rounded-full flex items-center justify-center mb-4 transition-colors ${
-            isDragActive ? 'bg-neon-yellow/20' : 'bg-gray-200 dark:bg-zinc-800'
+            isDragActive ? 'bg-accent/20' : 'bg-gray-200 dark:bg-zinc-800'
           }`}
         >
           <UploadCloud
-            className={isDragActive ? 'text-neon-yellow' : 'text-gray-600 dark:text-zinc-500'}
+            className={isDragActive ? 'text-accent' : 'text-gray-600 dark:text-zinc-500'}
             size={26}
           />
         </div>
@@ -606,7 +606,7 @@ function Step4({
                     onLoad={() => URL.revokeObjectURL(sf.preview)}
                   />
                   {i === 0 && (
-                    <div className="absolute top-2 left-2 bg-neon-yellow text-black text-[9px] font-black px-1.5 py-0.5 rounded flex items-center gap-1 shadow">
+                    <div className="absolute top-2 left-2 bg-accent text-white dark:text-black text-[9px] font-black px-1.5 py-0.5 rounded flex items-center gap-1 shadow">
                       <Star size={8} fill="currentColor" />
                       COVER
                     </div>
@@ -638,10 +638,13 @@ interface AddPropertyPanelProps {
   onClose: () => void;
   onSuccess: () => void;
   property?: Property;
+  /** When editing, open directly at this step (0=Basics, 1=Address, 2=Details, 3=Media). */
+  initialStep?: number;
 }
 
-export default function AddPropertyPanel({ onClose, onSuccess, property }: AddPropertyPanelProps) {
+export default function AddPropertyPanel({ onClose, onSuccess, property, initialStep = 0 }: AddPropertyPanelProps) {
   const isEditing = Boolean(property);
+  const stepIndex = Math.min(STEPS.length - 1, Math.max(0, initialStep));
 
   const initialForm: FormState = property
     ? {
@@ -669,7 +672,7 @@ export default function AddPropertyPanel({ onClose, onSuccess, property }: AddPr
       }
     : DEFAULTS;
 
-  const [step, setStep] = useState(0);
+  const [step, setStep] = useState(stepIndex);
   const [form, setForm] = useState<FormState>(initialForm);
   const [stagedFiles, setStagedFiles] = useState<StagedFile[]>([]);
   const [submitting, setSubmitting] = useState(false);
@@ -952,9 +955,9 @@ export default function AddPropertyPanel({ onClose, onSuccess, property }: AddPr
                   <div
                     className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all shrink-0 ${
                       i < step
-                        ? 'bg-neon-yellow text-neon-yellow'
+                        ? 'bg-accent text-accent'
                         : i === step
-                        ? 'border-2 border-[#D9FF00] bg-zinc-800 dark:bg-zinc-800 text-white'
+                        ? 'border-2 border-accent bg-zinc-800 dark:bg-zinc-800 text-white'
                         : 'bg-gray-200 dark:bg-zinc-800 text-gray-600 dark:text-zinc-500 border border-gray-300 dark:border-zinc-700'
                     }`}
                   >
@@ -962,7 +965,7 @@ export default function AddPropertyPanel({ onClose, onSuccess, property }: AddPr
                   </div>
                   <span
                     className={`text-xs font-semibold hidden sm:block whitespace-nowrap ${
-                      i === step ? 'text-gray-900 dark:text-white' : i < step ? 'text-neon-yellow' : 'text-gray-600 dark:text-zinc-600'
+                      i === step ? 'text-gray-900 dark:text-white' : i < step ? 'text-accent' : 'text-gray-600 dark:text-zinc-600'
                     }`}
                   >
                     {label}
@@ -971,7 +974,7 @@ export default function AddPropertyPanel({ onClose, onSuccess, property }: AddPr
                 {i < STEPS.length - 1 && (
                   <div
                     className={`flex-1 h-px mx-3 transition-colors ${
-                      i < step ? 'bg-neon-yellow/60' : 'bg-gray-300 dark:bg-zinc-800'
+                      i < step ? 'bg-accent/60' : 'bg-gray-300 dark:bg-zinc-800'
                     }`}
                   />
                 )}
@@ -1052,7 +1055,7 @@ export default function AddPropertyPanel({ onClose, onSuccess, property }: AddPr
                   setStep((s) => s + 1);
                 }}
                 disabled={!canAdvance()}
-                className="flex items-center gap-2 px-5 py-2.5 bg-[#D9FF00] text-black text-sm font-bold rounded-lg hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
+                className="flex items-center gap-2 px-5 py-2.5 bg-accent text-white dark:text-black text-sm font-bold rounded-lg hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 Continue
                 <ChevronRight size={16} />
@@ -1062,7 +1065,7 @@ export default function AddPropertyPanel({ onClose, onSuccess, property }: AddPr
                 type="button"
                 onClick={handleSubmit}
                 disabled={submitting}
-                className="flex items-center gap-2 px-5 py-2.5 bg-[#D9FF00] text-black text-sm font-bold rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 min-w-40 justify-center"
+                className="flex items-center gap-2 px-5 py-2.5 bg-accent text-white dark:text-black text-sm font-bold rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 min-w-40 justify-center"
               >
                 {submitting ? (
                   <>

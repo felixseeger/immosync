@@ -34,9 +34,9 @@ export default function DealCard({ deal, contactName, propertyTitle, index, onCl
           className={`
             rounded-xl border p-4 cursor-pointer transition-all
             bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-800
-            hover:border-neon-yellow/60 hover:shadow-lg hover:shadow-neon-yellow/5
+            hover:border-accent/60 hover:shadow-lg hover:shadow-accent/5
             ${stageBorderClass ?? 'border-l-4 border-l-gray-300 dark:border-l-zinc-600'}
-            ${snapshot.isDragging ? 'opacity-90 shadow-xl ring-2 ring-neon-yellow/50 border-neon-yellow' : ''}
+            ${snapshot.isDragging ? 'opacity-90 shadow-xl ring-2 ring-accent/50 border-accent' : ''}
           `}
         >
           <div className="flex items-start gap-2 mb-2">
@@ -52,9 +52,9 @@ export default function DealCard({ deal, contactName, propertyTitle, index, onCl
             </span>
           </div>
           <div className="flex items-center gap-2 pt-2 border-t border-gray-100 dark:border-zinc-800">
-            <DollarSign size={14} className="text-neon-yellow shrink-0" />
+            <DollarSign size={14} className="text-accent shrink-0" />
             <span className="text-xs text-gray-500 dark:text-zinc-500">{valueLabel}</span>
-            <span className="text-sm font-bold text-neon-yellow ml-auto">{valueStr}</span>
+            <span className="text-sm font-bold text-accent ml-auto">{valueStr}</span>
           </div>
         </div>
       )}

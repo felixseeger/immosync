@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'motion/react';
 import {
   Loader2,
   Plus,
-  Search,
   Pencil,
   Trash2,
   User,
@@ -16,6 +15,7 @@ import { subscribeToContacts, deleteContact, subscribeToPropertyLinksByContact }
 import { getPropertyTitles } from '../services/propertyService';
 import type { Contact, ContactCategory, LeadStatus } from '../types';
 import ContactSlideOverPanel from './ContactSlideOverPanel';
+import AnimatedLink from './AnimatedLink';
 
 const CATEGORY_LABELS: Record<ContactCategory, string> = {
   buyer: 'Buyer',
@@ -46,19 +46,16 @@ function formatBudget(sp: Contact['searchProfile']): string {
   return `≥ ${fmt(min!)}`;
 }
 
-function formatAssignedProperties(titles: string[]): string {
-  if (!titles?.length) return '—';
-  return titles.length > 2 ? `${titles.slice(0, 2).join(', ')} +${titles.length - 2}` : titles.join(', ');
-}
-
 interface ContactsProps {
   initialSelectedContactId?: string | null;
   onClearInitialContactSelection?: () => void;
+  onSelectProperty?: (propertyId: string) => void;
 }
 
 export default function Contacts({
   initialSelectedContactId,
   onClearInitialContactSelection,
+  onSelectProperty,
 }: ContactsProps = {}) {
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [loading, setLoading] = useState(true);
@@ -129,62 +126,53 @@ export default function Contacts({
   };
 
   return (
-    <div className="h-full flex flex-col bg-white dark:bg-app-dark relative">
-      <div className="p-6 border-b border-gray-200 dark:border-zinc-800 flex items-center justify-between bg-white/90 dark:bg-app-dark/50 backdrop-blur-md sticky top-0 z-10">
-        <div className="flex items-center gap-4">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
+    <div className="h-full flex flex-col bg-app-light dark:bg-app-dark relative">
+      <div className="p-6 border-b border-gray-200 dark:border-zinc-800 flex items-center justify-between gap-4 bg-app-light/90 dark:bg-app-dark/50 backdrop-blur-md sticky top-0 z-10">
+        <div className="flex-1 min-w-0">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight truncate">
             Contacts
           </h2>
-          <div className="h-6 w-px bg-gray-200 dark:bg-zinc-800" />
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-zinc-500" size={18} />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search name, email, phone…"
-              className="pl-9 pr-4 py-2 bg-gray-100 dark:bg-zinc-900 border border-gray-300 dark:border-zinc-800 rounded-lg text-sm text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-zinc-500 focus:outline-none focus:border-neon-yellow w-64"
-            />
-          </div>
-          <div className="flex items-center gap-2 bg-gray-100 dark:bg-zinc-900 rounded-lg p-1 border border-gray-300 dark:border-zinc-800">
+        </div>
+        <div className="flex items-center justify-center gap-2 bg-gray-100 dark:bg-zinc-900 rounded-lg p-1 border border-gray-300 dark:border-zinc-800 shrink-0">
+          <button
+            onClick={() => setCategoryFilter('')}
+            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+              categoryFilter === ''
+                ? 'bg-accent text-white dark:text-black border border-accent'
+                : 'text-gray-600 dark:text-zinc-500 hover:text-gray-900 dark:hover:text-white border border-transparent'
+            }`}
+          >
+            All
+          </button>
+          {(Object.keys(CATEGORY_LABELS) as ContactCategory[]).map((cat) => (
             <button
-              onClick={() => setCategoryFilter('')}
+              key={cat}
+              onClick={() => setCategoryFilter(cat)}
               className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                categoryFilter === ''
-                  ? 'bg-neon-yellow text-black'
-                  : 'text-gray-600 dark:text-zinc-500 hover:text-gray-900 dark:hover:text-white'
+                categoryFilter === cat
+                  ? 'bg-accent text-white dark:text-black border border-accent'
+                  : 'text-gray-600 dark:text-zinc-500 hover:text-gray-900 dark:hover:text-white border border-transparent'
               }`}
             >
-              All
+              {CATEGORY_LABELS[cat]}
             </button>
-            {(Object.keys(CATEGORY_LABELS) as ContactCategory[]).map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setCategoryFilter(cat)}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                  categoryFilter === cat
-                    ? 'bg-neon-yellow text-black'
-                    : 'text-gray-600 dark:text-zinc-500 hover:text-gray-900 dark:hover:text-white'
-                }`}
-              >
-                {CATEGORY_LABELS[cat]}
-              </button>
-            ))}
-          </div>
+          ))}
         </div>
-        <button
-          onClick={() => setPanelContact('new')}
-          className="flex items-center gap-2 px-4 py-2.5 bg-neon-yellow text-[#3A96DD] dark:!text-[#D9FF00] font-bold rounded-lg text-sm border border-[#CEF200] hover:bg-neon-yellow/90 dark:hover:!text-[#D9FF00] transition-colors [&_svg]:text-current dark:[&_svg]:!text-[#D9FF00]"
-        >
-          <Plus size={18} />
-          Add contact
-        </button>
+        <div className="flex-1 flex justify-end min-w-0">
+          <button
+            onClick={() => setPanelContact('new')}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold btn-outline-accent [&_svg]:text-current"
+          >
+            <Plus size={16} />
+            Add contact
+          </button>
+        </div>
       </div>
 
       <div className="flex-1 overflow-auto p-6">
         {loading ? (
           <div className="h-64 flex items-center justify-center">
-            <Loader2 className="animate-spin text-neon-yellow" size={32} />
+            <Loader2 className="animate-spin text-accent" size={32} />
           </div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
@@ -198,9 +186,9 @@ export default function Contacts({
             {!search && !categoryFilter && (
               <button
                 onClick={() => setPanelContact('new')}
-                className="inline-flex items-center gap-2 px-4 py-2.5 bg-neon-yellow text-[#3A96DD] dark:!text-[#D9FF00] font-bold rounded-lg text-sm [&_svg]:text-current dark:[&_svg]:!text-[#D9FF00]"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold btn-outline-accent [&_svg]:text-current"
               >
-                <Plus size={18} />
+                <Plus size={16} />
                 Add contact
               </button>
             )}
@@ -254,7 +242,7 @@ export default function Contacts({
                       </td>
                       <td className="px-4 py-3">
                         {c.category ? (
-                          <span className="inline-flex px-2 py-0.5 rounded-md text-xs font-medium bg-neon-yellow/15 text-neon-yellow border border-neon-yellow/25">
+                          <span className="inline-flex px-2 py-0.5 rounded-md text-xs font-medium bg-accent/15 text-accent border border-accent/25">
                             {CATEGORY_LABELS[c.category]}
                           </span>
                         ) : (
@@ -274,21 +262,36 @@ export default function Contacts({
                       <td className="px-4 py-3 text-gray-700 dark:text-zinc-400">
                         {c.searchProfile?.minRooms != null ? c.searchProfile.minRooms : '—'}
                       </td>
-                      <td className="px-4 py-3 text-gray-600 dark:text-zinc-500 text-xs max-w-[180px] truncate" title={(linksByContact[c.id] || []).map((id) => propertyTitles[id] || id).join(', ')}>
-                        {formatAssignedProperties((linksByContact[c.id] || []).map((id) => propertyTitles[id] || id))}
+                      <td className="px-4 py-3 text-xs max-w-[220px]">
+                        {(linksByContact[c.id] || []).length === 0 ? (
+                          <span className="text-gray-500 dark:text-zinc-500">—</span>
+                        ) : (
+                          <div className="flex flex-wrap gap-x-1.5 gap-y-0.5">
+                            {(linksByContact[c.id] || []).map((propertyId) => (
+                              <AnimatedLink
+                                key={propertyId}
+                                onClick={() => onSelectProperty?.(propertyId)}
+                                className="text-left truncate max-w-[140px] inline-block"
+                                title={propertyTitles[propertyId] || propertyId}
+                              >
+                                {propertyTitles[propertyId] || propertyId}
+                              </AnimatedLink>
+                            ))}
+                          </div>
+                        )}
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-1">
                           <button
                             onClick={() => setPanelContact(c)}
-                            className="p-2 rounded-lg text-gray-500 dark:text-zinc-500 hover:bg-gray-200 dark:hover:bg-zinc-800 hover:text-gray-900 dark:hover:text-white transition-colors"
+                            className="p-2 rounded-lg text-accent hover:bg-accent/15 border border-transparent hover:border-accent/40 transition-colors focus:outline-none focus:ring-2 focus:ring-accent/50"
                             title="Edit"
                           >
                             <Pencil size={14} />
                           </button>
                           <button
                             onClick={() => setDeleteConfirm(c)}
-                            className="p-2 rounded-lg text-gray-500 dark:text-zinc-500 hover:bg-red-500/10 hover:text-red-500 transition-colors"
+                            className="p-2 rounded-lg text-accent hover:bg-accent/15 border border-transparent hover:border-accent/40 transition-colors focus:outline-none focus:ring-2 focus:ring-accent/50"
                             title="Delete"
                           >
                             <Trash2 size={14} />

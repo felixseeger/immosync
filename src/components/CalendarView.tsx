@@ -143,14 +143,14 @@ export default function CalendarView() {
   };
 
   return (
-    <div className="h-full flex flex-col bg-white dark:bg-app-dark">
-      <div className="p-6 border-b border-gray-200 dark:border-zinc-800 flex items-center justify-between bg-white/90 dark:bg-app-dark/50 backdrop-blur-md sticky top-0 z-10">
+    <div className="h-full flex flex-col bg-app-light dark:bg-app-dark">
+      <div className="p-6 border-b border-gray-200 dark:border-zinc-800 flex items-center justify-between bg-app-light/90 dark:bg-app-dark/50 backdrop-blur-md sticky top-0 z-10">
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">Calendar</h2>
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={() => openAddModal()}
-            className="flex items-center gap-2 px-5 py-2.5 bg-neon-yellow text-black font-bold rounded-lg text-sm hover:opacity-90 transition-opacity dark:text-[#D9FF00] dark:border dark:border-[#D9FF00]"
+            className="flex items-center gap-2 px-5 py-2.5 font-bold rounded-lg text-sm btn-outline-accent [&_svg]:text-current"
           >
             <Plus size={18} />
             New event
@@ -227,16 +227,16 @@ export default function CalendarView() {
                               !isSameMonth(day, monthStart)
                                 ? 'bg-gray-50 dark:bg-zinc-900/50 text-gray-400 dark:text-zinc-600'
                                 : isSelected
-                                  ? 'bg-neon-yellow/20 dark:bg-neon-yellow/10 ring-1 ring-neon-yellow/50'
+                                  ? 'bg-accent/20 dark:bg-accent/10 ring-1 ring-accent/50'
                                   : isToday(day)
-                                    ? 'bg-neon-yellow/5 dark:bg-neon-yellow/5 hover:bg-neon-yellow/10'
+                                    ? 'bg-accent/5 dark:bg-accent/5 hover:bg-accent/10'
                                     : 'hover:bg-gray-50 dark:hover:bg-zinc-800/50'
                             }`}
                           >
                             <span
                               className={`inline-flex items-center justify-center w-7 h-7 text-sm font-medium rounded-full ${
                                 isToday(day)
-                                  ? 'bg-neon-yellow text-black'
+                                  ? 'bg-accent text-white dark:text-black'
                                   : isSameMonth(day, monthStart)
                                     ? 'text-gray-900 dark:text-white'
                                     : 'text-gray-400 dark:text-zinc-600'
@@ -255,7 +255,7 @@ export default function CalendarView() {
                                       e.stopPropagation();
                                       setDetailViewing(v);
                                     }}
-                                    className="w-full text-left px-1.5 py-0.5 rounded text-[11px] md:text-xs bg-neon-yellow/20 dark:bg-neon-yellow/10 text-gray-800 dark:text-zinc-200 truncate hover:bg-neon-yellow/30 dark:hover:bg-neon-yellow/20 border border-transparent hover:border-neon-yellow/40"
+                                    className="w-full text-left px-1.5 py-0.5 rounded text-[11px] md:text-xs bg-accent/20 dark:bg-accent/10 text-gray-800 dark:text-zinc-200 truncate hover:bg-accent/30 dark:hover:bg-accent/20 border border-transparent hover:border-accent/40"
                                   >
                                     {vd ? format(vd, 'HH:mm') : ''} {propertyMap[v.propertyId] ?? 'Property'}
                                   </button>
@@ -289,7 +289,7 @@ export default function CalendarView() {
                 <button
                   type="button"
                   onClick={() => openAddModal(selectedDay)}
-                  className="text-sm font-medium text-neon-yellow hover:text-neon-yellow/90"
+                  className="text-sm font-medium text-accent hover:text-accent/90"
                 >
                   Add
                 </button>
@@ -307,12 +307,12 @@ export default function CalendarView() {
                         key={v.id}
                         type="button"
                         onClick={() => setDetailViewing(v)}
-                        className="w-full text-left p-3 rounded-lg border border-gray-200 dark:border-zinc-700 hover:border-neon-yellow/50 bg-gray-50/50 dark:bg-zinc-800/50 transition-colors"
+                        className="w-full text-left p-3 rounded-lg border border-gray-200 dark:border-zinc-700 hover:border-accent/50 bg-gray-50/50 dark:bg-zinc-800/50 transition-colors"
                       >
                         <div className="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-white">
                           <Clock size={14} className="text-gray-500 dark:text-zinc-400 shrink-0" />
                           {vd ? format(vd, 'HH:mm') : '—'}
-                          <span className="text-[#D9FF00] font-semibold">{getEventTypeLabel(v)}</span>
+                          <span className="text-accent font-semibold">{getEventTypeLabel(v)}</span>
                         </div>
                         <div className="mt-1 flex items-center gap-1.5 text-xs text-gray-600 dark:text-zinc-400">
                           <Building2 size={12} />

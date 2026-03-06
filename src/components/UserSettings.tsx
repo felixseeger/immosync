@@ -13,7 +13,7 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from '../firebase';
 
 const inputCls =
-  'w-full bg-white dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 text-gray-900 dark:text-white rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-neon-yellow transition-colors';
+  'w-full bg-white dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 text-gray-900 dark:text-white rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-accent transition-colors';
 
 interface UserSettingsProps {
   user: FirebaseUser;
@@ -210,7 +210,7 @@ export default function UserSettings({ user, onClose, onSignOut }: UserSettingsP
                   type="button"
                   onClick={handleSaveName}
                   disabled={savingName}
-                  className="px-4 py-2.5 bg-neon-yellow text-black font-bold rounded-lg text-sm hover:bg-neon-yellow/90 disabled:opacity-50 shrink-0 flex items-center gap-2"
+                  className="px-4 py-2.5 bg-accent text-white dark:text-black font-bold rounded-lg text-sm hover:bg-accent/90 disabled:opacity-50 shrink-0 flex items-center gap-2"
                 >
                   {savingName ? <Loader2 size={16} className="animate-spin" /> : null}
                   Save
@@ -255,7 +255,7 @@ export default function UserSettings({ user, onClose, onSignOut }: UserSettingsP
                   type="button"
                   onClick={handleChangePassword}
                   disabled={savingPassword}
-                  className="w-full px-4 py-2.5 bg-neon-yellow text-black font-bold rounded-lg text-sm hover:bg-neon-yellow/90 disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="w-full px-4 py-2.5 bg-accent text-white dark:text-black font-bold rounded-lg text-sm hover:bg-accent/90 disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {savingPassword ? <Loader2 size={16} className="animate-spin" /> : null}
                   Update password

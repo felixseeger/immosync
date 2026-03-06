@@ -9,9 +9,9 @@ import type { Contact } from '../types';
 import type { Property } from '../types';
 
 const inputCls =
-  'w-full bg-white dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 text-gray-900 dark:text-white rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#D9FF00] focus:ring-2 focus:ring-[#D9FF00]/30 transition-colors placeholder:text-gray-500 dark:placeholder:text-zinc-600';
+  'w-full bg-white dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 text-gray-900 dark:text-white rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-colors placeholder:text-gray-500 dark:placeholder:text-zinc-600';
 const selectCls = (hasValue: boolean) =>
-  inputCls + (hasValue ? ' text-[#D9FF00] border-[#D9FF00]' : '');
+  inputCls + (hasValue ? ' text-accent border-accent' : '');
 
 interface AddDealPanelProps {
   onClose: () => void;
@@ -85,12 +85,12 @@ export default function AddDealPanel({ onClose, onSuccess, contacts, properties 
       >
         <div className="p-4 border-b border-gray-200 dark:border-zinc-800 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="p-2 rounded-lg bg-[#D9FF00]/15 border-2 border-[#D9FF00]/40">
+            <div className="p-2 rounded-lg bg-accent/15 border-2 border-accent/40">
               <Briefcase size={18} className="text-[#D9FF00]" />
             </div>
             <h2 className="text-lg font-bold text-gray-900 dark:text-white">New deal</h2>
           </div>
-          <button type="button" onClick={handleClose} className="p-2 rounded-lg text-gray-500 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-[#D9FF00]/50">
+          <button type="button" onClick={handleClose} className="p-2 rounded-lg text-gray-500 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-accent/50">
             <X size={20} />
           </button>
         </div>
@@ -139,7 +139,7 @@ export default function AddDealPanel({ onClose, onSuccess, contacts, properties 
               value={financialValue}
               onChange={(e) => setFinancialValue(e.target.value)}
               placeholder="0"
-              className={inputCls + (financialValue ? ' text-[#D9FF00]' : '')}
+              className={inputCls + (financialValue ? ' text-accent' : '')}
             />
           </div>
           {error && (
@@ -148,14 +148,14 @@ export default function AddDealPanel({ onClose, onSuccess, contacts, properties 
             </div>
           )}
           <div className="flex gap-2 pt-2">
-            <button type="button" onClick={handleClose} className="flex-1 py-2.5 bg-gray-200 dark:bg-zinc-800 text-gray-900 dark:text-white rounded-xl font-medium text-sm hover:border-[#D9FF00]/50 focus:outline-none focus:ring-2 focus:ring-[#D9FF00]/50 transition-colors">
+            <button type="button" onClick={handleClose} className="flex-1 py-2.5 bg-gray-200 dark:bg-zinc-800 text-gray-900 dark:text-white rounded-xl font-medium text-sm hover:border-accent/50 focus:outline-none focus:ring-2 focus:ring-accent/50 transition-colors">
               Cancel
             </button>
             <button
               type="button"
               onClick={() => { sfx.menuSelect(); handleSubmit(); }}
               disabled={saving}
-              className="flex-1 py-2.5 bg-[#D9FF00] text-black font-bold rounded-xl text-sm flex items-center justify-center gap-2 disabled:opacity-50 hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-[#D9FF00] focus:ring-offset-2"
+              className="flex-1 py-2.5 bg-accent text-white dark:text-black font-bold rounded-xl text-sm flex items-center justify-center gap-2 disabled:opacity-50 hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2"
             >
               {saving ? <Loader2 size={18} className="animate-spin" /> : null}
               Create deal

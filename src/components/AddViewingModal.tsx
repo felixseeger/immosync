@@ -18,9 +18,9 @@ import { setHours, setMinutes } from 'date-fns';
 import { sfx } from '../utils/sfx';
 
 const inputCls =
-  'w-full bg-white dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 text-gray-900 dark:text-white rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#D9FF00] focus:ring-2 focus:ring-[#D9FF00]/30 transition-colors placeholder:text-gray-500 dark:placeholder:text-zinc-600';
+  'w-full bg-white dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 text-gray-900 dark:text-white rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-colors placeholder:text-gray-500 dark:placeholder:text-zinc-600';
 const selectCls = (hasValue: boolean) =>
-  inputCls + (hasValue ? ' text-[#D9FF00] border-[#D9FF00]' : '');
+  inputCls + (hasValue ? ' text-accent border-accent' : '');
 
 interface AddViewingModalProps {
   /** Optional initial date (yyyy-MM-dd) when opening from a specific day */
@@ -129,14 +129,14 @@ export default function AddViewingModal({ initialDate, onClose, onSuccess }: Add
         <div className="p-4 border-b border-gray-200 dark:border-zinc-800 flex items-center justify-between">
           <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <span className="p-2 rounded-lg bg-[#D9FF00]/15 border-2 border-[#D9FF00]/40">
-              <Calendar size={18} className="text-[#D9FF00]" />
+              <Calendar size={18} className="text-accent" />
             </span>
             New viewing
           </h3>
           <button
             type="button"
             onClick={handleClose}
-            className="p-2 rounded-lg text-gray-500 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 hover:text-gray-900 dark:hover:text-white focus:outline-none focus:ring-2 focus:ring-[#D9FF00]/50"
+            className="p-2 rounded-lg text-gray-500 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 hover:text-gray-900 dark:hover:text-white focus:outline-none focus:ring-2 focus:ring-accent/50"
           >
             <X size={20} />
           </button>
@@ -152,7 +152,7 @@ export default function AddViewingModal({ initialDate, onClose, onSuccess }: Add
                 size={16}
                 className={
                   'absolute left-3 top-1/2 -translate-y-1/2 transition-colors ' +
-                  (propertyId ? 'text-[#D9FF00]' : 'text-gray-400 dark:text-zinc-500')
+                  (propertyId ? 'text-accent' : 'text-gray-400 dark:text-zinc-500')
                 }
               />
               <select
@@ -180,7 +180,7 @@ export default function AddViewingModal({ initialDate, onClose, onSuccess }: Add
                 size={16}
                 className={
                   'absolute left-3 top-1/2 -translate-y-1/2 transition-colors ' +
-                  (contactId ? 'text-[#D9FF00]' : 'text-gray-400 dark:text-zinc-500')
+                  (contactId ? 'text-accent' : 'text-gray-400 dark:text-zinc-500')
                 }
               />
               <select
@@ -225,7 +225,7 @@ export default function AddViewingModal({ initialDate, onClose, onSuccess }: Add
                 value={date}
                 onChange={(e) => { sfx.menuSelect(); setDate(e.target.value); }}
                 min={today}
-                className={inputCls + (date ? ' text-[#D9FF00]' : '')}
+                className={inputCls + (date ? ' text-accent' : '')}
                 required
               />
             </div>
@@ -270,7 +270,7 @@ export default function AddViewingModal({ initialDate, onClose, onSuccess }: Add
             <button
               type="button"
               onClick={handleClose}
-              className="flex-1 py-2.5 bg-gray-200 dark:bg-zinc-800 text-gray-900 dark:text-white rounded-xl font-medium text-sm hover:border-[#D9FF00]/50 focus:outline-none focus:ring-2 focus:ring-[#D9FF00]/50 transition-colors"
+              className="flex-1 py-2.5 bg-gray-200 dark:bg-zinc-800 text-gray-900 dark:text-white rounded-xl font-medium text-sm hover:border-accent/50 focus:outline-none focus:ring-2 focus:ring-accent/50 transition-colors"
             >
               Cancel
             </button>
@@ -278,7 +278,7 @@ export default function AddViewingModal({ initialDate, onClose, onSuccess }: Add
               type="submit"
               disabled={saving}
               onClick={() => sfx.menuSelect()}
-              className="flex-1 py-2.5 bg-[#D9FF00] text-black font-bold rounded-xl text-sm flex items-center justify-center gap-2 disabled:opacity-50 hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-[#D9FF00] focus:ring-offset-2"
+              className="flex-1 py-2.5 bg-accent text-white dark:text-black font-bold rounded-xl text-sm flex items-center justify-center gap-2 disabled:opacity-50 hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2"
             >
               {saving ? <Loader2 size={18} className="animate-spin" /> : <Calendar size={18} />}
               {saving ? 'Saving…' : 'Schedule'}

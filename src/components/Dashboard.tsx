@@ -38,11 +38,11 @@ const StatCard = ({
   <div
     role={onClick ? 'button' : undefined}
     onClick={onClick}
-    className={`bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl p-6 hover:border-neon-yellow/50 transition-colors group ${onClick ? 'cursor-pointer' : ''}`}
+    className={`bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl p-6 hover:border-accent/50 transition-colors group ${onClick ? 'cursor-pointer' : ''}`}
   >
     <div className="flex justify-between items-start mb-4">
-      <div className="p-2 bg-gray-100 dark:bg-zinc-800 rounded-lg group-hover:bg-neon-yellow/10 transition-colors">
-        <Icon className="text-gray-600 dark:text-zinc-400 group-hover:text-neon-yellow transition-colors" size={20} />
+      <div className="p-2 bg-accent/10 rounded-lg group-hover:bg-accent/20 transition-colors border border-accent/20">
+        <Icon className="text-accent transition-colors" size={20} />
       </div>
       {change != null && trend != null && (
         <div
@@ -214,16 +214,16 @@ export default function Dashboard({ user, onAddProperty, onSelectProperty, onOpe
           <button
             type="button"
             onClick={handleExportReport}
-            className="px-4 py-2 bg-gray-100 dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 rounded-lg text-sm text-gray-700 dark:text-zinc-300 hover:text-gray-900 dark:hover:text-white hover:border-gray-400 dark:hover:border-zinc-600 transition-colors"
+            className="px-4 py-2 rounded-lg text-sm font-medium border-2 border-blue-500 bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-500/20 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500/50"
           >
             Export Report
           </button>
           <button
             type="button"
             onClick={onAddProperty}
-            className="px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 border-2 border-[#3A96DD] bg-[#3A96DD]/10 text-[#3A96DD] hover:bg-[#3A96DD]/20 transition-colors"
+            className="px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 btn-outline-accent [&_svg]:text-current"
           >
-            <Building2 size={18} className="text-[#3A96DD]" />
+            <Building2 size={18} />
             Add Property
           </button>
         </div>
@@ -233,7 +233,7 @@ export default function Dashboard({ user, onAddProperty, onSelectProperty, onOpe
       <div className="mb-6">
         <h3 className="text-xl md:text-2xl text-gray-900 dark:text-white mb-1">
           {greeting},{' '}
-          <span className="text-neon-yellow font-bold">{firstName}</span>
+          <span className="text-accent font-bold">{firstName}</span>
         </h3>
         <p className="text-gray-600 dark:text-zinc-400 text-sm">
           You have <strong>{todayViewings.length}</strong> viewings scheduled for today and{' '}
@@ -266,14 +266,14 @@ export default function Dashboard({ user, onAddProperty, onSelectProperty, onOpe
                     <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="w-full h-[100px]" preserveAspectRatio="none" aria-hidden>
                       <defs>
                         <linearGradient id="revenueLineGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                          <stop offset="0%" stopColor="#D9FF00" stopOpacity="0.3" />
-                          <stop offset="100%" stopColor="#D9FF00" stopOpacity="0" />
+                          <stop offset="0%" stopColor="var(--tw-accent)" stopOpacity="0.3" />
+                          <stop offset="100%" stopColor="var(--tw-accent)" stopOpacity="0" />
                         </linearGradient>
                       </defs>
                       <polygon fill="url(#revenueLineGradient)" points={areaPoints} />
                       <polyline
                         fill="none"
-                        stroke="#D9FF00"
+                        stroke="var(--tw-accent)"
                         strokeWidth="2.5"
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -305,7 +305,7 @@ export default function Dashboard({ user, onAddProperty, onSelectProperty, onOpe
             <p className="text-sm text-gray-500 dark:text-zinc-500 mb-4">{todayFormatted}</p>
             {todayViewings.length === 0 ? (
               <div className="flex-1 flex flex-col items-center justify-center py-6 text-center">
-                <CalendarIcon className="text-gray-400 dark:text-zinc-500 mb-2" size={28} />
+                <CalendarIcon className="text-accent mb-2" size={28} />
                 <p className="text-sm text-gray-600 dark:text-zinc-400">No tasks or events scheduled for today.</p>
               </div>
             ) : (
@@ -326,7 +326,7 @@ export default function Dashboard({ user, onAddProperty, onSelectProperty, onOpe
               <button
                 type="button"
                 onClick={onOpenCalendar}
-                className="mt-4 flex items-center gap-1 text-sm font-medium text-neon-yellow hover:text-neon-yellow/90 transition-colors"
+                className="mt-4 flex items-center gap-1 text-sm font-medium text-accent hover:opacity-90 transition-colors [&_svg]:text-accent"
               >
                 View Full Calendar
                 <ChevronRight size={16} />
@@ -341,13 +341,13 @@ export default function Dashboard({ user, onAddProperty, onSelectProperty, onOpe
         {statsLoading ? (
           <>
             <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl p-6 flex items-center justify-center min-h-[120px]">
-              <Loader2 size={24} className="animate-spin text-neon-yellow" />
+              <Loader2 size={24} className="animate-spin text-accent" />
             </div>
             <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl p-6 flex items-center justify-center min-h-[120px]">
-              <Loader2 size={24} className="animate-spin text-neon-yellow" />
+              <Loader2 size={24} className="animate-spin text-accent" />
             </div>
             <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl p-6 flex items-center justify-center min-h-[120px]">
-              <Loader2 size={24} className="animate-spin text-neon-yellow" />
+              <Loader2 size={24} className="animate-spin text-accent" />
             </div>
           </>
         ) : (

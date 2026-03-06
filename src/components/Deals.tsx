@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { DragDropContext, Droppable, DropResult } from '@hello-pangea/dnd';
-import { Briefcase, Loader2, Plus, Filter } from 'lucide-react';
+import { Briefcase, Loader2, Plus, Activity } from 'lucide-react';
 import { getProperties } from '../services/propertyService';
 import {
   subscribeToDealsSimple,
@@ -14,6 +14,7 @@ import { subscribeToContacts } from '../services/contactsService';
 import DealCard from './DealCard';
 import DealDetailSlideOver from './DealDetailSlideOver';
 import AddDealPanel from './AddDealPanel';
+import ActivityStream from './ActivityStream';
 import { sfx } from '../utils/sfx';
 
 const TRACK_OPTIONS: { value: 'all' | DealType; label: string }[] = [
@@ -114,20 +115,21 @@ export default function Deals({
   if (loading && deals.length === 0) {
     return (
       <div className="h-full flex items-center justify-center">
-        <Loader2 className="animate-spin text-neon-yellow" size={32} />
+        <Loader2 className="animate-spin text-accent" size={32} />
       </div>
     );
   }
 
   return (
-    <div className="h-full flex flex-col bg-white dark:bg-app-dark">
-      <div className="p-6 border-b border-gray-200 dark:border-zinc-800 flex items-center justify-between bg-white/90 dark:bg-app-dark/50 backdrop-blur-md sticky top-0 z-10">
+    <div className="h-full flex flex-col bg-app-light dark:bg-app-dark">
+      <div className="p-6 border-b border-gray-200 dark:border-zinc-800 grid grid-cols-3 items-center bg-app-light/90 dark:bg-app-dark/50 backdrop-blur-md sticky top-0 z-10">
         <div className="flex items-center gap-4">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight flex items-center gap-2">
-            <Briefcase size={28} className="text-neon-yellow" />
+            <Briefcase size={28} className="text-accent" />
             Deals
           </h2>
-          <div className="h-6 w-px bg-gray-200 dark:bg-zinc-800" />
+        </div>
+        <div className="flex items-center justify-center">
           <div className="flex items-center gap-2 bg-gray-100 dark:bg-zinc-900 rounded-lg p-1 border border-gray-300 dark:border-zinc-800">
             {TRACK_OPTIONS.map((opt) => (
               <button
@@ -135,7 +137,7 @@ export default function Deals({
                 onClick={() => setTrackFilter(opt.value)}
                 className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
                   trackFilter === opt.value
-                    ? 'bg-gray-300 dark:bg-zinc-800 text-gray-900 dark:text-white shadow-sm'
+                    ? 'bg-accent text-gray-900 shadow-sm'
                     : 'text-gray-600 dark:text-zinc-500 hover:text-gray-800 dark:hover:text-zinc-300'
                 }`}
               >
@@ -144,61 +146,76 @@ export default function Deals({
             ))}
           </div>
         </div>
+        <div className="flex justify-end">
         <button
           type="button"
           onClick={() => { sfx.menuSelect(); setShowAddDeal(true); }}
-          className="flex items-center gap-2 px-5 py-2.5 bg-[#D9FF00] text-black font-bold rounded-lg text-sm hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-[#D9FF00] focus:ring-offset-2 [&_svg]:text-current"
+          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold btn-outline-accent [&_svg]:text-current"
         >
-          <Plus size={18} />
+          <Plus size={16} />
           Create Deal
         </button>
+        </div>
       </div>
 
-      <div className="flex-1 overflow-x-auto overflow-y-hidden p-6 custom-scrollbar">
-        <DragDropContext onDragEnd={handleDragEnd}>
-          <div className="flex gap-4 min-w-max h-full">
-            {DEAL_STAGES.map((stage) => {
-              const colors = STAGE_COLORS[stage.id] ?? { borderLeft: '', headerBg: '', headerText: 'text-gray-900 dark:text-white', columnBg: '' };
-              return (
-              <div
-                key={stage.id}
-                className={`w-72 shrink-0 flex flex-col rounded-xl border-2 border-gray-200 dark:border-zinc-700 overflow-hidden ${colors.borderLeft} ${colors.columnBg || 'bg-gray-50/50 dark:bg-zinc-900/50'}`}
-              >
-                <div className={`p-3 border-b-2 border-gray-200 dark:border-zinc-700 flex items-center justify-between ${colors.headerBg}`}>
-                  <h3 className={`text-sm ${colors.headerText}`}>{stage.label}</h3>
-                  <span className="text-xs font-medium text-gray-600 dark:text-zinc-400 bg-white/60 dark:bg-app-dark/30 px-2.5 py-1 rounded-full">
-                    {(dealsByStage[stage.id] ?? []).length}
-                  </span>
+      <div className="flex-1 min-h-0 flex flex-col">
+        <div className="flex-1 min-h-0 overflow-x-auto overflow-y-hidden p-6 custom-scrollbar">
+          <DragDropContext onDragEnd={handleDragEnd}>
+            <div className="flex gap-4 min-w-max h-full">
+              {DEAL_STAGES.map((stage) => {
+                const colors = STAGE_COLORS[stage.id] ?? { borderLeft: '', headerBg: '', headerText: 'text-gray-900 dark:text-white', columnBg: '' };
+                return (
+                <div
+                  key={stage.id}
+                  className={`w-72 shrink-0 flex flex-col rounded-xl border-2 border-gray-200 dark:border-zinc-700 overflow-hidden ${colors.borderLeft} ${colors.columnBg || 'bg-gray-50/50 dark:bg-zinc-900/50'}`}
+                >
+                  <div className={`p-3 border-b-2 border-gray-200 dark:border-zinc-700 flex items-center justify-between ${colors.headerBg}`}>
+                    <h3 className={`text-sm ${colors.headerText}`}>{stage.label}</h3>
+                    <span className="text-xs font-medium text-gray-600 dark:text-zinc-400 bg-white/60 dark:bg-app-dark/30 px-2.5 py-1 rounded-full">
+                      {(dealsByStage[stage.id] ?? []).length}
+                    </span>
+                  </div>
+                  <Droppable droppableId={stage.id}>
+                    {(provided, snapshot) => (
+                      <div
+                        ref={provided.innerRef}
+                        {...provided.droppableProps}
+                        className={`flex-1 p-2 overflow-y-auto space-y-2 min-h-[200px] transition-colors ${
+                          snapshot.isDraggingOver ? 'bg-accent/10 dark:bg-accent/15' : ''
+                        }`}
+                      >
+                        {(dealsByStage[stage.id] ?? []).map((deal, index) => (
+                          <DealCard
+                            key={deal.id}
+                            deal={deal}
+                            contactName={contactMap.get(deal.contactId)?.name ?? '—'}
+                            propertyTitle={propertyMap.get(deal.propertyId)?.title ?? '—'}
+                            index={index}
+                            onClick={() => setSelectedDeal(deal)}
+                            stageBorderClass={STAGE_COLORS[deal.stageId]?.borderLeft}
+                          />
+                        ))}
+                        {provided.placeholder}
+                      </div>
+                    )}
+                  </Droppable>
                 </div>
-                <Droppable droppableId={stage.id}>
-                  {(provided, snapshot) => (
-                    <div
-                      ref={provided.innerRef}
-                      {...provided.droppableProps}
-                      className={`flex-1 p-2 overflow-y-auto space-y-2 min-h-[200px] transition-colors ${
-                        snapshot.isDraggingOver ? 'bg-neon-yellow/10 dark:bg-neon-yellow/15' : ''
-                      }`}
-                    >
-                      {(dealsByStage[stage.id] ?? []).map((deal, index) => (
-                        <DealCard
-                          key={deal.id}
-                          deal={deal}
-                          contactName={contactMap.get(deal.contactId)?.name ?? '—'}
-                          propertyTitle={propertyMap.get(deal.propertyId)?.title ?? '—'}
-                          index={index}
-                          onClick={() => setSelectedDeal(deal)}
-                          stageBorderClass={STAGE_COLORS[deal.stageId]?.borderLeft}
-                        />
-                      ))}
-                      {provided.placeholder}
-                    </div>
-                  )}
-                </Droppable>
-              </div>
-              );
-            })}
+                );
+              })}
+            </div>
+          </DragDropContext>
+        </div>
+
+        {/* Recent Activity - bottom section */}
+        <div className="shrink-0 border-t border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50">
+          <div className="px-6 py-3 border-b border-gray-200 dark:border-zinc-800 flex items-center gap-2">
+            <Activity size={18} className="text-accent" />
+            <h3 className="font-bold text-gray-900 dark:text-white text-sm">Recent Activity</h3>
           </div>
-        </DragDropContext>
+          <div className="h-[220px] overflow-hidden px-6 py-3">
+            <ActivityStream />
+          </div>
+        </div>
       </div>
 
       <DealDetailSlideOver

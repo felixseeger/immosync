@@ -79,7 +79,7 @@ export default function PropertyGrid({ properties, onSelectProperty }: PropertyG
 
             <div className="mt-4 pt-4 border-t border-gray-300 dark:border-zinc-800 flex justify-between items-center group/btn">
               <span className="text-xs text-gray-600 dark:text-zinc-500">View Details</span>
-              <div className="w-8 h-8 rounded-full bg-gray-300 dark:bg-zinc-800 flex items-center justify-center group-hover/btn:bg-neon-yellow group-hover/btn:text-black transition-colors text-gray-700 dark:text-gray-300 group-hover/btn:text-black">
+              <div className="w-8 h-8 rounded-full bg-gray-300 dark:bg-zinc-800 flex items-center justify-center group-hover/btn:bg-accent group-hover/btn:text-white dark:group-hover/btn:text-black transition-colors text-gray-700 dark:text-gray-300 group-hover/btn:text-black">
                 <ArrowRight size={14} />
               </div>
             </div>

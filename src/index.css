@@ -9,24 +9,37 @@
   --color-panel-dark: #1a1a1a;
   --color-border-dark: #2a2a2a;
   --color-app-dark: #0C1821;
+  --color-app-light: #FEC97D;
+  /* Accent: purple in light mode, yellow in dark (set in base below) */
+  --color-accent: var(--tw-accent);
 }
 
 @layer base {
   html {
     color-scheme: light;
+    --tw-accent: #9372c9;
   }
 
   html.dark {
     color-scheme: dark;
+    --tw-accent: #D9FF00;
   }
 
   body {
-    @apply bg-white dark:bg-app-dark text-black dark:text-white font-sans antialiased;
+    @apply bg-app-light dark:bg-app-dark text-black dark:text-white font-sans antialiased;
   }
 }
 
 .technical-label {
   @apply font-mono text-[10px] uppercase tracking-wider;
+}
+
+/* Outline primary buttons: same purple (light) / yellow (dark) as Aside nav links */
+.btn-outline-accent {
+  @apply border-2 border-accent bg-accent/10 text-accent hover:bg-accent/20 transition-colors focus:outline-none focus:ring-2 focus:ring-accent/50;
+}
+.btn-outline-accent [&_svg] {
+  @apply text-current;
 }
 
 ::-webkit-scrollbar {
@@ -74,4 +87,42 @@
 }
 .dark .property-map-root .mapboxgl-map {
   background: #0C1821;
+}
+
+/* Skeleton loading placeholder */
+.skeleton-bg {
+  @apply bg-gray-200 dark:bg-zinc-800;
+}
+
+.skeleton-shimmer {
+  @apply bg-gray-200 dark:bg-zinc-800 relative overflow-hidden;
+}
+
+.skeleton-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.25),
+    transparent
+  );
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+}
+
+.dark .skeleton-shimmer::after {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.08),
+    transparent
+  );
+}
+
+@keyframes skeleton-shimmer {
+  to {
+    transform: translateX(100%);
+  }
 }

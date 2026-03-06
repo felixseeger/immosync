@@ -14,6 +14,8 @@ export default {
         'panel-dark': '#1A1A1A',
         'border-dark': '#2A2A2A',
         'app-dark': '#0C1821',
+        'app-light': '#FEC97D',
+        accent: 'var(--tw-accent, #9372c9)',
       },
     },
   },

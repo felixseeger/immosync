@@ -1,9 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { Property } from '../types';
-import MatchingProspects from './MatchingProspects';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, MapPin, Bed, Bath, Ruler, CheckCircle, Image as ImageIcon, ArrowLeft, Pencil, Trash2, Loader2, FileDown, Calendar } from 'lucide-react';
-import ImageUpload from './ImageUpload';
 import AddPropertyPanel from './AddPropertyPanel';
 import ScheduleViewingModal from './ScheduleViewingModal';
 import { deleteProperty } from '../services/propertyService';
@@ -19,6 +17,7 @@ interface PropertyDetailProps {
 export default function PropertyDetail({ property, onClose, onDeleted }: PropertyDetailProps) {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [showEditPanel, setShowEditPanel] = useState(false);
+  const [editPanelInitialStep, setEditPanelInitialStep] = useState(0);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [generatingBrochure, setGeneratingBrochure] = useState(false);
@@ -36,10 +35,6 @@ export default function PropertyDetail({ property, onClose, onDeleted }: Propert
       setIsDeleting(false);
       setShowDeleteConfirm(false);
     }
-  };
-
-  const handleUploadComplete = (url: string) => {
-    console.log("Image uploaded:", url);
   };
 
   const handleGenerateBrochure = async () => {
@@ -67,62 +62,62 @@ export default function PropertyDetail({ property, onClose, onDeleted }: Propert
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 20 }}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 max-[1560px]:p-2"
     >
       <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={handleClose} />
       
-      <div className="relative w-full max-w-5xl bg-white dark:bg-zinc-900 rounded-2xl overflow-hidden shadow-2xl border border-gray-300 dark:border-zinc-800 flex flex-col max-h-[90vh]">
+      <div className="relative w-full max-w-5xl max-[1560px]:max-w-[94vw] max-[1560px]:max-h-[96vh] bg-white dark:bg-zinc-900 rounded-2xl max-[1560px]:rounded-xl overflow-hidden shadow-2xl border border-gray-300 dark:border-zinc-800 flex flex-col max-h-[90vh]">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-300 dark:border-zinc-800 bg-white/90 dark:bg-zinc-900/50 backdrop-blur-md sticky top-0 z-10">
-          <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 p-6 max-[1560px]:p-4 border-b border-gray-300 dark:border-zinc-800 bg-white/90 dark:bg-zinc-900/50 backdrop-blur-md sticky top-0 z-10">
+          <div className="flex items-center gap-3 max-[1560px]:gap-2 min-w-0 flex-1">
             <button 
               onClick={handleClose}
-              className="p-2 hover:bg-gray-200 dark:hover:bg-zinc-800 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#D9FF00]/50 text-gray-600 dark:text-zinc-400"
+              className="p-2 shrink-0 hover:bg-gray-200 dark:hover:bg-zinc-800 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-accent/50 text-gray-600 dark:text-zinc-400"
             >
-              <ArrowLeft size={20} />
+              <ArrowLeft size={20} className="max-[1560px]:w-5 max-[1560px]:h-5" />
             </button>
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{property.title}</h2>
-              <div className="flex items-center text-gray-600 dark:text-zinc-400 text-sm">
-                <MapPin size={14} className="mr-1" />
-                {property.address}
+            <div className="min-w-0">
+              <h2 className="text-2xl max-[1560px]:text-lg font-bold text-gray-900 dark:text-white truncate">{property.title}</h2>
+              <div className="flex items-center text-gray-600 dark:text-zinc-400 text-sm max-[1560px]:text-xs truncate">
+                <MapPin size={14} className="mr-1 shrink-0" />
+                <span className="truncate">{property.address}</span>
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             <span className={`px-3 py-1 rounded-full text-xs font-medium border-2 ${
-              property.status === 'Active' ? 'bg-[#D9FF00]/15 border-[#D9FF00] text-[#D9FF00]' :
+              property.status === 'Active' ? 'bg-accent/15 border-accent text-accent' :
               property.status === 'Pending' ? 'bg-blue-500/10 border-blue-500/30 text-blue-400' :
               'bg-zinc-500/10 border-zinc-500/20 text-zinc-400'
             }`}>
               {property.status}
             </span>
             <button
-              onClick={() => { sfx.menuSelect(); setShowEditPanel(true); }}
-              className="p-2 hover:bg-gray-200 dark:hover:bg-zinc-800 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#D9FF00]/50 text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
+              onClick={() => { sfx.menuSelect(); setEditPanelInitialStep(0); setShowEditPanel(true); }}
+              className="p-2 hover:bg-gray-200 dark:hover:bg-zinc-800 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-accent/50 text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
               title="Edit property"
             >
               <Pencil size={16} />
             </button>
             <button
               onClick={() => { sfx.menuSelect(); setShowDeleteConfirm(true); }}
-              className="p-2 hover:bg-gray-200 dark:hover:bg-zinc-800 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#D9FF00]/50 text-gray-600 dark:text-zinc-400 hover:text-red-600 dark:hover:text-red-400"
+              className="p-2 hover:bg-gray-200 dark:hover:bg-zinc-800 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-accent/50 text-gray-600 dark:text-zinc-400 hover:text-red-600 dark:hover:text-red-400"
               title="Delete property"
             >
               <Trash2 size={16} />
             </button>
-            <button onClick={handleClose} className="p-2 hover:bg-gray-200 dark:hover:bg-zinc-800 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#D9FF00]/50">
+            <button onClick={handleClose} className="p-2 hover:bg-gray-200 dark:hover:bg-zinc-800 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-accent/50">
               <X size={20} className="text-gray-600 dark:text-zinc-400" />
             </button>
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="flex-1 overflow-y-auto p-6 max-[1560px]:p-4">
+          <div className="grid grid-cols-1 lg:grid-cols-3 max-[1560px]:grid-cols-1 gap-8 max-[1560px]:gap-6">
             {/* Main Content */}
-            <div className="lg:col-span-2 space-y-8">
+            <div className="lg:col-span-2 max-[1560px]:col-span-1 space-y-8 max-[1560px]:space-y-6">
               {/* Main Image */}
-              <div className="aspect-video rounded-xl overflow-hidden bg-gray-300 dark:bg-zinc-800 relative group">
+              <div className="aspect-video max-[1560px]:aspect-16/10 rounded-xl overflow-hidden bg-gray-300 dark:bg-zinc-800 relative group">
                 <img 
                   src={property.mainImage || `https://picsum.photos/seed/${property.id}/1200/800`} 
                   alt={property.title}
@@ -131,7 +126,7 @@ export default function PropertyDetail({ property, onClose, onDeleted }: Propert
                 <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-6">
                   <button
                     onClick={(e) => { e.stopPropagation(); sfx.menuSelect(); setSelectedImage(property.mainImage || null); }}
-                    className="bg-[#D9FF00] text-black px-4 py-2 rounded-lg font-bold text-sm hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-[#D9FF00] focus:ring-offset-2 focus:ring-offset-black/60"
+                    className="bg-accent text-white dark:text-black px-4 py-2 rounded-lg font-bold text-sm hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-black/60"
                   >
                     View Full Screen
                   </button>
@@ -149,10 +144,10 @@ export default function PropertyDetail({ property, onClose, onDeleted }: Propert
               {/* Features */}
               <div>
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Features</h3>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 max-[1560px]:grid-cols-2 gap-4">
                   {property.features?.map((feature, index) => (
                     <div key={index} className="flex items-center gap-2 text-gray-700 dark:text-zinc-400 text-sm">
-                      <CheckCircle size={14} className="text-[#D9FF00] shrink-0" />
+                      <CheckCircle size={14} className="text-accent shrink-0" />
                       {feature}
                     </div>
                   ))}
@@ -166,12 +161,12 @@ export default function PropertyDetail({ property, onClose, onDeleted }: Propert
                   <span className="text-xs text-gray-600 dark:text-zinc-500">{property.images?.length || 0} photos</span>
                 </div>
                 
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 max-[1560px]:grid-cols-2 max-[1560px]:sm:grid-cols-3 gap-4">
                   {property.images?.map((image, index) => (
                     <div 
                       key={index} 
                       className={`aspect-square rounded-lg overflow-hidden bg-gray-300 dark:bg-zinc-800 cursor-pointer transition-all ring-2 ${
-                        selectedImage === image ? 'ring-[#D9FF00] ring-offset-2 ring-offset-white dark:ring-offset-zinc-900' : 'ring-transparent hover:opacity-90'
+                        selectedImage === image ? 'ring-accent ring-offset-2 ring-offset-white dark:ring-offset-zinc-900' : 'ring-transparent hover:opacity-90'
                       }`}
                       onClick={() => { sfx.menuSelect(); setSelectedImage(image); }}
                     >
@@ -180,41 +175,40 @@ export default function PropertyDetail({ property, onClose, onDeleted }: Propert
                   ))}
                   
                   {/* Upload Placeholder */}
-                  <div
-                    className="aspect-square rounded-lg border-2 border-dashed border-gray-400 dark:border-zinc-800 flex flex-col items-center justify-center text-gray-500 dark:text-zinc-600 hover:border-[#D9FF00] hover:text-[#D9FF00] transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#D9FF00]/50"
-                    onClick={() => sfx.menuSelect()}
+                  <button
+                    type="button"
+                    className="aspect-square rounded-lg border-2 border-dashed border-gray-400 dark:border-zinc-800 flex flex-col items-center justify-center text-gray-500 dark:text-zinc-600 hover:border-accent hover:text-accent active:border-accent active:bg-accent/10 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-zinc-900"
+                    onClick={() => { sfx.menuSelect(); setEditPanelInitialStep(3); setShowEditPanel(true); }}
                   >
                     <ImageIcon size={24} className="mb-2" />
                     <span className="text-xs">Add Photo</span>
-                  </div>
+                  </button>
                 </div>
               </div>
             </div>
 
-            <MatchingProspects property={property} />
-
             {/* Sidebar */}
-            <div className="space-y-6">
-              <div className="bg-white dark:bg-zinc-800/50 rounded-xl p-6 border border-gray-300 dark:border-zinc-800">
-                <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
+            <div className="space-y-6 max-[1560px]:space-y-4 max-[1560px]:lg:col-span-1">
+              <div className="bg-white dark:bg-zinc-800/50 rounded-xl p-6 max-[1560px]:p-4 border border-gray-300 dark:border-zinc-800">
+                <div className="text-3xl max-[1560px]:text-2xl font-bold text-gray-900 dark:text-white mb-1">
                   ${property.price.toLocaleString()}
                 </div>
-                <div className="text-gray-600 dark:text-zinc-500 text-sm mb-6">
+                <div className="text-gray-600 dark:text-zinc-500 text-sm max-[1560px]:text-xs mb-6 max-[1560px]:mb-4">
                   Est. Mortgage: ${Math.round(property.price * 0.0045).toLocaleString()}/mo
                 </div>
 
-                <div className="grid grid-cols-3 gap-4 mb-6">
-                  <div className="text-center p-3 bg-gray-100 dark:bg-zinc-900 rounded-lg border-2 border-gray-300 dark:border-zinc-800 hover:border-[#D9FF00]/50 transition-colors">
+                <div className="grid grid-cols-3 max-[1560px]:gap-3 gap-4 mb-6 max-[1560px]:mb-4">
+                  <div className="text-center p-3 bg-gray-100 dark:bg-zinc-900 rounded-lg border-2 border-gray-300 dark:border-zinc-800 hover:border-accent/50 transition-colors">
                     <Bed size={20} className="mx-auto mb-1 text-gray-600 dark:text-zinc-400" />
                     <div className="text-lg font-bold text-gray-900 dark:text-white">{property.bedrooms}</div>
                     <div className="text-[10px] text-gray-600 dark:text-zinc-600 uppercase">Beds</div>
                   </div>
-                  <div className="text-center p-3 bg-gray-100 dark:bg-zinc-900 rounded-lg border-2 border-gray-300 dark:border-zinc-800 hover:border-[#D9FF00]/50 transition-colors">
+                  <div className="text-center p-3 bg-gray-100 dark:bg-zinc-900 rounded-lg border-2 border-gray-300 dark:border-zinc-800 hover:border-accent/50 transition-colors">
                     <Bath size={20} className="mx-auto mb-1 text-gray-600 dark:text-zinc-400" />
                     <div className="text-lg font-bold text-gray-900 dark:text-white">{property.bathrooms}</div>
                     <div className="text-[10px] text-gray-600 dark:text-zinc-600 uppercase">Baths</div>
                   </div>
-                  <div className="text-center p-3 bg-gray-100 dark:bg-zinc-900 rounded-lg border-2 border-gray-300 dark:border-zinc-800 hover:border-[#D9FF00]/50 transition-colors">
+                  <div className="text-center p-3 bg-gray-100 dark:bg-zinc-900 rounded-lg border-2 border-gray-300 dark:border-zinc-800 hover:border-accent/50 transition-colors">
                     <Ruler size={20} className="mx-auto mb-1 text-gray-600 dark:text-zinc-400" />
                     <div className="text-lg font-bold text-gray-900 dark:text-white">{property.sqft}</div>
                     <div className="text-[10px] text-gray-600 dark:text-zinc-600 uppercase">Sq Ft</div>
@@ -225,7 +219,7 @@ export default function PropertyDetail({ property, onClose, onDeleted }: Propert
                   type="button"
                   onClick={() => { sfx.menuSelect(); handleGenerateBrochure(); }}
                   disabled={generatingBrochure}
-                  className="w-full bg-gray-200 dark:bg-zinc-800 text-gray-900 dark:text-white font-medium py-3 rounded-xl border-2 border-gray-300 dark:border-zinc-700 hover:border-[#D9FF00]/50 focus:outline-none focus:ring-2 focus:ring-[#D9FF00]/50 transition-colors mb-3 flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="w-full bg-gray-200 dark:bg-zinc-800 text-gray-900 dark:text-white font-medium py-3 rounded-xl border-2 border-gray-300 dark:border-zinc-700 hover:border-accent/50 focus:outline-none focus:ring-2 focus:ring-accent/50 transition-colors mb-3 flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   {generatingBrochure ? <Loader2 size={18} className="animate-spin" /> : <FileDown size={18} />}
                   {generatingBrochure ? 'Generating…' : 'Generate Brochure'}
@@ -233,27 +227,11 @@ export default function PropertyDetail({ property, onClose, onDeleted }: Propert
                 <button
                   type="button"
                   onClick={() => { sfx.menuSelect(); setShowScheduleViewing(true); }}
-                  className="w-full bg-[#D9FF00] text-black font-bold py-3 rounded-xl hover:opacity-90 transition-opacity mb-3 flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-[#D9FF00] focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-zinc-900"
+                  className="w-full bg-accent text-white dark:text-black font-bold py-3 rounded-xl hover:opacity-90 transition-opacity mb-3 flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-zinc-900"
                 >
                   <Calendar size={18} />
                   Schedule Viewing
                 </button>
-                <button
-                  type="button"
-                  onClick={() => sfx.menuSelect()}
-                  className="w-full bg-gray-200 dark:bg-zinc-900 text-gray-900 dark:text-white font-medium py-3 rounded-xl border-2 border-gray-300 dark:border-zinc-700 hover:border-[#D9FF00]/50 focus:outline-none focus:ring-2 focus:ring-[#D9FF00]/50 transition-colors"
-                >
-                  Contact Agent
-                </button>
-              </div>
-
-              {/* Upload Section */}
-              <div className="bg-gray-100 dark:bg-zinc-800/30 rounded-xl p-6 border border-gray-300 dark:border-zinc-800">
-                <h4 className="text-sm font-bold text-gray-900 dark:text-white mb-4 uppercase tracking-wider">Manage Photos</h4>
-                <ImageUpload 
-                  propertyId={property.id} 
-                  onUploadComplete={handleUploadComplete} 
-                />
               </div>
             </div>
           </div>
@@ -271,7 +249,7 @@ export default function PropertyDetail({ property, onClose, onDeleted }: Propert
             onClick={() => { sfx.menuSelect(); setSelectedImage(null); }}
           >
             <button 
-              className="absolute top-4 right-4 p-2 bg-black/50 rounded-full text-white hover:bg-[#D9FF00]/20 hover:text-[#D9FF00] transition-colors focus:outline-none focus:ring-2 focus:ring-[#D9FF00]"
+              className="absolute top-4 right-4 p-2 bg-black/50 rounded-full text-white hover:bg-accent/20 hover:text-accent transition-colors focus:outline-none focus:ring-2 focus:ring-accent"
               onClick={(e) => { e.stopPropagation(); sfx.menuSelect(); setSelectedImage(null); }}
             >
               <X size={24} />
@@ -314,7 +292,7 @@ export default function PropertyDetail({ property, onClose, onDeleted }: Propert
                 <button
                   onClick={() => { sfx.menuSelect(); setShowDeleteConfirm(false); }}
                   disabled={isDeleting}
-                  className="flex-1 py-2.5 bg-gray-200 dark:bg-zinc-800 hover:bg-gray-300 dark:hover:bg-zinc-700 hover:border-[#D9FF00]/50 border-2 border-transparent text-gray-900 dark:text-white text-sm font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-[#D9FF00]/50"
+                  className="flex-1 py-2.5 bg-gray-200 dark:bg-zinc-800 hover:bg-gray-300 dark:hover:bg-zinc-700 hover:border-accent/50 border-2 border-transparent text-gray-900 dark:text-white text-sm font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-accent/50"
                 >
                   Cancel
                 </button>
@@ -340,6 +318,7 @@ export default function PropertyDetail({ property, onClose, onDeleted }: Propert
         {showEditPanel && (
           <AddPropertyPanel
             property={property}
+            initialStep={editPanelInitialStep}
             onClose={() => setShowEditPanel(false)}
             onSuccess={() => setShowEditPanel(false)}
           />

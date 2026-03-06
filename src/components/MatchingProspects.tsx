@@ -105,7 +105,7 @@ function ContactCard({
             <span
               className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider shrink-0 ${
                 source === 'linked'
-                  ? 'bg-neon-yellow/15 text-neon-yellow border border-neon-yellow/20'
+                  ? 'bg-accent/15 text-accent border border-accent/20'
                   : 'bg-blue-500/15 text-blue-400 border border-blue-500/20'
               }`}
             >
@@ -136,7 +136,7 @@ function ContactCard({
           className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-bold transition-all ${
             dealSent
               ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
-              : 'bg-neon-yellow/10 hover:bg-neon-yellow/20 text-neon-yellow border border-neon-yellow/25 hover:border-neon-yellow/50'
+              : 'bg-accent/10 hover:bg-accent/20 text-accent border border-accent/25 hover:border-accent/50'
           }`}
         >
           <AnimatePresence mode="wait">
@@ -272,8 +272,8 @@ export default function MatchingProspects({ property }: { property: Property }) 
   return (
     <section className="mt-8">
       <div className="flex items-center gap-3 mb-5">
-        <div className="p-2 rounded-lg bg-neon-yellow/10 border border-neon-yellow/20">
-          <Users size={16} className="text-neon-yellow" />
+        <div className="p-2 rounded-lg bg-accent/10 border border-accent/20">
+          <Users size={16} className="text-accent" />
         </div>
         <div>
           <h3 className="text-sm font-bold text-white tracking-tight">Prospects</h3>
@@ -283,14 +283,14 @@ export default function MatchingProspects({ property }: { property: Property }) 
         </div>
         <div className="ml-auto flex items-center gap-2">
           {!loading && mergedProspects.length > 0 && (
-            <span className="bg-neon-yellow/10 border border-neon-yellow/25 text-neon-yellow text-xs font-bold px-2.5 py-0.5 rounded-full">
+            <span className="bg-accent/10 border border-accent/25 text-accent text-xs font-bold px-2.5 py-0.5 rounded-full">
               {mergedProspects.length}
             </span>
           )}
           <button
             type="button"
             onClick={openLinkPicker}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 hover:border-neon-yellow/30 text-zinc-300 hover:text-neon-yellow text-xs font-medium rounded-lg transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 hover:border-accent/30 text-zinc-300 hover:text-accent text-xs font-medium rounded-lg transition-colors"
           >
             <Link2 size={14} />
             Link contact
@@ -320,7 +320,7 @@ export default function MatchingProspects({ property }: { property: Property }) 
             <button
               type="button"
               onClick={openLinkPicker}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-neon-yellow/15 border border-neon-yellow/25 text-neon-yellow text-xs font-semibold rounded-lg hover:bg-neon-yellow/25 transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-accent/15 border border-accent/25 text-accent text-xs font-semibold rounded-lg hover:bg-accent/25 transition-colors"
             >
               <UserPlus size={14} />
               Link a contact
@@ -395,7 +395,7 @@ export default function MatchingProspects({ property }: { property: Property }) 
               <div className="overflow-y-auto p-4">
                 {linkPickerLoading ? (
                   <div className="flex items-center justify-center py-8">
-                    <Loader2 size={24} className="animate-spin text-neon-yellow" />
+                    <Loader2 size={24} className="animate-spin text-accent" />
                   </div>
                 ) : allContacts.length === 0 ? (
                   <p className="text-sm text-zinc-500 text-center py-6">
@@ -409,7 +409,7 @@ export default function MatchingProspects({ property }: { property: Property }) 
                           type="button"
                           onClick={() => handleLinkContact(c.id)}
                           disabled={linkingId === c.id}
-                          className="w-full flex items-center gap-3 p-3 rounded-xl bg-zinc-800/50 hover:bg-zinc-800 border border-zinc-800 hover:border-neon-yellow/30 text-left transition-colors disabled:opacity-50"
+                          className="w-full flex items-center gap-3 p-3 rounded-xl bg-zinc-800/50 hover:bg-zinc-800 border border-zinc-800 hover:border-accent/30 text-left transition-colors disabled:opacity-50"
                         >
                           <div className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white ${avatarColor(c.name)}`}>
                             {getInitials(c.name)}
@@ -419,9 +419,9 @@ export default function MatchingProspects({ property }: { property: Property }) 
                             {c.email && <p className="text-xs text-zinc-500 truncate">{c.email}</p>}
                           </div>
                           {linkingId === c.id ? (
-                            <Loader2 size={18} className="animate-spin text-neon-yellow shrink-0" />
+                            <Loader2 size={18} className="animate-spin text-accent shrink-0" />
                           ) : (
-                            <Link2 size={16} className="text-neon-yellow shrink-0" />
+                            <Link2 size={16} className="text-accent shrink-0" />
                           )}
                         </button>
                       </li>

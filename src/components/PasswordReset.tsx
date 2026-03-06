@@ -35,8 +35,8 @@ export default function PasswordReset({ onBack }: PasswordResetProps) {
   return (
     <div className="min-h-screen bg-app-dark flex items-center justify-center p-6">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-neon-yellow/5 rounded-full blur-[120px]" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-neon-yellow/5 rounded-full blur-[120px]" />
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-accent/5 rounded-full blur-[120px]" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-accent/5 rounded-full blur-[120px]" />
       </div>
 
       <motion.div
@@ -46,10 +46,10 @@ export default function PasswordReset({ onBack }: PasswordResetProps) {
       >
         <div className="flex justify-center mb-8">
           <div className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-neon-yellow rounded-lg flex items-center justify-center">
+            <div className="w-10 h-10 bg-accent rounded-lg flex items-center justify-center">
               <div className="w-5 h-5 border-2 border-black rotate-45" />
             </div>
-            <h1 className="text-2xl font-bold tracking-tighter">SITESYNC<span className="text-neon-yellow">.IO</span></h1>
+            <h1 className="text-2xl font-bold tracking-tighter">SITESYNC<span className="text-accent">.IO</span></h1>
           </div>
         </div>
 
@@ -65,7 +65,7 @@ export default function PasswordReset({ onBack }: PasswordResetProps) {
               animate={{ opacity: 1, scale: 1 }}
               className="space-y-6"
             >
-              <div className="flex items-center gap-3 p-4 bg-neon-yellow/10 border border-neon-yellow/20 rounded-lg text-neon-yellow">
+              <div className="flex items-center gap-3 p-4 bg-accent/10 border border-accent/20 rounded-lg text-accent">
                 <CheckCircle size={24} className="shrink-0" />
                 <p className="text-sm">
                   If an account exists for <strong className="text-white">{email}</strong>, you’ll receive a password reset link. Check your inbox and spam folder.
@@ -74,7 +74,7 @@ export default function PasswordReset({ onBack }: PasswordResetProps) {
               <button
                 type="button"
                 onClick={onBack}
-                className="w-full flex items-center justify-center gap-2 bg-neon-yellow text-black font-bold py-3 rounded-lg hover:bg-neon-yellow/90 transition-all active:scale-[0.98]"
+                className="w-full flex items-center justify-center gap-2 bg-accent text-white dark:text-black font-bold py-3 rounded-lg hover:bg-accent/90 transition-all active:scale-[0.98]"
               >
                 <ArrowLeft size={18} />
                 <span className="uppercase tracking-tight">Back to sign in</span>
@@ -85,14 +85,14 @@ export default function PasswordReset({ onBack }: PasswordResetProps) {
               <div className="space-y-1.5">
                 <label className="technical-label text-zinc-400 ml-1">Email address</label>
                 <div className="relative group">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-neon-yellow transition-colors" size={18} />
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-accent transition-colors" size={18} />
                   <input
                     type="email"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="name@example.com"
-                    className="w-full bg-app-dark border border-border-dark rounded-lg py-2.5 pl-10 pr-4 text-sm focus:outline-none focus:border-neon-yellow/50 transition-all"
+                    className="w-full bg-app-dark border border-border-dark rounded-lg py-2.5 pl-10 pr-4 text-sm focus:outline-none focus:border-accent/50 transition-all"
                   />
                 </div>
               </div>
@@ -111,7 +111,7 @@ export default function PasswordReset({ onBack }: PasswordResetProps) {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full flex items-center justify-center gap-2 bg-neon-yellow text-black font-bold py-3 rounded-lg hover:bg-neon-yellow/90 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed mt-4"
+                className="w-full flex items-center justify-center gap-2 bg-accent text-white dark:text-black font-bold py-3 rounded-lg hover:bg-accent/90 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed mt-4"
               >
                 {loading ? (
                   <Loader2 className="animate-spin" size={20} />
@@ -127,7 +127,7 @@ export default function PasswordReset({ onBack }: PasswordResetProps) {
               <button
                 type="button"
                 onClick={onBack}
-                className="text-zinc-500 text-sm hover:text-neon-yellow font-medium transition-colors inline-flex items-center gap-1.5"
+                className="text-zinc-500 text-sm hover:text-accent font-medium transition-colors inline-flex items-center gap-1.5"
               >
                 <ArrowLeft size={14} />
                 Back to sign in

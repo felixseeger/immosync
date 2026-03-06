@@ -79,38 +79,38 @@ export default function Properties({
   if (loading && !seeding && properties.length === 0) {
     return (
       <div className="h-full flex items-center justify-center">
-        <Loader2 className="animate-spin text-neon-yellow" size={32} />
+        <Loader2 className="animate-spin text-accent" size={32} />
       </div>
     );
   }
 
   return (
-    <div className="h-full flex flex-col bg-white dark:bg-app-dark relative">
+    <div className="h-full flex flex-col bg-app-light dark:bg-app-dark relative">
       {/* Toolbar */}
-      <div className="p-6 border-b border-gray-200 dark:border-zinc-800 flex items-center justify-between bg-white/90 dark:bg-app-dark/50 backdrop-blur-md sticky top-0 z-10">
-        <div className="flex items-center gap-4">
+      <div className="p-6 border-b border-gray-200 dark:border-zinc-800 flex items-center justify-between gap-4 bg-app-light/90 dark:bg-app-dark/50 backdrop-blur-md sticky top-0 z-10">
+        <div className="flex-1 flex items-center min-w-0">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">Properties</h2>
-          <div className="hidden lg:block h-6 w-px bg-gray-200 dark:bg-zinc-800" />
-          <div className="hidden lg:flex items-center gap-2 bg-gray-100 dark:bg-zinc-900 rounded-lg p-1 border border-gray-300 dark:border-zinc-800">
-            {['All', 'Active', 'Pending', 'Sold'].map((status) => (
-              <button
-                key={status}
-                onClick={() => setFilter(status)}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                  filter === status 
-                    ? 'bg-gray-300 dark:bg-zinc-800 text-gray-900 dark:text-white shadow-sm' 
-                    : 'text-gray-600 dark:text-zinc-500 hover:text-gray-800 dark:hover:text-zinc-300'
-                }`}
-              >
-                {status}
-              </button>
-            ))}
-          </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          {/* Grid / List / Map view toggle */}
-          <div className="flex items-center gap-1 bg-gray-100 dark:bg-zinc-900 rounded-lg p-1 border border-gray-300 dark:border-zinc-800">
+        <div className="hidden lg:flex items-center gap-2 bg-gray-100 dark:bg-zinc-900 rounded-lg p-1 border border-gray-300 dark:border-zinc-800 shrink-0">
+          {['All', 'Active', 'Pending', 'Sold'].map((status) => (
+            <button
+              key={status}
+              onClick={() => setFilter(status)}
+              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                filter === status 
+                  ? 'bg-gray-300 dark:bg-zinc-800 text-gray-900 dark:text-white shadow-sm' 
+                  : 'text-gray-600 dark:text-zinc-500 hover:text-gray-800 dark:hover:text-zinc-300'
+              }`}
+            >
+              {status}
+            </button>
+          ))}
+        </div>
+
+        <div className="flex-1 flex items-center justify-end gap-3 min-w-0">
+          {/* Grid / List / Map view toggle - hidden on narrow viewports */}
+          <div className="flex items-center gap-1 bg-gray-100 dark:bg-zinc-900 rounded-lg p-1 border border-gray-300 dark:border-zinc-800 max-[450px]:hidden">
             <button
               onClick={() => setViewMode('grid')}
               className={`p-2 rounded-md transition-colors ${viewMode === 'grid' ? 'bg-white dark:bg-zinc-800 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-zinc-500 hover:text-gray-700 dark:hover:text-zinc-300'}`}
@@ -135,11 +135,11 @@ export default function Properties({
           </div>
           <button
             onClick={() => setShowAddPanel(true)}
-            className="px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 border-2 border-[#D9FF00] bg-[#D9FF00]/10 text-[#D9FF00] hover:bg-[#D9FF00]/20 transition-colors"
-            style={{ color: 'rgba(217, 255, 0, 1)', borderColor: 'rgba(217, 255, 0, 1)' }}
+            title="Add Property"
+            className="px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 btn-outline-accent max-[320px]:px-2 max-[320px]:py-2 [&_svg]:text-current"
           >
-            <Plus size={16} style={{ color: 'rgba(217, 255, 0, 1)' }} />
-            Add Property
+            <Plus size={16} />
+            <span className="max-[320px]:hidden">Add Property</span>
           </button>
         </div>
       </div>
@@ -166,11 +166,11 @@ export default function Properties({
               </button>
               <button
                 onClick={() => setShowAddPanel(true)}
-                className="px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 border-2 border-[#D9FF00] bg-[#D9FF00]/10 text-[#D9FF00] hover:bg-[#D9FF00]/20 transition-colors"
-                style={{ color: 'rgba(217, 255, 0, 1)', borderColor: 'rgba(217, 255, 0, 1)' }}
+                title="Add Property"
+                className="px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 btn-outline-accent max-[320px]:px-2 max-[320px]:py-2 [&_svg]:text-current"
               >
-                <Plus size={16} style={{ color: 'rgba(217, 255, 0, 1)' }} />
-                Add Property
+                <Plus size={16} />
+                <span className="max-[320px]:hidden">Add Property</span>
               </button>
             </div>
           </div>

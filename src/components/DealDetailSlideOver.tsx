@@ -15,6 +15,7 @@ import {
   FolderOpen,
   Briefcase,
 } from 'lucide-react';
+import AnimatedLink from './AnimatedLink';
 import { formatDistanceToNow } from 'date-fns';
 import {
   DEAL_STAGES,
@@ -35,7 +36,7 @@ const DOC_CATEGORIES: { value: DealDocumentCategory; label: string }[] = [
 ];
 
 const inputCls =
-  'w-full bg-white dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 text-gray-900 dark:text-white rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-neon-yellow transition-colors';
+  'w-full bg-white dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 text-gray-900 dark:text-white rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-accent transition-colors';
 
 function formatValue(value: number, dealType: 'sale' | 'rental'): string {
   if (value >= 1_000_000) return `$${(value / 1_000_000).toFixed(1)}M`;
@@ -161,8 +162,8 @@ export default function DealDetailSlideOver({
         >
           <div className="p-4 border-b border-gray-200 dark:border-zinc-800 flex items-center justify-between shrink-0">
             <div className="flex items-center gap-2">
-              <span className="p-2 rounded-lg bg-[#D9FF00]/15 border-2 border-[#D9FF00]/40">
-                <Briefcase size={18} className="text-[#D9FF00]" />
+              <span className="p-2 rounded-lg bg-accent/15 border-2 border-accent/40">
+                <Briefcase size={18} className="text-accent" />
               </span>
               <h2 id="deal-panel-title" className="text-lg font-bold text-gray-900 dark:text-white">
                 Deal details
@@ -171,7 +172,7 @@ export default function DealDetailSlideOver({
             <button
               type="button"
               onClick={onClose}
-              className="p-2 rounded-lg text-gray-500 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 hover:text-gray-900 dark:hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-[#D9FF00]/50"
+              className="p-2 rounded-lg text-gray-500 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 hover:text-gray-900 dark:hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-accent/50"
               aria-label="Close"
             >
               <X size={20} />
@@ -189,34 +190,32 @@ export default function DealDetailSlideOver({
                   <User size={16} className="text-gray-500 dark:text-zinc-500 shrink-0" />
                   <span className="text-sm font-medium text-gray-900 dark:text-white truncate">{contactName || '—'}</span>
                   {onSelectContact && deal?.contactId ? (
-                    <button
-                      type="button"
+                    <AnimatedLink
                       onClick={() => { onSelectContact(deal.contactId); onClose(); }}
-                      className="text-xs font-medium text-[#D9FF00] hover:underline flex items-center gap-1 shrink-0"
+                      className="text-xs font-medium flex items-center gap-1 shrink-0"
                     >
                       <ExternalLink size={12} />
                       View contact
-                    </button>
+                    </AnimatedLink>
                   ) : null}
                 </div>
                 <div className="flex items-center gap-2 flex-wrap">
                   <Building2 size={16} className="text-gray-500 dark:text-zinc-500 shrink-0" />
                   <span className="text-sm text-gray-600 dark:text-zinc-400 truncate">{propertyTitle || '—'}</span>
                   {onSelectProperty && deal?.propertyId ? (
-                    <button
-                      type="button"
+                    <AnimatedLink
                       onClick={() => { onSelectProperty(deal.propertyId); onClose(); }}
-                      className="text-xs font-medium text-[#D9FF00] hover:underline flex items-center gap-1 shrink-0"
+                      className="text-xs font-medium flex items-center gap-1 shrink-0"
                     >
                       <ExternalLink size={12} />
                       View property
-                    </button>
+                    </AnimatedLink>
                   ) : null}
                 </div>
                 <div className="flex items-center gap-2">
-                  <DollarSign size={16} className="text-neon-yellow shrink-0" />
+                  <DollarSign size={16} className="text-accent shrink-0" />
                   <span className="text-xs text-gray-500 dark:text-zinc-500">{valueLabel}</span>
-                  <span className="text-sm font-bold text-neon-yellow">{formatValue(deal.financialValue, deal.dealType)}</span>
+                  <span className="text-sm font-bold text-accent">{formatValue(deal.financialValue, deal.dealType)}</span>
                 </div>
                 <div>
                   <label className="block text-[11px] font-semibold text-gray-500 dark:text-zinc-500 uppercase tracking-wider mb-1">
@@ -235,7 +234,7 @@ export default function DealDetailSlideOver({
                     ))}
                   </select>
                   {stageUpdating && (
-                    <Loader2 size={14} className="animate-spin text-neon-yellow mt-1 inline-block" />
+                    <Loader2 size={14} className="animate-spin text-accent mt-1 inline-block" />
                   )}
                 </div>
               </div>
@@ -260,7 +259,7 @@ export default function DealDetailSlideOver({
                     key={cat.value}
                     type="button"
                     onClick={() => handleUploadClick(cat.value)}
-                    className="px-3 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 text-gray-700 dark:text-zinc-300 text-xs font-medium hover:border-neon-yellow/50 hover:text-neon-yellow transition-colors flex items-center gap-1.5"
+                    className="px-3 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 text-gray-700 dark:text-zinc-300 text-xs font-medium hover:border-accent/50 hover:text-accent transition-colors flex items-center gap-1.5"
                   >
                     <Upload size={14} />
                     {cat.label}
@@ -270,7 +269,7 @@ export default function DealDetailSlideOver({
               {uploading && (
                 <div className="mb-3 h-2 rounded-full bg-gray-200 dark:bg-zinc-800 overflow-hidden">
                   <div
-                    className="h-full bg-neon-yellow transition-all duration-300"
+                    className="h-full bg-accent transition-all duration-300"
                     style={{ width: `${uploadProgress}%` }}
                   />
                 </div>
@@ -286,7 +285,7 @@ export default function DealDetailSlideOver({
                       href={doc.downloadUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex-1 text-sm text-gray-900 dark:text-white truncate hover:text-neon-yellow transition-colors flex items-center gap-1"
+                      className="flex-1 text-sm text-gray-900 dark:text-white truncate hover:text-accent transition-colors flex items-center gap-1"
                     >
                       {doc.name}
                       <ExternalLink size={12} />
@@ -330,7 +329,7 @@ export default function DealDetailSlideOver({
                   type="button"
                   onClick={handleAddNote}
                   disabled={!note.trim() || addingNote}
-                  className="px-4 py-2.5 bg-[#D9FF00] text-black font-bold rounded-lg text-sm border-2 border-[#D9FF00] hover:opacity-90 disabled:opacity-50 flex items-center gap-2"
+                  className="px-4 py-2.5 bg-accent text-white dark:text-black font-bold rounded-lg text-sm border-2 border-accent hover:opacity-90 disabled:opacity-50 flex items-center gap-2"
                 >
                   {addingNote ? <Loader2 size={16} className="animate-spin" /> : null}
                   Add
@@ -343,7 +342,7 @@ export default function DealDetailSlideOver({
                     className="flex gap-3 py-2 px-3 rounded-lg bg-gray-50 dark:bg-zinc-800/30 border border-gray-100 dark:border-zinc-800"
                   >
                     <div className="shrink-0 mt-0.5">
-                      {item.type === 'stage_change' && <Activity size={14} className="text-neon-yellow" />}
+                      {item.type === 'stage_change' && <Activity size={14} className="text-accent" />}
                       {item.type === 'note' && <FileText size={14} className="text-blue-500" />}
                       {item.type === 'document_added' && <Upload size={14} className="text-green-500" />}
                       {item.type === 'document_removed' && <Trash2 size={14} className="text-red-500" />}

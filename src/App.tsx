@@ -37,25 +37,33 @@ import CalendarView from './components/CalendarView';
 import MessagesView from './components/MessagesView';
 import GlobalSearchBar from './components/GlobalSearchBar';
 import UserSettings from './components/UserSettings';
+import CookieConsent from './components/CookieConsent';
+import CookieSettingsButton from './components/CookieSettingsButton';
+import ScrollToTop from './components/ScrollToTop';
 import { upsertUserProfile } from './services/usersService';
 import { sfx } from './utils/sfx';
+import AnimatedLink from './components/AnimatedLink';
 
 const SidebarItem = ({ icon: Icon, label, active = false, onClick, collapsed = false }: { icon: React.ComponentType<{ size?: number }>, label: string, active?: boolean, onClick: () => void; collapsed?: boolean }) => (
-  <div 
-    onClick={onClick}
-    className={`flex items-center gap-3 py-3 cursor-pointer transition-all duration-200 group ${collapsed ? 'px-0 justify-center md:justify-center' : 'px-4'} ${active ? 'text-neon-yellow' : 'text-gray-500 dark:text-zinc-400 hover:text-gray-700 dark:hover:text-white'}`}
-    title={collapsed ? label : undefined}
-  >
-    <div className={`relative shrink-0 ${active ? 'text-neon-yellow' : ''}`}>
-      <Icon size={20} />
-      {active && !collapsed && (
-        <motion.div 
-          layoutId="active-nav"
-          className="absolute -left-4 top-0 bottom-0 w-1 bg-neon-yellow rounded-r-full"
-        />
-      )}
-    </div>
-    {!collapsed && <span className="text-sm font-medium whitespace-nowrap">{label}</span>}
+  <div className={`relative ${collapsed ? 'px-0 flex justify-center md:justify-center' : 'px-4'}`}>
+    {active && !collapsed && (
+      <motion.div
+        layoutId="active-nav"
+        className="absolute -left-4 top-0 bottom-0 w-1 bg-accent rounded-r-full"
+      />
+    )}
+    <AnimatedLink
+      active={active}
+      onClick={onClick}
+      className={`flex items-center gap-3 py-3 w-full cursor-pointer ${collapsed ? 'justify-center md:justify-center px-0' : ''}`}
+      title={collapsed ? label : undefined}
+      aria-label={label}
+    >
+      <span className="shrink-0 [&_svg]:size-5">
+        <Icon size={20} />
+      </span>
+      {!collapsed && <span className="text-sm font-medium whitespace-nowrap">{label}</span>}
+    </AnimatedLink>
   </div>
 );
 
@@ -127,9 +135,9 @@ export default function App() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white dark:bg-app-dark flex items-center justify-center">
+      <div className="min-h-screen bg-app-light dark:bg-app-dark flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 bg-neon-yellow rounded-lg flex items-center justify-center animate-pulse">
+          <div className="w-12 h-12 bg-accent rounded-lg flex items-center justify-center animate-pulse">
             <div className="w-6 h-6 border-2 border-black rotate-45" />
           </div>
           <p className="text-gray-500 dark:text-zinc-500 technical-label animate-pulse">Initializing SiteSync...</p>
@@ -168,7 +176,7 @@ export default function App() {
   };
 
   return (
-    <div className="flex h-screen bg-white dark:bg-app-dark overflow-hidden font-sans text-gray-900 dark:text-zinc-100">
+    <div className="flex h-screen bg-app-light dark:bg-app-dark overflow-hidden font-sans text-gray-900 dark:text-zinc-100">
       {/* Mobile overlay when sidebar open */}
       <AnimatePresence>
         {sidebarOpen && (
@@ -186,7 +194,7 @@ export default function App() {
 
       {/* Sidebar: drawer on mobile (<768px), foldable on desktop */}
       <aside
-        className={`fixed md:relative inset-y-0 left-0 z-30 flex flex-col bg-gray-50 dark:bg-app-dark border-r border-gray-200 dark:border-border-dark ease-out
+        className={`fixed md:relative inset-y-0 left-0 z-30 flex flex-col bg-app-light dark:bg-app-dark border-r border-gray-200 dark:border-border-dark ease-out
           w-64 md:transition-[width] md:duration-200
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
           ${sidebarCollapsed ? 'md:w-[72px]' : 'md:w-64'}
@@ -234,7 +242,7 @@ export default function App() {
           )}
         </div>
 
-        <nav className="flex-1 mt-4 overflow-y-auto custom-scrollbar">
+        <nav className="flex-1 mt-4 pt-[5px] overflow-y-auto custom-scrollbar">
           <SidebarItem icon={LayoutDashboard} label="Dashboard" active={activeTab === 'Dashboard'} onClick={() => goTo('Dashboard')} collapsed={sidebarCollapsed && isMdOrLarger} />
           <SidebarItem icon={Building2} label="Properties" active={activeTab === 'Properties'} onClick={() => goTo('Properties')} collapsed={sidebarCollapsed && isMdOrLarger} />
           <SidebarItem icon={Users} label="Contacts" active={activeTab === 'Contacts'} onClick={() => goTo('Contacts')} collapsed={sidebarCollapsed && isMdOrLarger} />
@@ -258,7 +266,7 @@ export default function App() {
                 className="p-1.5 hover:bg-gray-200 dark:hover:bg-zinc-800 rounded-lg transition-colors text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
                 title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
               >
-                {isDarkMode ? <Sun size={16} className="text-[#D9FF00]" /> : <Moon size={16} />}
+                {isDarkMode ? <Sun size={16} className="text-accent" /> : <Moon size={16} />}
               </button>
             </div>
           </div>
@@ -284,12 +292,12 @@ export default function App() {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-hidden relative bg-white dark:bg-app-dark flex flex-col">
+      <main className="flex-1 overflow-hidden relative bg-app-light dark:bg-app-dark flex flex-col">
         {/* Background gradient behind content so map/live view is not covered */}
-        <div className="absolute inset-0 z-0 bg-[radial-gradient(ellipse_at_top_right,var(--tw-gradient-stops))] from-gray-100 dark:from-zinc-900/20 via-white dark:via-black to-white dark:to-black pointer-events-none" />
+        <div className="absolute inset-0 z-0 bg-[radial-gradient(ellipse_at_top_right,var(--tw-gradient-stops))] from-app-light dark:from-zinc-900/20 via-app-light dark:via-black to-app-light dark:to-black pointer-events-none" />
 
         {/* Global header with search */}
-        <header className="relative z-10 shrink-0 h-[72px] min-h-[72px] px-4 flex items-center gap-4 border-b border-gray-200 dark:border-zinc-800 bg-white/80 dark:bg-app-dark/80 backdrop-blur-md">
+        <header className="relative z-20 shrink-0 h-[72px] min-h-[72px] px-4 flex items-center gap-4 border-b border-gray-200 dark:border-zinc-800 bg-app-light/80 dark:bg-app-dark/80 backdrop-blur-md">
           <button
             type="button"
             onClick={openSidebar}
@@ -353,6 +361,7 @@ export default function App() {
             <Contacts
               initialSelectedContactId={initialSelectedContactId}
               onClearInitialContactSelection={() => setInitialSelectedContactId(null)}
+              onSelectProperty={(id) => { setActiveTab('Properties'); setInitialSelectedPropertyId(id); }}
             />
           )}
           {activeTab === 'Deals' && (
@@ -387,6 +396,10 @@ export default function App() {
           onSignOut={handleLogout}
         />
       )}
+
+      <CookieConsent />
+      <CookieSettingsButton />
+      <ScrollToTop className="left-6 right-auto lg:left-10 lg:right-auto" />
     </div>
   );
 }

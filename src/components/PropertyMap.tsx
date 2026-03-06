@@ -4,6 +4,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import { MapPin, Building2, Bed, Bath, Ruler, ExternalLink } from 'lucide-react';
 import type { Property } from '../types';
 import { geocodeAddresses } from '../utils/geocode';
+import { sfx } from '../utils/sfx';
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
 
@@ -40,7 +41,7 @@ interface PlacedProperty {
 
 function markerColor(property: Property): string {
   switch (property.status) {
-    case 'Active': return '#D9FF00'; // neon-yellow
+    case 'Active': return '#9372c9'; // accent purple (light); map has no theme, use purple
     case 'Pending': return '#3B82F6'; // blue-500
     case 'Sold': return '#71717A';   // zinc-500
     default: return '#71717A';
@@ -190,7 +191,7 @@ export default function PropertyMap({ properties, isDarkMode = true, onSelectPro
         source: ACTIVE_HIGHLIGHT_SOURCE_ID,
         minzoom: 14,
         paint: {
-          'fill-extrusion-color': '#D9FF00',
+          'fill-extrusion-color': '#9372c9',
           'fill-extrusion-height': 24,
           'fill-extrusion-base': 0,
           'fill-extrusion-opacity': 0.92,
@@ -265,7 +266,7 @@ export default function PropertyMap({ properties, isDarkMode = true, onSelectPro
         </div>
         <h3 className="text-lg font-bold text-white mb-2">Mapbox Token Required</h3>
         <p className="text-zinc-400 text-sm max-w-md mb-4">
-          Add <code className="text-neon-yellow">VITE_MAPBOX_TOKEN</code> to .env to view the map.
+          Add <code className="text-accent">VITE_MAPBOX_TOKEN</code> to .env to view the map.
         </p>
       </div>
     );
@@ -385,8 +386,8 @@ export default function PropertyMap({ properties, isDarkMode = true, onSelectPro
                 {onSelectProperty && (
                   <button
                     type="button"
-                    onClick={() => { onSelectProperty(popupProperty.property.id); setPopupProperty(null); }}
-                    className="mt-3 w-full py-2 bg-neon-green text-black font-bold rounded-lg text-xs flex items-center justify-center gap-1.5 hover:bg-white transition-colors"
+                    onClick={() => { sfx.menuSelect(); onSelectProperty(popupProperty.property.id); setPopupProperty(null); }}
+                    className="mt-3 w-full py-2 bg-accent text-white dark:text-black font-bold rounded-lg text-xs flex items-center justify-center gap-1.5 hover:opacity-90 transition-colors border-2 border-accent focus:outline-none focus:ring-2 focus:ring-accent/50"
                   >
                     <ExternalLink size={14} />
                     View property
@@ -398,10 +399,10 @@ export default function PropertyMap({ properties, isDarkMode = true, onSelectPro
         )}
       </Map>
 
-      <div className="absolute top-4 left-4 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 p-4 rounded-xl z-10 shadow-xl">
+      <div className="absolute top-4 left-4 bg-white dark:bg-zinc-900 border-2 border-accent/40 p-4 rounded-xl z-10 shadow-xl shadow-black/10">
         <div className="flex items-center gap-2 mb-2">
-          <span className="w-2 h-2 rounded-full bg-neon-green animate-pulse" style={{ boxShadow: '0 0 8px #00FF88' }} />
-          <span className="text-xs font-bold text-neon-green uppercase tracking-wider">LIVE PORTFOLIO</span>
+          <span className="w-2 h-2 rounded-full bg-accent animate-pulse" style={{ boxShadow: '0 0 8px var(--tw-accent, #9372c9)' }} />
+          <span className="text-xs font-bold text-accent uppercase tracking-wider">LIVE PORTFOLIO</span>
         </div>
         <h4 className="text-base font-bold text-gray-900 dark:text-white mb-0.5">Global Asset View</h4>
         <p className="text-xs text-gray-500 dark:text-zinc-400">
@@ -409,7 +410,7 @@ export default function PropertyMap({ properties, isDarkMode = true, onSelectPro
         </p>
         <div className="mt-3 pt-3 border-t border-gray-200 dark:border-zinc-700 space-y-1.5">
           <div className="flex items-center gap-2 text-xs">
-            <div className="w-2 h-2 rounded-full bg-neon-green" style={{ boxShadow: '0 0 6px #00FF88' }} />
+            <div className="w-2 h-2 rounded-full bg-accent" style={{ boxShadow: '0 0 6px var(--tw-accent, #9372c9)' }} />
             <span className="text-gray-700 dark:text-zinc-300">Active ({activeCount})</span>
           </div>
           <div className="flex items-center gap-2 text-xs">

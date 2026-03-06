@@ -59,7 +59,7 @@ export default function PropertyList({ properties, onSelectProperty }: PropertyL
                   </span>
                 </td>
                 <td className="px-4 py-3">
-                  <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-zinc-800 flex items-center justify-center text-gray-500 dark:text-zinc-400 group-hover:text-neon-yellow">
+                  <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-zinc-800 flex items-center justify-center text-gray-500 dark:text-zinc-400 group-hover:text-accent">
                     <ArrowRight size={14} />
                   </div>
                 </td>
