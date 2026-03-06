@@ -33,7 +33,7 @@ import { VIEWING_EVENT_TYPE_LABELS } from '../types';
 
 function getViewingDate(v: Viewing): Date | null {
   if (!v?.scheduledAt) return null;
-  const t = v.scheduledAt?.toDate?.?.() ?? v.scheduledAt;
+  const t = v.scheduledAt?.toDate?.() ?? v.scheduledAt;
   return t instanceof Date ? t : new Date(t);
 }
 
