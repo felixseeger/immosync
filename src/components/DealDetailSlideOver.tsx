@@ -126,7 +126,8 @@ export default function DealDetailSlideOver({
     if (!deal || deal.stageId === stageId || stageUpdating) return;
     setStageUpdating(true);
     try {
-      await updateDealStageAndLog(deal.id, stageId, deal.order ?? 0, deal.stageId);
+      const dealContext = { contactName: contactName, propertyTitle: propertyTitle };
+      await updateDealStageAndLog(deal.id, stageId, deal.order ?? 0, deal.stageId, dealContext);
     } finally {
       setStageUpdating(false);
     }

@@ -17,6 +17,7 @@ import {
 } from 'firebase/firestore';
 import type { Deal, DealActivity, DealDocument, DealStageId, DealDocumentCategory } from '../types';
 import { uploadDealDocument as uploadDealFile, deleteStorageFile } from './storageService';
+import { logActivity } from './activityService';
 
 const DEALS_COLLECTION = 'deals';
 const DEAL_ACTIVITY_COLLECTION = 'deal_activity';
@@ -39,6 +40,14 @@ export async function createDeal(data: DealCreateInput): Promise<string> {
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
+  const valueStr = data.dealType === 'rental'
+    ? `$${data.financialValue.toLocaleString()}/mo`
+    : `$${data.financialValue.toLocaleString()}`;
+  await logActivity({
+    type: 'deal',
+    action: 'Deal created',
+    details: `Value: ${valueStr}`,
+  });
   return ref.id;
 }
 
@@ -57,21 +66,37 @@ export async function updateDealStage(dealId: string, stageId: DealStageId, orde
   await updateDeal(dealId, { stageId, order });
 }
 
+/** Optional context to show which deal was moved in Recent Activity */
+export interface DealActivityContext {
+  contactName?: string;
+  propertyTitle?: string;
+}
+
 export async function updateDealStageAndLog(
   dealId: string,
   stageId: DealStageId,
   order: number,
-  previousStageId?: DealStageId
+  previousStageId?: DealStageId,
+  dealContext?: DealActivityContext
 ): Promise<void> {
   const prev = previousStageId ? DEAL_STAGES.find((s) => s.id === previousStageId)?.label : undefined;
   const next = DEAL_STAGES.find((s) => s.id === stageId)?.label ?? stageId;
+  const isReorderOnly = previousStageId === stageId;
   await updateDealStage(dealId, stageId, order);
+  const activityMessage = isReorderOnly ? `Reordered in ${next}` : prev ? `Moved from ${prev} to ${next}` : `Set to ${next}`;
   await addDealActivity(
     dealId,
     'stage_change',
-    prev ? `Moved from ${prev} to ${next}` : `Set to ${next}`,
+    activityMessage,
     { previousStageId, stageId }
   );
+  const contextPart = [dealContext?.contactName, dealContext?.propertyTitle].filter(Boolean).join(' · ');
+  const details = contextPart ? `${activityMessage} — ${contextPart}` : activityMessage;
+  await logActivity({
+    type: 'deal',
+    action: isReorderOnly ? 'Deal reordered' : 'Stage updated',
+    details,
+  });
 }
 
 export function subscribeToDeals(callback: (deals: Deal[]) => void): () => void {

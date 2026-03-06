@@ -10,8 +10,9 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { subscribeToConversations, subscribeToMessages, createMessage, getOrCreateConversation } from '../services/messagesService';
-import { subscribeToContacts } from '../services/contactsService';
-import type { Conversation, Message, Contact } from '../types';
+import { subscribeToUsers } from '../services/usersService';
+import type { Conversation, Message, UserProfile } from '../types';
+import type { User as FirebaseUser } from 'firebase/auth';
 
 function getMessageDate(m: Message): Date | null {
   const raw = m.createdAt;
@@ -31,9 +32,13 @@ function getConversationDate(c: Conversation): Date | null {
   return isNaN(d.getTime()) ? null : d;
 }
 
-export default function MessagesView() {
+interface MessagesViewProps {
+  currentUser: FirebaseUser;
+}
+
+export default function MessagesView({ currentUser }: MessagesViewProps) {
   const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [contacts, setContacts] = useState<Contact[]>([]);
+  const [users, setUsers] = useState<UserProfile[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [composeText, setComposeText] = useState('');
@@ -44,11 +49,11 @@ export default function MessagesView() {
   const threadEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const unsub = subscribeToConversations(setConversations);
+    const unsub = subscribeToConversations(currentUser.uid, setConversations);
     return unsub;
-  }, []);
+  }, [currentUser.uid]);
   useEffect(() => {
-    const unsub = subscribeToContacts(setContacts);
+    const unsub = subscribeToUsers(setUsers);
     return unsub;
   }, []);
 
@@ -65,19 +70,27 @@ export default function MessagesView() {
     threadEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const contactMap = useMemo(() => {
-    const m: Record<string, string> = {};
-    contacts.forEach((c) => { m[c.id] = c.name ?? c.email ?? c.id; });
+  const userMap = useMemo(() => {
+    const m: Record<string, UserProfile> = {};
+    users.forEach((u) => {
+      m[u.id] = u;
+    });
     return m;
-  }, [contacts]);
+  }, [users]);
 
   const selectedConversation = useMemo(
     () => (selectedId ? conversations.find((c) => c.id === selectedId) : null),
     [conversations, selectedId]
   );
-  const selectedContactName = selectedConversation
-    ? contactMap[selectedConversation.contactId] ?? 'Unknown'
-    : '';
+
+  const selectedOtherParticipant = useMemo(() => {
+    if (!selectedConversation) return null;
+    const otherId = selectedConversation.participantIds.find((id) => id !== currentUser.uid) ?? null;
+    return otherId ? userMap[otherId] ?? null : null;
+  }, [selectedConversation, currentUser.uid, userMap]);
+
+  const selectedParticipantName =
+    selectedOtherParticipant?.displayName ?? selectedOtherParticipant?.email ?? 'Unknown';
 
   const handleSend = async () => {
     const text = composeText.trim();
@@ -87,7 +100,7 @@ export default function MessagesView() {
     try {
       await createMessage({
         conversationId: selectedId,
-        direction: 'out',
+        senderId: currentUser.uid,
         body: text,
       });
     } finally {
@@ -99,7 +112,7 @@ export default function MessagesView() {
     if (!newContactId.trim() || starting) return;
     setStarting(true);
     try {
-      const convId = await getOrCreateConversation(newContactId);
+      const convId = await getOrCreateConversation([currentUser.uid, newContactId]);
       setSelectedId(convId);
       setShowNewModal(false);
       setNewContactId('');
@@ -107,6 +120,11 @@ export default function MessagesView() {
       setStarting(false);
     }
   };
+
+  const selectableUsers = useMemo(
+    () => users.filter((u) => u.id !== currentUser.uid),
+    [users, currentUser.uid]
+  );
 
   return (
     <div className="h-full flex flex-col bg-white dark:bg-black">
@@ -143,7 +161,9 @@ export default function MessagesView() {
             ) : (
               <ul className="p-2">
                 {conversations.map((c) => {
-                  const name = contactMap[c.contactId] ?? 'Unknown';
+                  const otherId = c.participantIds.find((id) => id !== currentUser.uid);
+                  const otherUser = otherId ? userMap[otherId] : undefined;
+                  const name = otherUser?.displayName ?? otherUser?.email ?? 'Unknown';
                   const updated = getConversationDate(c);
                   const isSelected = c.id === selectedId;
                   return (
@@ -183,12 +203,14 @@ export default function MessagesView() {
                 <div className="w-9 h-9 rounded-full bg-gray-200 dark:bg-zinc-700 flex items-center justify-center">
                   <User size={16} className="text-gray-500 dark:text-zinc-400" />
                 </div>
-                <h3 className="font-semibold text-gray-900 dark:text-white">{selectedContactName}</h3>
+                <h3 className="font-semibold text-gray-900 dark:text-white">
+                  {selectedParticipantName}
+                </h3>
               </div>
               <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
                 {messages.map((m) => {
                   const d = getMessageDate(m);
-                  const isOut = m.direction === 'out';
+                  const isOut = m.senderId === currentUser.uid;
                   return (
                     <div
                       key={m.id}
@@ -281,18 +303,17 @@ export default function MessagesView() {
               <div className="p-4 space-y-4">
                 <div>
                   <label className="block text-xs font-semibold text-gray-500 dark:text-zinc-400 uppercase tracking-wider mb-1.5">
-                    Contact
+                    User
                   </label>
                   <select
                     value={newContactId}
                     onChange={(e) => setNewContactId(e.target.value)}
                     className="w-full bg-white dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 text-gray-900 dark:text-white rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-neon-yellow"
                   >
-                    <option value="">— Select contact —</option>
-                    {contacts.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name}
-                        {c.email ? ` (${c.email})` : ''}
+                    <option value="">— Select user —</option>
+                    {selectableUsers.map((u) => (
+                      <option key={u.id} value={u.id}>
+                        {u.displayName ?? u.email ?? u.id}
                       </option>
                     ))}
                   </select>

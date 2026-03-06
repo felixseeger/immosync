@@ -141,8 +141,12 @@ export default function Properties({
               className="bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-800 text-gray-900 dark:text-white text-sm rounded-lg pl-9 pr-4 py-2 focus:outline-none focus:border-neon-yellow w-64 transition-colors placeholder-gray-500 dark:placeholder-zinc-400"
             />
           </div>
-          <button onClick={() => setShowAddPanel(true)} className="px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 border-2 border-[#D9FF00] bg-[#D9FF00]/10 text-[#D9FF00] hover:bg-[#D9FF00]/20 transition-colors">
-            <Plus size={16} className="text-[#D9FF00]" />
+          <button
+            onClick={() => setShowAddPanel(true)}
+            className="px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 border-2 border-[#D9FF00] bg-[#D9FF00]/10 text-[#D9FF00] hover:bg-[#D9FF00]/20 transition-colors"
+            style={{ color: 'rgba(217, 255, 0, 1)', borderColor: 'rgba(217, 255, 0, 1)' }}
+          >
+            <Plus size={16} style={{ color: 'rgba(217, 255, 0, 1)' }} />
             Add Property
           </button>
         </div>
@@ -168,8 +172,12 @@ export default function Properties({
                 {seeding ? <Loader2 className="animate-spin" size={16} /> : <Database size={16} />}
                 Load Demo Data
               </button>
-              <button onClick={() => setShowAddPanel(true)} className="px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 border-2 border-[#D9FF00] bg-[#D9FF00]/10 text-[#D9FF00] hover:bg-[#D9FF00]/20 transition-colors">
-                <Plus size={16} className="text-[#D9FF00]" />
+              <button
+                onClick={() => setShowAddPanel(true)}
+                className="px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 border-2 border-[#D9FF00] bg-[#D9FF00]/10 text-[#D9FF00] hover:bg-[#D9FF00]/20 transition-colors"
+                style={{ color: 'rgba(217, 255, 0, 1)', borderColor: 'rgba(217, 255, 0, 1)' }}
+              >
+                <Plus size={16} style={{ color: 'rgba(217, 255, 0, 1)' }} />
                 Add Property
               </button>
             </div>

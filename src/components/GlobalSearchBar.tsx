@@ -11,6 +11,7 @@ interface GlobalSearchBarProps {
   onSelectDeal?: (dealId: string) => void;
   onSelectViewing?: (viewingId: string) => void;
   placeholder?: string;
+  className?: string;
 }
 
 export default function GlobalSearchBar({
@@ -19,6 +20,7 @@ export default function GlobalSearchBar({
   onSelectDeal,
   onSelectViewing,
   placeholder = 'Search contacts, properties, deals, calendar, or property facts (street, city, bathrooms)…',
+  className = '',
 }: GlobalSearchBarProps) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResultsByCategory | null>(null);
@@ -110,7 +112,7 @@ export default function GlobalSearchBar({
   };
 
   return (
-    <div ref={wrapperRef} className="relative w-full max-w-xl">
+    <div ref={wrapperRef} className={`relative w-full max-w-xl ${className}`}>
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-zinc-500" size={18} />
         <input

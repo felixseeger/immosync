@@ -26,7 +26,7 @@ export type MessageCreateInput = Omit<Message, 'id' | 'createdAt'> & { createdAt
 
 export async function createConversation(data: ConversationCreateInput): Promise<string> {
   const ref = await addDoc(collection(db, CONVERSATIONS_COLLECTION), {
-    contactId: data.contactId,
+    participantIds: data.participantIds,
     dealId: data.dealId ?? null,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
@@ -34,21 +34,35 @@ export async function createConversation(data: ConversationCreateInput): Promise
   return ref.id;
 }
 
-/** Get or create a conversation for this contact (and optional deal). */
-export async function getOrCreateConversation(contactId: string, dealId?: string): Promise<string> {
+/** Get or create a conversation for this exact set of participants (and optional deal). */
+export async function getOrCreateConversation(participantIds: string[], dealId?: string): Promise<string> {
+  if (participantIds.length === 0) {
+    throw new Error('participantIds must not be empty');
+  }
+  // For now we support 1:1 conversations, so we can query by participants individually.
+  // We still store the full array on the document for future extensibility.
+  const [userA, userB] = participantIds;
   const q = query(
     collection(db, CONVERSATIONS_COLLECTION),
-    where('contactId', '==', contactId),
+    where('participantIds', 'array-contains', userA),
     where('dealId', '==', dealId ?? null)
   );
   const snapshot = await getDocs(q);
-  if (snapshot.docs.length > 0) return snapshot.docs[0].id;
-  return createConversation({ contactId, dealId });
+  // Filter client-side to ensure both users are present (in case of future group chats)
+  const existing = snapshot.docs
+    .map((d) => ({ id: d.id, ...(d.data() as Conversation) }))
+    .find((c) => {
+      const participants = new Set(c.participantIds);
+      return participantIds.every((id) => participants.has(id));
+    });
+  if (existing) return existing.id;
+  return createConversation({ participantIds, dealId });
 }
 
-export function subscribeToConversations(callback: (conversations: Conversation[]) => void): () => void {
+export function subscribeToConversations(currentUserId: string, callback: (conversations: Conversation[]) => void): () => void {
   const q = query(
     collection(db, CONVERSATIONS_COLLECTION),
+    where('participantIds', 'array-contains', currentUserId),
     orderBy('updatedAt', 'desc')
   );
   return onSnapshot(q, (snapshot) => {
@@ -67,7 +81,7 @@ export async function getConversationById(conversationId: string): Promise<Conve
 export async function createMessage(data: MessageCreateInput): Promise<string> {
   const ref = await addDoc(collection(db, MESSAGES_COLLECTION), {
     conversationId: data.conversationId,
-    direction: data.direction,
+    senderId: data.senderId,
     body: data.body,
     userId: data.userId ?? null,
     createdAt: serverTimestamp(),

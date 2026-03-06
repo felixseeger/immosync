@@ -221,9 +221,9 @@ export default function Dashboard({ user, onAddProperty, onSelectProperty, onOpe
           <button
             type="button"
             onClick={onAddProperty}
-            className="px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 border-2 border-[#D9FF00] bg-[#D9FF00]/10 text-[#D9FF00] hover:bg-[#D9FF00]/20 transition-colors"
+            className="px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 border-2 border-[#3A96DD] bg-[#3A96DD]/10 text-[#3A96DD] hover:bg-[#3A96DD]/20 transition-colors"
           >
-            <Building2 size={18} className="text-[#D9FF00]" />
+            <Building2 size={18} className="text-[#3A96DD]" />
             Add Property
           </button>
         </div>

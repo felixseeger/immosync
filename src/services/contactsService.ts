@@ -16,6 +16,7 @@ import {
   writeBatch,
 } from 'firebase/firestore';
 import type { Contact, ContactCategory, LeadStatus, Property, PropertyContactLink, SearchProfile } from '../types';
+import { logActivity } from './activityService';
 
 const CONTACTS_COLLECTION = 'contacts';
 const PROPERTY_CONTACTS_COLLECTION = 'property_contacts';
@@ -52,6 +53,12 @@ export async function createContact(data: ContactCreateInput): Promise<string> {
     ...data,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
+  });
+  const detail = data.name?.trim() || data.email || 'New contact';
+  await logActivity({
+    type: 'lead',
+    action: 'New contact',
+    details: detail,
   });
   return ref.id;
 }

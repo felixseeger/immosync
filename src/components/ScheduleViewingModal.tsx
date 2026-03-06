@@ -48,13 +48,20 @@ export default function ScheduleViewingModal({ property, onClose, onSuccess }: S
         setSaving(false);
         return;
       }
-      await createViewing({
-        propertyId: property.id,
-        contactId,
-        scheduledAt: Timestamp.fromDate(scheduled),
-        status: 'scheduled',
-        note: note.trim() || undefined,
-      });
+      const contact = contacts.find((c) => c.id === contactId);
+      const activityDetail = [property.title || property.address, contact?.name || contact?.email]
+        .filter(Boolean)
+        .join(' with ');
+      await createViewing(
+        {
+          propertyId: property.id,
+          contactId,
+          scheduledAt: Timestamp.fromDate(scheduled),
+          status: 'scheduled',
+          note: note.trim() || undefined,
+        },
+        activityDetail || undefined
+      );
       onSuccess();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to schedule viewing');

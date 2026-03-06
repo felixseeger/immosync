@@ -57,13 +57,21 @@ export default function AddViewingModal({ initialDate, onClose, onSuccess }: Add
         setSaving(false);
         return;
       }
-      await createViewing({
-        propertyId,
-        contactId,
-        scheduledAt: Timestamp.fromDate(scheduled),
-        status: 'scheduled',
-        note: note.trim() || undefined,
-      });
+      const property = properties.find((p) => p.id === propertyId);
+      const contact = contacts.find((c) => c.id === contactId);
+      const activityDetail = [property?.title || property?.address, contact?.name || contact?.email]
+        .filter(Boolean)
+        .join(' with ');
+      await createViewing(
+        {
+          propertyId,
+          contactId,
+          scheduledAt: Timestamp.fromDate(scheduled),
+          status: 'scheduled',
+          note: note.trim() || undefined,
+        },
+        activityDetail || undefined
+      );
       onSuccess?.();
       onClose();
     } catch (err) {

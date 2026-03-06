@@ -174,7 +174,7 @@ export default function Contacts({
         </div>
         <button
           onClick={() => setPanelContact('new')}
-          className="flex items-center gap-2 px-4 py-2.5 bg-neon-yellow text-black font-bold rounded-lg text-sm hover:bg-neon-yellow/90 transition-colors"
+          className="flex items-center gap-2 px-4 py-2.5 bg-neon-yellow text-[#3A96DD] dark:!text-[#D9FF00] font-bold rounded-lg text-sm border border-[#CEF200] hover:bg-neon-yellow/90 dark:hover:!text-[#D9FF00] transition-colors [&_svg]:text-current dark:[&_svg]:!text-[#D9FF00]"
         >
           <Plus size={18} />
           Add contact
@@ -198,7 +198,7 @@ export default function Contacts({
             {!search && !categoryFilter && (
               <button
                 onClick={() => setPanelContact('new')}
-                className="inline-flex items-center gap-2 px-4 py-2.5 bg-neon-yellow text-black font-bold rounded-lg text-sm"
+                className="inline-flex items-center gap-2 px-4 py-2.5 bg-neon-yellow text-[#3A96DD] dark:!text-[#D9FF00] font-bold rounded-lg text-sm [&_svg]:text-current dark:[&_svg]:!text-[#D9FF00]"
               >
                 <Plus size={18} />
                 Add contact

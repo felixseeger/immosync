@@ -101,7 +101,13 @@ export default function Deals({
     const deal = deals.find((d) => d.id === dealId);
     if (!deal) return;
     if (deal.stageId === newStageId && (deal.order ?? 0) === newIndex) return;
-    await updateDealStageAndLog(dealId, newStageId, newIndex, deal.stageId);
+    const contact = contactMap.get(deal.contactId);
+    const property = propertyMap.get(deal.propertyId);
+    const dealContext = {
+      contactName: contact?.name || contact?.email,
+      propertyTitle: property?.title || property?.address,
+    };
+    await updateDealStageAndLog(dealId, newStageId, newIndex, deal.stageId, dealContext);
   };
 
   if (loading && deals.length === 0) {
@@ -140,7 +146,7 @@ export default function Deals({
         <button
           type="button"
           onClick={() => setShowAddDeal(true)}
-          className="flex items-center gap-2 px-5 py-2.5 bg-neon-green text-black font-bold rounded-lg text-sm hover:bg-white hover:text-black transition-colors"
+          className="flex items-center gap-2 px-5 py-2.5 bg-neon-green text-[#3A96DD] dark:!text-[#D9FF00] font-bold rounded-lg text-sm border border-[#D9FF00] hover:bg-black hover:text-[#3A96DD] dark:hover:!text-[#D9FF00] transition-colors [&_svg]:text-current dark:[&_svg]:!text-[#D9FF00]"
         >
           <Plus size={18} />
           Create Deal

@@ -23,10 +23,10 @@ import {
   isToday,
   addDays,
 } from 'date-fns';
-import { subscribeToViewings } from '../services/viewingsService';
+import { subscribeToViewings, updateViewing } from '../services/viewingsService';
 import { getProperties } from '../services/propertyService';
 import { subscribeToContacts } from '../services/contactsService';
-import { updateViewing } from '../services/viewingsService';
+import { logActivity } from '../services/activityService';
 import AddViewingModal from './AddViewingModal';
 import type { Viewing, Property, Contact } from '../types';
 
@@ -114,6 +114,25 @@ export default function CalendarView() {
   const handleStatusChange = async (viewingId: string, status: Viewing['status']) => {
     try {
       await updateViewing(viewingId, { status });
+      const viewing = viewings.find((v) => v.id === viewingId);
+      const property = viewing ? properties.find((p) => p.id === viewing.propertyId) : undefined;
+      const contact = viewing ? contacts.find((c) => c.id === viewing.contactId) : undefined;
+      const detail = [property?.title || property?.address, contact?.name || contact?.email]
+        .filter(Boolean)
+        .join(' · ');
+      const action =
+        status === 'completed'
+          ? 'Viewing marked completed'
+          : status === 'cancelled'
+            ? 'Viewing cancelled'
+            : status === 'no_show'
+              ? 'Viewing marked no-show'
+              : 'Viewing updated';
+      await logActivity({
+        type: 'task',
+        action,
+        details: detail || 'Viewing',
+      });
       setDetailViewing(null);
     } catch {
       // ignore
@@ -128,7 +147,7 @@ export default function CalendarView() {
           <button
             type="button"
             onClick={() => openAddModal()}
-            className="flex items-center gap-2 px-5 py-2.5 bg-neon-yellow text-black font-bold rounded-lg text-sm hover:opacity-90 transition-opacity"
+            className="flex items-center gap-2 px-5 py-2.5 bg-neon-yellow text-black font-bold rounded-lg text-sm hover:opacity-90 transition-opacity dark:text-[#D9FF00] dark:border dark:border-[#D9FF00]"
           >
             <Plus size={18} />
             New event

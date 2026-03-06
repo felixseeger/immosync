@@ -159,7 +159,8 @@ export interface Viewing {
 /** In-app conversation (thread with a contact, optionally linked to a deal) */
 export interface Conversation {
   id: string;
-  contactId: string;
+  /** Participant user ids (for now, 1:1 chat => length 2) */
+  participantIds: string[];
   dealId?: string;
   createdAt?: any;
   updatedAt?: any;
@@ -169,8 +170,19 @@ export interface Conversation {
 export interface Message {
   id: string;
   conversationId: string;
-  direction: 'in' | 'out';
+  /** User id of the sender */
+  senderId: string;
   body: string;
   createdAt?: any;
   userId?: string;
+}
+
+/** Lightweight user profile for in-app messaging / presence */
+export interface UserProfile {
+  id: string; // Firebase auth uid
+  displayName?: string;
+  email?: string;
+  photoURL?: string;
+  createdAt?: any;
+  updatedAt?: any;
 }

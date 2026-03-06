@@ -36,6 +36,7 @@ import CalendarView from './components/CalendarView';
 import MessagesView from './components/MessagesView';
 import GlobalSearchBar from './components/GlobalSearchBar';
 import UserSettings from './components/UserSettings';
+import { upsertUserProfile } from './services/usersService';
 
 const SidebarItem = ({ icon: Icon, label, active = false, onClick, collapsed = false }: { icon: React.ComponentType<{ size?: number }>, label: string, active?: boolean, onClick: () => void; collapsed?: boolean }) => (
   <div 
@@ -79,6 +80,11 @@ export default function App() {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       setLoading(false);
+      if (currentUser) {
+        upsertUserProfile(currentUser).catch((error) => {
+          console.error('Failed to upsert user profile', error);
+        });
+      }
     });
     return () => unsubscribe();
   }, []);
@@ -256,6 +262,8 @@ export default function App() {
             <Menu size={24} />
           </button>
           <GlobalSearchBar
+            className="ml-auto"
+            placeholder=""
             onSelectProperty={(id) => { setActiveTab('Properties'); setInitialSelectedPropertyId(id); }}
             onSelectContact={(id) => { setActiveTab('Contacts'); setInitialSelectedContactId(id); }}
             onSelectDeal={(id) => { setActiveTab('Deals'); setInitialSelectedDealId(id); }}
@@ -296,7 +304,7 @@ export default function App() {
             />
           )}
           {activeTab === 'Calendar' && <CalendarView />}
-          {activeTab === 'Messages' && <MessagesView />}
+          {activeTab === 'Messages' && user && <MessagesView currentUser={user} />}
 
           {activeTab !== 'Dashboard' && activeTab !== 'Properties' && activeTab !== 'Contacts' && activeTab !== 'Deals' && activeTab !== 'Calendar' && activeTab !== 'Messages' && (
           <div className="h-full flex items-center justify-center text-gray-500 dark:text-zinc-500">

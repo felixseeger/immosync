@@ -12,6 +12,7 @@ import {
   serverTimestamp,
 } from 'firebase/firestore';
 import type { Viewing } from '../types';
+import { logActivity } from './activityService';
 
 const VIEWINGS_COLLECTION = 'viewings';
 
@@ -28,7 +29,11 @@ function stripUndefined<T extends Record<string, unknown>>(obj: T): Record<strin
   return out;
 }
 
-export async function createViewing(data: ViewingCreateInput): Promise<string> {
+export async function createViewing(
+  data: ViewingCreateInput,
+  /** Optional description for Recent Activity (e.g. "123 Main St with John Doe") */
+  activityDetail?: string
+): Promise<string> {
   const payload = stripUndefined({
     propertyId: data.propertyId,
     contactId: data.contactId,
@@ -39,6 +44,11 @@ export async function createViewing(data: ViewingCreateInput): Promise<string> {
     updatedAt: serverTimestamp(),
   });
   const ref = await addDoc(collection(db, VIEWINGS_COLLECTION), payload);
+  await logActivity({
+    type: 'task',
+    action: 'Viewing scheduled',
+    details: activityDetail?.trim() || 'New viewing',
+  });
   return ref.id;
 }
 
