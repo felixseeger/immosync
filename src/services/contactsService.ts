@@ -1,141 +1,328 @@
 import { db } from '../firebase';
 import {
   collection,
-  onSnapshot,
-  query,
+  doc,
+  getDoc,
+  getDocs,
   addDoc,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+  query,
+  where,
+  orderBy,
+  onSnapshot,
   serverTimestamp,
+  writeBatch,
 } from 'firebase/firestore';
-import { Contact } from '../types';
+import type { Contact, ContactCategory, LeadStatus, Property, PropertyContactLink, SearchProfile } from '../types';
 
 const CONTACTS_COLLECTION = 'contacts';
+const PROPERTY_CONTACTS_COLLECTION = 'property_contacts';
+
+/* ─── CRUD ─────────────────────────────────────────────────────────────────── */
+
+export async function getContacts(): Promise<Contact[]> {
+  const q = query(
+    collection(db, CONTACTS_COLLECTION),
+    orderBy('createdAt', 'desc')
+  );
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as Contact));
+}
+
+export function subscribeToContacts(callback: (contacts: Contact[]) => void): () => void {
+  const q = query(
+    collection(db, CONTACTS_COLLECTION),
+    orderBy('createdAt', 'desc')
+  );
+  return onSnapshot(q, (snapshot) => {
+    const contacts = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as Contact));
+    callback(contacts);
+  });
+}
+
+export type ContactCreateInput = Omit<Contact, 'id' | 'createdAt' | 'updatedAt'> & {
+  createdAt?: never;
+  updatedAt?: never;
+};
+
+export async function createContact(data: ContactCreateInput): Promise<string> {
+  const ref = await addDoc(collection(db, CONTACTS_COLLECTION), {
+    ...data,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  });
+  return ref.id;
+}
+
+export async function updateContact(
+  contactId: string,
+  data: Partial<Omit<Contact, 'id' | 'createdAt'>> & { updatedAt?: any }
+): Promise<void> {
+  const ref = doc(db, CONTACTS_COLLECTION, contactId);
+  await updateDoc(ref, {
+    ...data,
+    updatedAt: serverTimestamp(),
+  } as Record<string, unknown>);
+}
+
+export async function deleteContact(contactId: string): Promise<void> {
+  const ref = doc(db, CONTACTS_COLLECTION, contactId);
+  await deleteDoc(ref);
+  const linksQuery = query(
+    collection(db, PROPERTY_CONTACTS_COLLECTION),
+    where('contactId', '==', contactId)
+  );
+  const linksSnap = await getDocs(linksQuery);
+  const batch = writeBatch(db);
+  linksSnap.docs.forEach((d) => batch.delete(d.ref));
+  await batch.commit();
+}
+
+/* ─── Property–Contact links (bidirectional) ────────────────────────────────── */
+
+export async function getLinkedContactIdsForProperty(propertyId: string): Promise<string[]> {
+  const q = query(
+    collection(db, PROPERTY_CONTACTS_COLLECTION),
+    where('propertyId', '==', propertyId)
+  );
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map((d) => d.data().contactId as string);
+}
+
+export async function getLinkedPropertyIdsForContact(contactId: string): Promise<string[]> {
+  const q = query(
+    collection(db, PROPERTY_CONTACTS_COLLECTION),
+    where('contactId', '==', contactId)
+  );
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map((d) => d.data().propertyId as string);
+}
+
+export async function linkContactToProperty(propertyId: string, contactId: string): Promise<string> {
+  const id = `${propertyId}_${contactId}`;
+  const ref = doc(db, PROPERTY_CONTACTS_COLLECTION, id);
+  await setDoc(ref, {
+    propertyId,
+    contactId,
+    linkedAt: serverTimestamp(),
+    source: 'manual',
+  });
+  return id;
+}
+
+export async function unlinkContactFromProperty(propertyId: string, contactId: string): Promise<void> {
+  const q = query(
+    collection(db, PROPERTY_CONTACTS_COLLECTION),
+    where('propertyId', '==', propertyId),
+    where('contactId', '==', contactId)
+  );
+  const snapshot = await getDocs(q);
+  const batch = writeBatch(db);
+  snapshot.docs.forEach((d) => batch.delete(d.ref));
+  await batch.commit();
+}
+
+export function subscribeToLinkedContactIds(
+  propertyId: string,
+  callback: (contactIds: string[]) => void
+): () => void {
+  const q = query(
+    collection(db, PROPERTY_CONTACTS_COLLECTION),
+    where('propertyId', '==', propertyId)
+  );
+  return onSnapshot(q, (snapshot) => {
+    const ids = snapshot.docs.map((d) => d.data().contactId as string);
+    callback(ids);
+  });
+}
+
+/** All links grouped by contactId -> propertyId[] (for Contacts table). */
+export function subscribeToPropertyLinksByContact(callback: (byContact: Record<string, string[]>) => void): () => void {
+  const q = query(collection(db, PROPERTY_CONTACTS_COLLECTION));
+  return onSnapshot(q, (snapshot) => {
+    const byContact: Record<string, string[]> = {};
+    snapshot.docs.forEach((d) => {
+      const data = d.data();
+      const cid = data.contactId as string;
+      const pid = data.propertyId as string;
+      if (!byContact[cid]) byContact[cid] = [];
+      byContact[cid].push(pid);
+    });
+    callback(byContact);
+  });
+}
+
+/* ─── Matching engine ──────────────────────────────────────────────────────── */
+
+function propertyLocationStrings(property: Property): string[] {
+  const parts: string[] = [];
+  if (property.city) parts.push(property.city.toLowerCase().trim());
+  if (property.address) parts.push(property.address.toLowerCase().trim());
+  if (property.state) parts.push(property.state.toLowerCase().trim());
+  if (property.country) parts.push(property.country.toLowerCase().trim());
+  return parts;
+}
+
+function locationMatch(property: Property, preferredLocations?: string[]): boolean {
+  if (!preferredLocations?.length) return true;
+  const propLocations = propertyLocationStrings(property);
+  for (const pref of preferredLocations) {
+    const p = pref.toLowerCase().trim();
+    if (propLocations.some((loc) => loc.includes(p) || p.includes(loc))) return true;
+  }
+  return false;
+}
 
 /**
- * Real-time subscription that streams contacts whose search profile
- * matches the given property parameters (price range + min rooms +
- * marketing type). Returns an unsubscribe function.
+ * Real-time subscription: contacts that match the property (search criteria + preferred locations).
+ * Does not include manually linked contacts; merge with getLinkedContactIdsForProperty in the UI.
  */
-export const subscribeToMatchingContacts = (
+export function subscribeToMatchingContacts(
   property: {
     price: number;
     rooms?: number;
     bedrooms?: number;
     marketingType?: string;
+    city?: string;
+    address?: string;
+    state?: string;
+    country?: string;
   },
   callback: (contacts: Contact[]) => void
-): (() => void) => {
+): () => void {
   const q = query(collection(db, CONTACTS_COLLECTION));
-
   return onSnapshot(q, (snapshot) => {
     const all = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as Contact));
     const rooms = property.rooms ?? property.bedrooms ?? 0;
+    const propLocations: string[] = [];
+    if (property.city) propLocations.push(property.city.toLowerCase());
+    if (property.address) propLocations.push(property.address.toLowerCase());
+    if (property.state) propLocations.push(property.state.toLowerCase());
+    if (property.country) propLocations.push(property.country.toLowerCase());
 
     const matches = all.filter((c) => {
       const sp = c.searchProfile;
       if (!sp) return false;
-
       const priceOk =
         (sp.minPrice == null || property.price >= sp.minPrice) &&
         (sp.maxPrice == null || property.price <= sp.maxPrice);
-
       const roomsOk = sp.minRooms == null || rooms >= sp.minRooms;
-
       const mktOk =
-        !sp.marketingType ||
-        !property.marketingType ||
-        sp.marketingType === property.marketingType;
-
-      return priceOk && roomsOk && mktOk;
+        !sp.marketingType || !property.marketingType || sp.marketingType === property.marketingType;
+      const locOk = locationMatch(property as Property, sp.preferredLocations);
+      return priceOk && roomsOk && mktOk && locOk;
     });
-
     callback(matches);
   });
-};
+}
 
-/** Seed a handful of demo contacts so the matching panel has data to show. */
-export const seedDemoContacts = async (): Promise<void> => {
-  const demos = [
+/** Fetch contact by id (e.g. for displaying linked contacts). */
+export async function getContactById(contactId: string): Promise<Contact | null> {
+  const ref = doc(db, CONTACTS_COLLECTION, contactId);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) return null;
+  return { id: snap.id, ...snap.data() } as Contact;
+}
+
+/** Seed demo contacts (optional). */
+export async function seedDemoContacts(): Promise<void> {
+  const demos: ContactCreateInput[] = [
     {
       name: 'Sarah Chen',
       email: 'sarah.chen@email.com',
       phone: '+1 (555) 234-5678',
       company: 'TechCorp Inc.',
+      category: 'buyer',
+      leadStatus: 'qualified',
       searchProfile: {
         marketingType: 'Sale',
         minPrice: 500_000,
         maxPrice: 5_000_000,
         minRooms: 2,
+        preferredLocations: ['New York', 'Brooklyn'],
       },
-      createdAt: serverTimestamp(),
     },
     {
       name: 'Marcus Webb',
       email: 'm.webb@finance.io',
       phone: '+1 (555) 876-5432',
       company: 'Webb Capital',
+      category: 'investor',
+      leadStatus: 'viewing',
       searchProfile: {
         marketingType: 'Sale',
         minPrice: 8_000_000,
         maxPrice: 20_000_000,
         minRooms: 5,
+        preferredLocations: ['Miami'],
       },
-      createdAt: serverTimestamp(),
     },
     {
       name: 'Elena Russo',
       email: 'erusso@design.co',
       phone: '+1 (555) 112-3344',
-      company: null,
+      category: 'tenant',
+      leadStatus: 'new',
       searchProfile: {
         marketingType: 'Rent',
         minPrice: 1_000,
         maxPrice: 6_000,
         minRooms: 1,
+        preferredLocations: ['Los Angeles', 'LA'],
       },
-      createdAt: serverTimestamp(),
     },
     {
       name: 'James Holloway',
       email: 'jholloway@law.com',
       phone: '+1 (555) 667-8899',
       company: 'Holloway & Partners',
+      category: 'buyer',
+      leadStatus: 'negotiation',
       searchProfile: {
         marketingType: 'Sale',
         minPrice: 1_000_000,
         maxPrice: 8_000_000,
         minRooms: 3,
+        preferredLocations: ['Boston', 'Cambridge'],
       },
-      createdAt: serverTimestamp(),
     },
     {
       name: 'Aisha Patel',
       email: 'aisha.p@gmail.com',
       phone: '+1 (555) 445-6677',
       company: 'MedTech Solutions',
+      category: 'buyer',
+      leadStatus: 'contacted',
       searchProfile: {
         marketingType: 'Sale',
         minPrice: 200_000,
         maxPrice: 600_000,
         minRooms: 2,
+        preferredLocations: ['San Francisco', 'Oakland'],
       },
-      createdAt: serverTimestamp(),
     },
     {
       name: 'Luca Bianchi',
       email: 'luca.bianchi@realty.eu',
       phone: '+49 170 4567890',
-      company: null,
+      category: 'investor',
+      leadStatus: 'qualified',
       searchProfile: {
         marketingType: 'Sale',
         minPrice: 2_000_000,
         maxPrice: 15_000_000,
         minRooms: 4,
+        preferredLocations: ['Munich', 'Berlin'],
       },
-      createdAt: serverTimestamp(),
     },
   ];
-
   for (const demo of demos) {
-    await addDoc(collection(db, CONTACTS_COLLECTION), demo);
+    await addDoc(collection(db, CONTACTS_COLLECTION), {
+      ...demo,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
   }
-};
+}

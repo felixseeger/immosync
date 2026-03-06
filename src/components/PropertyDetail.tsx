@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { Property } from '../types';
 import MatchingProspects from './MatchingProspects';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, MapPin, Bed, Bath, Ruler, CheckCircle, Image as ImageIcon, ArrowLeft, Pencil, Trash2, Loader2 } from 'lucide-react';
+import { X, MapPin, Bed, Bath, Ruler, CheckCircle, Image as ImageIcon, ArrowLeft, Pencil, Trash2, Loader2, FileDown, Calendar } from 'lucide-react';
 import ImageUpload from './ImageUpload';
 import AddPropertyPanel from './AddPropertyPanel';
+import ScheduleViewingModal from './ScheduleViewingModal';
 import { deleteProperty } from '../services/propertyService';
+import { downloadBrochurePdf } from '../utils/brochurePdf';
 
 interface PropertyDetailProps {
   property: Property;
@@ -18,6 +20,8 @@ export default function PropertyDetail({ property, onClose, onDeleted }: Propert
   const [showEditPanel, setShowEditPanel] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [generatingBrochure, setGeneratingBrochure] = useState(false);
+  const [showScheduleViewing, setShowScheduleViewing] = useState(false);
 
   const handleDelete = async () => {
     setIsDeleting(true);
@@ -34,11 +38,18 @@ export default function PropertyDetail({ property, onClose, onDeleted }: Propert
   };
 
   const handleUploadComplete = (url: string) => {
-    // Optimistically update the local state or re-fetch
-    // For simplicity, we might just append to the local property object if it's mutable, 
-    // but ideally we should refetch or update the parent state.
-    // Here we'll just show a success message or refresh the gallery.
     console.log("Image uploaded:", url);
+  };
+
+  const handleGenerateBrochure = async () => {
+    setGeneratingBrochure(true);
+    try {
+      await downloadBrochurePdf(property);
+    } catch (err) {
+      console.error('Brochure generation failed', err);
+    } finally {
+      setGeneratingBrochure(false);
+    }
   };
 
   return (
@@ -192,8 +203,22 @@ export default function PropertyDetail({ property, onClose, onDeleted }: Propert
                   </div>
                 </div>
 
-                <button className="w-full bg-neon-yellow text-black font-bold py-3 rounded-xl hover:bg-neon-yellow/90 transition-colors mb-3">
-                  Schedule Tour
+                <button
+                  type="button"
+                  onClick={handleGenerateBrochure}
+                  disabled={generatingBrochure}
+                  className="w-full bg-gray-200 dark:bg-zinc-800 text-gray-900 dark:text-white font-medium py-3 rounded-xl border border-gray-300 dark:border-zinc-700 hover:bg-gray-300 dark:hover:bg-zinc-700 transition-colors mb-3 flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  {generatingBrochure ? <Loader2 size={18} className="animate-spin" /> : <FileDown size={18} />}
+                  {generatingBrochure ? 'Generating…' : 'Generate Brochure'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowScheduleViewing(true)}
+                  className="w-full bg-neon-yellow text-black font-bold py-3 rounded-xl hover:bg-neon-yellow/90 transition-colors mb-3 flex items-center justify-center gap-2"
+                >
+                  <Calendar size={18} />
+                  Schedule Viewing
                 </button>
                 <button className="w-full bg-gray-200 dark:bg-zinc-900 text-gray-900 dark:text-white font-medium py-3 rounded-xl border border-gray-300 dark:border-zinc-700 hover:bg-gray-300 dark:hover:bg-zinc-800 transition-colors">
                   Contact Agent
@@ -295,6 +320,17 @@ export default function PropertyDetail({ property, onClose, onDeleted }: Propert
             property={property}
             onClose={() => setShowEditPanel(false)}
             onSuccess={() => setShowEditPanel(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Schedule Viewing Modal */}
+      <AnimatePresence>
+        {showScheduleViewing && (
+          <ScheduleViewingModal
+            property={property}
+            onClose={() => setShowScheduleViewing(false)}
+            onSuccess={() => setShowScheduleViewing(false)}
           />
         )}
       </AnimatePresence>

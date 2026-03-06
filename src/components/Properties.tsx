@@ -2,18 +2,38 @@ import React, { useState, useEffect } from 'react';
 import { Property } from '../types';
 import { getProperties, seedProperties } from '../services/propertyService';
 import PropertyGrid from './PropertyGrid';
+import PropertyList from './PropertyList';
+import PropertyMap from './PropertyMap';
 import PropertyDetail from './PropertyDetail';
-import { Loader2, Plus, Filter, Search, Database } from 'lucide-react';
+import { Loader2, Plus, Filter, Search, Database, LayoutGrid, List, Map as MapIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import AddPropertyPanel from './AddPropertyPanel';
 
-export default function Properties() {
+interface PropertiesProps {
+  showAddPanel?: boolean;
+  onAddPanelChange?: (show: boolean) => void;
+  initialSelectedPropertyId?: string | null;
+  onClearInitialSelection?: () => void;
+  isDarkMode?: boolean;
+}
+
+export default function Properties({
+  showAddPanel: controlledShowAddPanel,
+  onAddPanelChange,
+  initialSelectedPropertyId,
+  onClearInitialSelection,
+  isDarkMode = true,
+}: PropertiesProps = {}) {
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [seeding, setSeeding] = useState(false);
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const [filter, setFilter] = useState('All');
-  const [showAddPanel, setShowAddPanel] = useState(false);
+  const [viewMode, setViewMode] = useState<'grid' | 'list' | 'map'>('grid');
+  const [internalShowAddPanel, setInternalShowAddPanel] = useState(false);
+  const isControlled = controlledShowAddPanel !== undefined && onAddPanelChange !== undefined;
+  const showAddPanel = isControlled ? controlledShowAddPanel : internalShowAddPanel;
+  const setShowAddPanel = isControlled ? onAddPanelChange! : setInternalShowAddPanel;
 
   const fetchProperties = async () => {
     try {
@@ -30,6 +50,15 @@ export default function Properties() {
   useEffect(() => {
     fetchProperties();
   }, []);
+
+  useEffect(() => {
+    if (!initialSelectedPropertyId || !onClearInitialSelection || properties.length === 0) return;
+    const p = properties.find((x) => x.id === initialSelectedPropertyId);
+    if (p) {
+      setSelectedProperty(p);
+      onClearInitialSelection();
+    }
+  }, [initialSelectedPropertyId, onClearInitialSelection, properties]);
 
   const handleSeedData = async () => {
     try {
@@ -80,6 +109,30 @@ export default function Properties() {
         </div>
 
         <div className="flex items-center gap-3">
+          {/* Grid / List / Map view toggle */}
+          <div className="flex items-center gap-1 bg-gray-100 dark:bg-zinc-900 rounded-lg p-1 border border-gray-300 dark:border-zinc-800">
+            <button
+              onClick={() => setViewMode('grid')}
+              className={`p-2 rounded-md transition-colors ${viewMode === 'grid' ? 'bg-white dark:bg-zinc-800 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-zinc-500 hover:text-gray-700 dark:hover:text-zinc-300'}`}
+              title="Grid view"
+            >
+              <LayoutGrid size={18} />
+            </button>
+            <button
+              onClick={() => setViewMode('list')}
+              className={`p-2 rounded-md transition-colors ${viewMode === 'list' ? 'bg-white dark:bg-zinc-800 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-zinc-500 hover:text-gray-700 dark:hover:text-zinc-300'}`}
+              title="List view"
+            >
+              <List size={18} />
+            </button>
+            <button
+              onClick={() => setViewMode('map')}
+              className={`p-2 rounded-md transition-colors ${viewMode === 'map' ? 'bg-white dark:bg-zinc-800 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-zinc-500 hover:text-gray-700 dark:hover:text-zinc-300'}`}
+              title="Map view"
+            >
+              <MapIcon size={18} />
+            </button>
+          </div>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-zinc-500" size={16} />
             <input 
@@ -88,17 +141,17 @@ export default function Properties() {
               className="bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-800 text-gray-900 dark:text-white text-sm rounded-lg pl-9 pr-4 py-2 focus:outline-none focus:border-neon-yellow w-64 transition-colors placeholder-gray-500 dark:placeholder-zinc-400"
             />
           </div>
-          <button onClick={() => setShowAddPanel(true)} className="bg-neon-yellow text-black px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-yellow-400 transition-colors">
-            <Plus size={16} />
+          <button onClick={() => setShowAddPanel(true)} className="px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 border-2 border-[#D9FF00] bg-[#D9FF00]/10 text-[#D9FF00] hover:bg-[#D9FF00]/20 transition-colors">
+            <Plus size={16} className="text-[#D9FF00]" />
             Add Property
           </button>
         </div>
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-hidden flex flex-col min-h-0">
         {properties.length === 0 ? (
-          <div className="h-full flex flex-col items-center justify-center text-gray-600 dark:text-zinc-500">
+          <div className="flex-1 flex flex-col items-center justify-center text-gray-600 dark:text-zinc-500">
             <div className="w-16 h-16 bg-gray-200 dark:bg-zinc-900 rounded-full flex items-center justify-center mb-4">
               <Database className="text-gray-400 dark:text-zinc-600" size={32} />
             </div>
@@ -115,17 +168,33 @@ export default function Properties() {
                 {seeding ? <Loader2 className="animate-spin" size={16} /> : <Database size={16} />}
                 Load Demo Data
               </button>
-              <button onClick={() => setShowAddPanel(true)} className="px-4 py-2 bg-neon-yellow text-black hover:bg-neon-yellow/90 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
-                <Plus size={16} />
+              <button onClick={() => setShowAddPanel(true)} className="px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 border-2 border-[#D9FF00] bg-[#D9FF00]/10 text-[#D9FF00] hover:bg-[#D9FF00]/20 transition-colors">
+                <Plus size={16} className="text-[#D9FF00]" />
                 Add Property
               </button>
             </div>
           </div>
+        ) : viewMode === 'map' ? (
+          <div className="flex-1 flex flex-col min-h-0 p-4">
+            <div className="flex-1 min-h-[420px] w-full rounded-xl overflow-hidden border border-zinc-800 relative">
+              <PropertyMap
+                properties={properties}
+                isDarkMode={isDarkMode}
+                onSelectProperty={(id) => {
+                  const p = properties.find((x) => x.id === id);
+                  if (p) setSelectedProperty(p);
+                }}
+              />
+            </div>
+          </div>
+        ) : viewMode === 'list' ? (
+          <div className="flex-1 overflow-y-auto p-6">
+            <PropertyList properties={filteredProperties} onSelectProperty={setSelectedProperty} />
+          </div>
         ) : (
-          <PropertyGrid 
-            properties={filteredProperties} 
-            onSelectProperty={setSelectedProperty} 
-          />
+          <div className="flex-1 overflow-y-auto">
+            <PropertyGrid properties={filteredProperties} onSelectProperty={setSelectedProperty} />
+          </div>
         )}
       </div>
 

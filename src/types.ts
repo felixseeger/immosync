@@ -10,6 +10,17 @@ export type HeatingType =
   | 'Pellet'
   | 'Solar';
 
+export type ContactCategory = 'buyer' | 'tenant' | 'owner' | 'investor';
+
+export type LeadStatus =
+  | 'new'
+  | 'contacted'
+  | 'qualified'
+  | 'viewing'
+  | 'negotiation'
+  | 'won'
+  | 'lost';
+
 export interface SearchProfile {
   marketingType?: MarketingType;
   propertyType?: string;
@@ -17,6 +28,8 @@ export interface SearchProfile {
   maxPrice?: number;
   minRooms?: number;
   maxRooms?: number;
+  /** Preferred locations (city names, areas, or addresses) for matching */
+  preferredLocations?: string[];
 }
 
 export interface Contact {
@@ -25,8 +38,22 @@ export interface Contact {
   email?: string;
   phone?: string;
   company?: string;
+  /** Real estate role: buyer, tenant, owner, investor */
+  category?: ContactCategory;
+  leadStatus?: LeadStatus;
   searchProfile?: SearchProfile;
+  notes?: string;
   createdAt?: any;
+  updatedAt?: any;
+}
+
+/** Manual link between a contact and a property (actively interested) */
+export interface PropertyContactLink {
+  id: string;
+  propertyId: string;
+  contactId: string;
+  linkedAt: any;
+  source: 'manual';
 }
 
 export interface Property {
@@ -69,4 +96,62 @@ export interface Property {
   features: string[];
   createdAt: any; // Firestore Timestamp
   agentId: string;
+}
+
+/** Deal pipeline stage id (shared across sales and rental) */
+export type DealStageId =
+  | 'lead'
+  | 'viewing'
+  | 'credit_check'
+  | 'negotiation'
+  | 'notary_contract'
+  | 'closed';
+
+export type DealType = 'sale' | 'rental';
+
+export interface Deal {
+  id: string;
+  contactId: string;
+  propertyId: string;
+  dealType: DealType;
+  stageId: DealStageId;
+  /** Expected commission (sale) or monthly rent (rental) */
+  financialValue: number;
+  order: number;
+  createdAt?: any;
+  updatedAt?: any;
+}
+
+export interface DealActivity {
+  id: string;
+  dealId: string;
+  type: 'stage_change' | 'note' | 'document_added' | 'document_removed';
+  message: string;
+  metadata?: Record<string, unknown>;
+  createdAt: any;
+  userId?: string;
+}
+
+export type DealDocumentCategory = 'lease' | 'credit_check' | 'notary' | 'other';
+
+export interface DealDocument {
+  id: string;
+  dealId: string;
+  name: string;
+  storagePath: string;
+  downloadUrl: string;
+  category: DealDocumentCategory;
+  uploadedAt: any;
+}
+
+/** Scheduled viewing / appointment for a property with a contact */
+export interface Viewing {
+  id: string;
+  propertyId: string;
+  contactId: string;
+  scheduledAt: any; // Firestore Timestamp
+  status?: 'scheduled' | 'completed' | 'cancelled' | 'no_show';
+  note?: string;
+  createdAt?: any;
+  updatedAt?: any;
 }

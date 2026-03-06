@@ -114,6 +114,19 @@ export const getProperties = async (): Promise<Property[]> => {
   }
 };
 
+/** Fetch titles for given property IDs (for display in Contacts table). */
+export const getPropertyTitles = async (propertyIds: string[]): Promise<Record<string, string>> => {
+  if (propertyIds.length === 0) return {};
+  const unique = [...new Set(propertyIds)];
+  const snaps = await Promise.all(unique.map((id) => getDoc(doc(db, PROPERTIES_COLLECTION, id))));
+  const out: Record<string, string> = {};
+  unique.forEach((id, i) => {
+    const d = snaps[i];
+    if (d?.exists()) out[id] = (d.data() as Property).title ?? id;
+  });
+  return out;
+}
+
 export const addPropertyImage = async (propertyId: string, imageUrl: string): Promise<void> => {
   try {
     const propertyRef = doc(db, PROPERTIES_COLLECTION, propertyId);

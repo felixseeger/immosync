@@ -18,15 +18,21 @@ import {
   Maximize2,
   ChevronRight,
   Settings,
-  LogOut,
   ChevronUp
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { onAuthStateChanged, signOut, User as FirebaseUser } from 'firebase/auth';
 import { auth } from './firebase';
 import Auth from './components/Auth';
+import LandingPassword, { isGateUnlocked } from './components/LandingPassword';
 import Dashboard from './components/Dashboard';
 import Properties from './components/Properties';
+import Contacts from './components/Contacts';
+import Deals from './components/Deals';
+import CalendarView from './components/CalendarView';
+import MessagesView from './components/MessagesView';
+import GlobalSearchBar from './components/GlobalSearchBar';
+import UserSettings from './components/UserSettings';
 
 const SidebarItem = ({ icon: Icon, label, active = false, onClick }: { icon: any, label: string, active?: boolean, onClick: () => void }) => (
   <div 
@@ -48,6 +54,11 @@ const SidebarItem = ({ icon: Icon, label, active = false, onClick }: { icon: any
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('Dashboard');
+  const [showPropertiesAddPanel, setShowPropertiesAddPanel] = useState(false);
+  const [initialSelectedPropertyId, setInitialSelectedPropertyId] = useState<string | null>(null);
+  const [initialSelectedContactId, setInitialSelectedContactId] = useState<string | null>(null);
+  const [initialSelectedDealId, setInitialSelectedDealId] = useState<string | null>(null);
+  const [initialSelectedViewingId, setInitialSelectedViewingId] = useState<string | null>(null);
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -55,6 +66,8 @@ export default function App() {
     return stored ? stored === 'dark' : true;
   });
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showUserSettings, setShowUserSettings] = useState(false);
+  const [gateUnlocked, setGateUnlocked] = useState(() => isGateUnlocked());
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -103,6 +116,9 @@ export default function App() {
   }
 
   if (!user) {
+    if (!gateUnlocked) {
+      return <LandingPassword onUnlock={() => setGateUnlocked(true)} />;
+    }
     return <Auth onSuccess={() => {}} />;
   }
 
@@ -148,51 +164,74 @@ export default function App() {
               </button>
             </div>
           </div>
-          {/* User badge with logout popover */}
+          {/* User badge: click opens User Settings */}
           <div className="relative">
             <button
-              onClick={() => setShowUserMenu(m => !m)}
+              onClick={() => { setShowUserMenu(false); setShowUserSettings(true); }}
               className="flex items-center gap-3 p-2 rounded-xl hover:bg-gray-200 dark:hover:bg-zinc-800 transition-colors w-full text-left"
             >
               <div className="w-10 h-10 rounded-full bg-gray-300 dark:bg-zinc-800 border border-gray-300 dark:border-border-dark overflow-hidden shrink-0">
-                <img src={user.photoURL || `https://picsum.photos/seed/${user.uid}/100/100`} alt="Avatar" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
+                <img src={user.photoURL || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.displayName || user.email || 'U')}`} alt="Avatar" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate text-gray-900 dark:text-white">{user.displayName || 'User'}</p>
                 <p className="text-xs text-gray-600 dark:text-zinc-500 truncate">{user.email}</p>
               </div>
-              <ChevronUp size={14} className={`text-gray-600 dark:text-zinc-500 transition-transform shrink-0 ${showUserMenu ? '' : 'rotate-180'}`} />
+              <ChevronUp size={14} className="text-gray-600 dark:text-zinc-500 shrink-0 rotate-180" />
             </button>
-            <AnimatePresence>
-              {showUserMenu && (
-                <motion.div
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 8 }}
-                  className="absolute bottom-full left-0 right-0 mb-2 bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded-xl shadow-2xl overflow-hidden"
-                >
-                  <button
-                    onClick={handleLogout}
-                    className="flex items-center gap-3 px-4 py-3 w-full text-left text-sm text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-zinc-800 transition-colors"
-                  >
-                    <LogOut size={16} />
-                    Sign Out
-                  </button>
-                </motion.div>
-              )}
-            </AnimatePresence>
           </div>
         </div>
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-hidden relative bg-white dark:bg-black">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,var(--tw-gradient-stops))] from-gray-100 dark:from-zinc-900/20 via-white dark:via-black to-white dark:to-black pointer-events-none" />
-        
-        {activeTab === 'Dashboard' && <Dashboard />}
-        {activeTab === 'Properties' && <Properties />}
-        
-        {activeTab !== 'Dashboard' && activeTab !== 'Properties' && (
+      <main className="flex-1 overflow-hidden relative bg-white dark:bg-black flex flex-col">
+        {/* Background gradient behind content so map/live view is not covered */}
+        <div className="absolute inset-0 z-0 bg-[radial-gradient(ellipse_at_top_right,var(--tw-gradient-stops))] from-gray-100 dark:from-zinc-900/20 via-white dark:via-black to-white dark:to-black pointer-events-none" />
+
+        {/* Global header with search */}
+        <header className="relative z-10 shrink-0 h-14 px-4 flex items-center gap-4 border-b border-gray-200 dark:border-zinc-800 bg-white/80 dark:bg-black/80 backdrop-blur-md">
+          <GlobalSearchBar
+            onSelectProperty={(id) => { setActiveTab('Properties'); setInitialSelectedPropertyId(id); }}
+            onSelectContact={(id) => { setActiveTab('Contacts'); setInitialSelectedContactId(id); }}
+            onSelectDeal={(id) => { setActiveTab('Deals'); setInitialSelectedDealId(id); }}
+            onSelectViewing={(id) => { setActiveTab('Calendar'); setInitialSelectedViewingId(id); }}
+          />
+        </header>
+
+        <div className="relative z-10 flex-1 overflow-hidden min-h-0">
+          {activeTab === 'Dashboard' && (
+            <Dashboard
+              onAddProperty={() => { setActiveTab('Properties'); setShowPropertiesAddPanel(true); }}
+              onSelectProperty={(id) => { setActiveTab('Properties'); setInitialSelectedPropertyId(id); }}
+            />
+          )}
+          {activeTab === 'Properties' && (
+            <Properties
+              showAddPanel={showPropertiesAddPanel}
+              onAddPanelChange={setShowPropertiesAddPanel}
+              initialSelectedPropertyId={initialSelectedPropertyId}
+              onClearInitialSelection={() => setInitialSelectedPropertyId(null)}
+              isDarkMode={isDarkMode}
+            />
+          )}
+          {activeTab === 'Contacts' && (
+            <Contacts
+              initialSelectedContactId={initialSelectedContactId}
+              onClearInitialContactSelection={() => setInitialSelectedContactId(null)}
+            />
+          )}
+          {activeTab === 'Deals' && (
+            <Deals
+              onSelectContact={(id) => { setActiveTab('Contacts'); setInitialSelectedContactId(id); }}
+              onSelectProperty={(id) => { setActiveTab('Properties'); setInitialSelectedPropertyId(id); }}
+              initialSelectedDealId={initialSelectedDealId}
+              onClearInitialDealSelection={() => setInitialSelectedDealId(null)}
+            />
+          )}
+          {activeTab === 'Calendar' && <CalendarView />}
+          {activeTab === 'Messages' && <MessagesView />}
+
+          {activeTab !== 'Dashboard' && activeTab !== 'Properties' && activeTab !== 'Contacts' && activeTab !== 'Deals' && activeTab !== 'Calendar' && activeTab !== 'Messages' && (
           <div className="h-full flex items-center justify-center text-gray-500 dark:text-zinc-500">
             <div className="text-center">
               <div className="w-16 h-16 bg-gray-200 dark:bg-zinc-900 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -202,8 +241,17 @@ export default function App() {
               <p className="text-sm">This module is currently under development.</p>
             </div>
           </div>
-        )}
+          )}
+        </div>
       </main>
+
+      {showUserSettings && user && (
+        <UserSettings
+          user={user}
+          onClose={() => setShowUserSettings(false)}
+          onSignOut={handleLogout}
+        />
+      )}
     </div>
   );
 }
