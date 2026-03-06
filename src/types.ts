@@ -155,3 +155,22 @@ export interface Viewing {
   createdAt?: any;
   updatedAt?: any;
 }
+
+/** In-app conversation (thread with a contact, optionally linked to a deal) */
+export interface Conversation {
+  id: string;
+  contactId: string;
+  dealId?: string;
+  createdAt?: any;
+  updatedAt?: any;
+}
+
+/** Single message in a conversation */
+export interface Message {
+  id: string;
+  conversationId: string;
+  direction: 'in' | 'out';
+  body: string;
+  createdAt?: any;
+  userId?: string;
+}

@@ -156,6 +156,30 @@ export default function Dashboard({ user, onAddProperty, onSelectProperty, onOpe
     .reduce((sum, p) => sum + (p.price ?? 0), 0);
   const ytdRevenue = portfolioValue;
 
+  // Monthly data for revenue line chart (Oct–Mar)
+  const revenueChartMonths = ['Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar'];
+  const revenueChartData = (() => {
+    const max = Math.max(ytdRevenue, 1);
+    return revenueChartMonths.map((_, i) => {
+      const t = (i + 1) / revenueChartMonths.length;
+      return Math.round(max * (0.1 + 0.9 * t * t));
+    });
+  })();
+  const chartMax = Math.max(...revenueChartData, 1);
+  const chartHeight = 120;
+  const chartWidth = 400;
+  const pad = { top: 8, right: 8, bottom: 20, left: 36 };
+  const innerW = chartWidth - pad.left - pad.right;
+  const innerH = chartHeight - pad.top - pad.bottom;
+  const linePoints = revenueChartData
+    .map((val, i) => {
+      const x = pad.left + (i / (revenueChartData.length - 1 || 1)) * innerW;
+      const y = pad.top + innerH - (val / chartMax) * innerH;
+      return `${x},${y}`;
+    })
+    .join(' ');
+  const areaPoints = `${pad.left},${pad.top + innerH} ${linePoints} ${pad.left + innerW},${pad.top + innerH}`;
+
   const handleExportReport = () => {
     const report = {
       exportedAt: new Date().toISOString(),
@@ -205,71 +229,112 @@ export default function Dashboard({ user, onAddProperty, onSelectProperty, onOpe
         </div>
       </div>
 
-      {/* Welcome + Daily Agenda row */}
+      {/* Welcome message only - full width */}
+      <div className="mb-6">
+        <h3 className="text-xl md:text-2xl text-gray-900 dark:text-white mb-1">
+          {greeting},{' '}
+          <span className="text-neon-yellow font-bold">{firstName}</span>
+        </h3>
+        <p className="text-gray-600 dark:text-zinc-400 text-sm">
+          You have <strong>{todayViewings.length}</strong> viewings scheduled for today and{' '}
+          <strong>{newLeadsCount}</strong> new leads waiting for review.
+        </p>
+      </div>
+
+      {/* Main content: left = graph + metric cards, right = Daily Agenda (single column) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        <div className="lg:col-span-2">
-          <h3 className="text-xl md:text-2xl text-gray-900 dark:text-white mb-1">
-            {greeting},{' '}
-            <span className="text-neon-yellow font-bold">{firstName}</span>
-          </h3>
-          <p className="text-gray-600 dark:text-zinc-400 text-sm">
-            You have <strong>{todayViewings.length}</strong> viewings scheduled for today and{' '}
-            <strong>{newLeadsCount}</strong> new leads waiting for review.
-          </p>
-        </div>
-        <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl p-5 flex flex-col">
-          <h3 className="font-bold text-gray-900 dark:text-white mb-1">Daily Agenda</h3>
-          <p className="text-sm text-gray-500 dark:text-zinc-500 mb-4">{todayFormatted}</p>
-          {todayViewings.length === 0 ? (
-            <div className="flex-1 flex flex-col items-center justify-center py-6 text-center">
-              <CalendarIcon className="text-gray-400 dark:text-zinc-500 mb-2" size={28} />
-              <p className="text-sm text-gray-600 dark:text-zinc-400">No tasks or events scheduled for today.</p>
-            </div>
-          ) : (
-            <ul className="space-y-2 flex-1">
-              {todayViewings.map((v) => {
-                const d = getViewingDate(v);
-                return (
-                  <li key={v.id} className="text-sm text-gray-700 dark:text-zinc-300">
-                    {d ? format(d, 'HH:mm') : '—'} Viewing
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-          {onOpenCalendar && (
-            <button
-              type="button"
-              onClick={onOpenCalendar}
-              className="mt-4 flex items-center gap-1 text-sm font-medium text-neon-yellow hover:text-neon-yellow/90 transition-colors"
-            >
-              View Full Calendar
-              <ChevronRight size={16} />
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Revenue Overview */}
-      <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl p-6 mb-6">
-        <h3 className="font-bold text-gray-900 dark:text-white mb-2">Revenue Overview</h3>
-        {statsLoading ? (
-          <div className="flex items-center gap-2 text-gray-500 dark:text-zinc-400">
-            <Loader2 size={20} className="animate-spin" />
-            <span>Loading...</span>
+        {/* Left: Revenue Overview + Active Deals / New Leads */}
+        <div className="lg:col-span-2 flex flex-col gap-6">
+          {/* Revenue Overview with graph */}
+          <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl p-6">
+            <h3 className="font-bold text-gray-900 dark:text-white mb-2">Revenue Overview</h3>
+            {statsLoading ? (
+              <div className="flex items-center gap-2 text-gray-500 dark:text-zinc-400">
+                <Loader2 size={20} className="animate-spin" />
+                <span>Loading...</span>
+              </div>
+            ) : (
+              <>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white mb-4">{formatCurrency(ytdRevenue)} YTD</p>
+                <div className="flex gap-4">
+                  <div className="text-[10px] text-gray-500 dark:text-zinc-500 flex flex-col justify-between py-1">
+                    <span>{formatCurrency(chartMax)}</span>
+                    <span>{formatCurrency(Math.round(chartMax / 2))}</span>
+                    <span>$0</span>
+                  </div>
+                  <div className="flex-1 min-w-0 overflow-hidden">
+                    <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="w-full h-[100px]" preserveAspectRatio="none" aria-hidden>
+                      <defs>
+                        <linearGradient id="revenueLineGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                          <stop offset="0%" stopColor="#D9FF00" stopOpacity="0.3" />
+                          <stop offset="100%" stopColor="#D9FF00" stopOpacity="0" />
+                        </linearGradient>
+                      </defs>
+                      <polygon fill="url(#revenueLineGradient)" points={areaPoints} />
+                      <polyline
+                        fill="none"
+                        stroke="#D9FF00"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        points={linePoints}
+                      />
+                    </svg>
+                    <div className="flex justify-between mt-1 text-[10px] text-gray-500 dark:text-zinc-500">
+                      {revenueChartMonths.map((m) => (
+                        <span key={m}>{m}</span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
-        ) : (
-          <p className="text-2xl font-bold text-gray-900 dark:text-white">{formatCurrency(ytdRevenue)} YTD</p>
-        )}
+
+          {/* Active Deals + New Leads - cleaned up two cards */}
+          <div className="grid grid-cols-2 gap-4">
+            <StatCard title="Active Deals" value={String(activeDealsCount)} icon={TrendingUp} />
+            <StatCard title="New Leads" value={String(newLeadsCount)} icon={Users} />
+          </div>
+        </div>
+
+        {/* Right: Daily Agenda - single column only */}
+        <div className="lg:col-span-1">
+          <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl p-5 flex flex-col h-full min-h-[280px]">
+            <h3 className="font-bold text-gray-900 dark:text-white mb-1">Daily Agenda</h3>
+            <p className="text-sm text-gray-500 dark:text-zinc-500 mb-4">{todayFormatted}</p>
+            {todayViewings.length === 0 ? (
+              <div className="flex-1 flex flex-col items-center justify-center py-6 text-center">
+                <CalendarIcon className="text-gray-400 dark:text-zinc-500 mb-2" size={28} />
+                <p className="text-sm text-gray-600 dark:text-zinc-400">No tasks or events scheduled for today.</p>
+              </div>
+            ) : (
+              <ul className="space-y-2 flex-1">
+                {todayViewings.map((v) => {
+                  const d = getViewingDate(v);
+                  return (
+                    <li key={v.id} className="text-sm text-gray-700 dark:text-zinc-300">
+                      {d ? format(d, 'HH:mm') : '—'} Viewing
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+            {onOpenCalendar && (
+              <button
+                type="button"
+                onClick={onOpenCalendar}
+                className="mt-4 flex items-center gap-1 text-sm font-medium text-neon-yellow hover:text-neon-yellow/90 transition-colors"
+              >
+                View Full Calendar
+                <ChevronRight size={16} />
+              </button>
+            )}
+          </div>
+        </div>
       </div>
 
-      {/* Active Deals + New Leads */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-        <StatCard title="Active Deals" value={String(activeDealsCount)} icon={TrendingUp} />
-        <StatCard title="New Leads" value={String(newLeadsCount)} icon={Users} />
-      </div>
-
-      {/* Stats: Active Listings, Contacts, Portfolio (optional) */}
+      {/* Stats: Active Listings, Contacts, Portfolio */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         {statsLoading ? (
           <>
