@@ -53,36 +53,36 @@ export default function PropertyGrid({ properties, onSelectProperty }: PropertyG
               </span>
             </div>
 
-            <div className="grid grid-cols-3 gap-1.5 py-3 border-t border-gray-300 dark:border-zinc-800">
+            <div className="grid grid-cols-3 gap-3 py-6 border-t border-gray-300 dark:border-zinc-800">
               <div className="flex flex-col items-center text-center">
-                <LayoutGrid size={14} className="text-gray-600 dark:text-zinc-400 mb-0.5" />
-                <span className="text-xs font-medium text-gray-900 dark:text-white">{property.rooms ?? '—'}</span>
-                <span className="text-[9px] text-gray-500 dark:text-zinc-600 uppercase">Rooms</span>
+                <LayoutGrid size={28} className="text-gray-600 dark:text-zinc-400 mb-1" />
+                <span className="text-xl font-medium text-gray-900 dark:text-white">{property.rooms ?? '—'}</span>
+                <span className="text-sm text-gray-500 dark:text-zinc-600 uppercase">Rooms</span>
               </div>
               <div className="flex flex-col items-center text-center border-l border-gray-300 dark:border-zinc-800">
-                <Bath size={14} className="text-gray-600 dark:text-zinc-400 mb-0.5" />
-                <span className="text-xs font-medium text-gray-900 dark:text-white">{property.bathrooms ?? '—'}</span>
-                <span className="text-[9px] text-gray-500 dark:text-zinc-600 uppercase">Baths</span>
+                <Bath size={28} className="text-gray-600 dark:text-zinc-400 mb-1" />
+                <span className="text-xl font-medium text-gray-900 dark:text-white">{property.bathrooms ?? '—'}</span>
+                <span className="text-sm text-gray-500 dark:text-zinc-600 uppercase">Baths</span>
               </div>
               <div className="flex flex-col items-center text-center border-l border-gray-300 dark:border-zinc-800">
-                <Box size={14} className="text-gray-600 dark:text-zinc-400 mb-0.5" />
-                <span className="text-xs font-medium text-gray-900 dark:text-white">{property.balconies ?? '—'}</span>
-                <span className="text-[9px] text-gray-500 dark:text-zinc-600 uppercase">Balc.</span>
+                <Box size={28} className="text-gray-600 dark:text-zinc-400 mb-1" />
+                <span className="text-xl font-medium text-gray-900 dark:text-white">{property.balconies ?? '—'}</span>
+                <span className="text-sm text-gray-500 dark:text-zinc-600 uppercase">Balc.</span>
               </div>
               <div className="flex flex-col items-center text-center">
-                <Droplets size={14} className="text-gray-600 dark:text-zinc-400 mb-0.5" />
-                <span className="text-xs font-medium text-gray-900 dark:text-white">{property.bathtubs ?? '—'}</span>
-                <span className="text-[9px] text-gray-500 dark:text-zinc-600 uppercase">Tubs</span>
+                <Droplets size={28} className="text-gray-600 dark:text-zinc-400 mb-1" />
+                <span className="text-xl font-medium text-gray-900 dark:text-white">{property.bathtubs ?? '—'}</span>
+                <span className="text-sm text-gray-500 dark:text-zinc-600 uppercase">Tubs</span>
               </div>
               <div className="flex flex-col items-center text-center border-l border-gray-300 dark:border-zinc-800">
-                <UtensilsCrossed size={14} className="text-gray-600 dark:text-zinc-400 mb-0.5" />
-                <span className="text-xs font-medium text-gray-900 dark:text-white">{property.kitchens ?? '—'}</span>
-                <span className="text-[9px] text-gray-500 dark:text-zinc-600 uppercase">Kit.</span>
+                <UtensilsCrossed size={28} className="text-gray-600 dark:text-zinc-400 mb-1" />
+                <span className="text-xl font-medium text-gray-900 dark:text-white">{property.kitchens ?? '—'}</span>
+                <span className="text-sm text-gray-500 dark:text-zinc-600 uppercase">Kit.</span>
               </div>
               <div className="flex flex-col items-center text-center border-l border-gray-300 dark:border-zinc-800">
-                <Car size={14} className="text-gray-600 dark:text-zinc-400 mb-0.5" />
-                <span className="text-xs font-medium text-gray-900 dark:text-white">{property.garage ?? '—'}</span>
-                <span className="text-[9px] text-gray-500 dark:text-zinc-600 uppercase">Garage</span>
+                <Car size={28} className="text-gray-600 dark:text-zinc-400 mb-1" />
+                <span className="text-xl font-medium text-gray-900 dark:text-white">{property.garage ?? '—'}</span>
+                <span className="text-sm text-gray-500 dark:text-zinc-600 uppercase">Garage</span>
               </div>
             </div>
 

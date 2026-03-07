@@ -224,7 +224,7 @@ export default function ContactSlideOverPanel({ contact, onClose, onSuccess }: C
           animate={{ x: 0 }}
           exit={{ x: '100%' }}
           transition={{ type: 'tween', duration: 0.25 }}
-          className="relative w-full max-w-lg glass rounded-none rounded-l-2xl border-l border-gray-200/50 dark:border-white/10 shadow-2xl flex flex-col max-h-full"
+          className="relative w-full max-w-lg bg-app-light dark:bg-app-dark rounded-none rounded-l-2xl border-l border-gray-200 dark:border-zinc-800 shadow-2xl flex flex-col max-h-full"
           onClick={(e) => e.stopPropagation()}
           role="dialog"
           aria-modal="true"
@@ -444,7 +444,7 @@ export default function ContactSlideOverPanel({ contact, onClose, onSuccess }: C
               initial={{ scale: 0.95 }}
               animate={{ scale: 1 }}
               exit={{ scale: 0.95 }}
-              className="glass rounded-2xl p-6 max-w-sm w-full shadow-2xl"
+              className="bg-app-light dark:bg-app-dark border border-gray-200 dark:border-zinc-800 rounded-2xl p-6 max-w-sm w-full shadow-2xl"
             >
               <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Delete contact?</h3>
               <p className="text-sm text-gray-600 dark:text-zinc-400 mb-4">

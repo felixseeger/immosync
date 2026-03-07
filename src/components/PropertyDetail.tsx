@@ -66,9 +66,9 @@ export default function PropertyDetail({ property, onClose, onDeleted }: Propert
     >
       <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={handleClose} />
       
-      <div className="relative w-full max-w-5xl max-[1560px]:max-w-[94vw] max-[1560px]:max-h-[96vh] glass rounded-2xl max-[1560px]:rounded-xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+      <div className="relative w-full max-w-5xl max-[1560px]:max-w-[94vw] max-[1560px]:max-h-[96vh] bg-app-light dark:bg-app-dark border border-gray-200 dark:border-zinc-800 rounded-2xl max-[1560px]:rounded-xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
         {/* Header */}
-        <div className="flex flex-wrap items-center justify-between gap-3 p-6 max-[1560px]:p-4 border-b border-gray-300 dark:border-zinc-800 bg-white/90 dark:bg-zinc-900/50 backdrop-blur-md sticky top-0 z-10">
+        <div className="flex flex-wrap items-center justify-between gap-3 p-6 max-[1560px]:p-4 border-b border-gray-300 dark:border-zinc-800 bg-white/90 dark:bg-app-dark backdrop-blur-md sticky top-0 z-10">
           <div className="flex items-center gap-3 max-[1560px]:gap-2 min-w-0 flex-1">
             <button 
               onClick={handleClose}
@@ -291,7 +291,7 @@ export default function PropertyDetail({ property, onClose, onDeleted }: Propert
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="glass rounded-2xl p-6 max-w-sm w-full shadow-2xl"
+              className="bg-app-light dark:bg-app-dark border border-gray-200 dark:border-zinc-800 rounded-2xl p-6 max-w-sm w-full shadow-2xl"
             >
               <div className="flex items-center gap-3 mb-3">
                 <div className="p-2 bg-red-500/10 rounded-full">

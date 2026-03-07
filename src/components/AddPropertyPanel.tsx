@@ -976,7 +976,7 @@ export default function AddPropertyPanel({ onClose, onSuccess, property, initial
         animate={{ x: 0 }}
         exit={{ x: '100%' }}
         transition={{ type: 'spring', damping: 28, stiffness: 280 }}
-        className="fixed right-0 top-0 h-full w-full sm:w-135 bg-white dark:bg-zinc-950 border-l border-gray-300 dark:border-zinc-800 z-50 flex flex-col shadow-[0_0_80px_rgba(0,0,0,0.8)]"
+        className="fixed right-0 top-0 h-full w-full sm:w-135 bg-app-light dark:bg-app-dark border-l border-gray-300 dark:border-zinc-800 z-50 flex flex-col shadow-[0_0_80px_rgba(0,0,0,0.8)]"
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-gray-300 dark:border-zinc-800 shrink-0">
@@ -1075,7 +1075,7 @@ export default function AddPropertyPanel({ onClose, onSuccess, property, initial
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-zinc-800 bg-zinc-950 shrink-0">
+        <div className="px-6 py-4 border-t border-gray-300 dark:border-zinc-800 bg-app-light/80 dark:bg-app-dark shrink-0">
           {error && (
             <motion.p
               initial={{ opacity: 0, y: -4 }}

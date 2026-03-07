@@ -63,7 +63,7 @@ export default function Auth({ onSuccess, onForgotPassword }: AuthProps) {
           </div>
         </div>
 
-        <div className="bg-panel-dark border border-border-dark rounded-2xl p-8 shadow-2xl backdrop-blur-sm">
+        <div className="bg-app-light dark:bg-app-dark border border-gray-200 dark:border-zinc-800 rounded-2xl p-8 shadow-2xl backdrop-blur-sm">
           <h2 className="text-2xl font-bold mb-2">
             {isLogin ? 'Welcome Back' : 'Create Account'}
           </h2>

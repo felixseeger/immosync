@@ -56,7 +56,7 @@ export default function LandingPassword({ onUnlock }: LandingPasswordProps) {
           </div>
         </div>
 
-        <div className="bg-panel-dark border border-border-dark rounded-2xl p-8 shadow-2xl backdrop-blur-sm">
+        <div className="bg-app-light dark:bg-app-dark border border-gray-200 dark:border-zinc-800 rounded-2xl p-8 shadow-2xl backdrop-blur-sm">
           <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-accent/10 border border-accent/20 mb-6">
             <Lock className="text-accent" size={24} />
           </div>

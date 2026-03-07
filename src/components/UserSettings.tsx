@@ -129,7 +129,7 @@ export default function UserSettings({ user, onClose, onSignOut }: UserSettingsP
           animate={{ x: 0 }}
           exit={{ x: '100%' }}
           transition={{ type: 'tween', duration: 0.25 }}
-          className="relative w-full max-w-md glass rounded-none rounded-l-2xl border-l border-gray-200/50 dark:border-white/10 shadow-2xl flex flex-col max-h-full overflow-hidden"
+          className="relative w-full max-w-md bg-app-light dark:bg-app-dark rounded-none rounded-l-2xl border-l border-gray-200 dark:border-zinc-800 shadow-2xl flex flex-col max-h-full overflow-hidden"
           onClick={(e) => e.stopPropagation()}
           role="dialog"
           aria-modal="true"

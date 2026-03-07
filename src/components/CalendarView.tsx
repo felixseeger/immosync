@@ -363,7 +363,7 @@ export default function CalendarView() {
               animate={{ scale: 1 }}
               exit={{ scale: 0.95 }}
               onClick={(e) => e.stopPropagation()}
-              className="glass rounded-xl shadow-xl w-full max-w-sm overflow-hidden"
+              className="bg-app-light dark:bg-app-dark border border-gray-200 dark:border-zinc-800 rounded-xl shadow-xl w-full max-w-sm overflow-hidden"
             >
               <div className="p-4 border-b border-gray-200 dark:border-zinc-800 flex items-center justify-between">
                 <div className="flex items-center gap-2">

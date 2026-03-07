@@ -58,7 +58,7 @@ export default function PasswordReset({ onBack }: PasswordResetProps) {
           </div>
         </div>
 
-        <div className="bg-panel-dark border border-border-dark rounded-2xl p-8 shadow-2xl backdrop-blur-sm">
+        <div className="bg-app-light dark:bg-app-dark border border-gray-200 dark:border-zinc-800 rounded-2xl p-8 shadow-2xl backdrop-blur-sm">
           <h2 className="text-2xl font-bold mb-2">Reset password</h2>
           <p className="text-zinc-500 text-sm mb-8">
             Enter your account email and we’ll send a link to set a new password.

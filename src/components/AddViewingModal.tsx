@@ -150,7 +150,7 @@ export default function AddViewingModal({ initialDate, viewing, onClose, onSucce
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.95, opacity: 0 }}
         onClick={(e) => e.stopPropagation()}
-        className="glass rounded-2xl shadow-2xl w-full max-w-md overflow-hidden"
+        className="bg-app-light dark:bg-app-dark border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden"
       >
         <div className="p-4 border-b border-gray-200 dark:border-zinc-800 flex items-center justify-between">
           <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
