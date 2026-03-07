@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'motion/react';
 import { X, Calendar, User, Building2, Loader2 } from 'lucide-react';
-import { createViewing } from '../services/viewingsService';
+import { createViewing, updateViewing } from '../services/viewingsService';
 import { subscribeToContacts } from '../services/contactsService';
 import { getProperties } from '../services/propertyService';
-import type { Property, Contact, ViewingEventType } from '../types';
+import type { Property, Contact, Viewing, ViewingEventType } from '../types';
 
 const EVENT_TYPES: { value: ViewingEventType; label: string }[] = [
   { value: 'viewing', label: 'Viewing' },
@@ -14,7 +14,7 @@ const EVENT_TYPES: { value: ViewingEventType; label: string }[] = [
   { value: 'notar', label: 'Notar' },
 ];
 import { Timestamp } from 'firebase/firestore';
-import { setHours, setMinutes } from 'date-fns';
+import { format, setHours, setMinutes } from 'date-fns';
 import { sfx } from '../utils/sfx';
 
 const inputCls =
@@ -22,14 +22,23 @@ const inputCls =
 const selectCls = (hasValue: boolean) =>
   inputCls + (hasValue ? ' text-accent border-accent' : '');
 
+function getViewingDate(v: Viewing): Date | null {
+  if (!v?.scheduledAt) return null;
+  const t = v.scheduledAt?.toDate?.() ?? v.scheduledAt;
+  return t instanceof Date ? t : new Date(t);
+}
+
 interface AddViewingModalProps {
   /** Optional initial date (yyyy-MM-dd) when opening from a specific day */
   initialDate?: string;
+  /** When set, modal opens in edit mode with form prefilled */
+  viewing?: Viewing | null;
   onClose: () => void;
   onSuccess?: () => void;
 }
 
-export default function AddViewingModal({ initialDate, onClose, onSuccess }: AddViewingModalProps) {
+export default function AddViewingModal({ initialDate, viewing, onClose, onSuccess }: AddViewingModalProps) {
+  const isEdit = !!viewing;
   const [properties, setProperties] = useState<Property[]>([]);
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [propertyId, setPropertyId] = useState('');
@@ -49,8 +58,21 @@ export default function AddViewingModal({ initialDate, onClose, onSuccess }: Add
     return unsub;
   }, []);
   useEffect(() => {
-    if (initialDate) setDate(initialDate);
-  }, [initialDate]);
+    if (initialDate && !viewing) setDate(initialDate);
+  }, [initialDate, viewing]);
+  useEffect(() => {
+    if (viewing) {
+      setPropertyId(viewing.propertyId ?? '');
+      setContactId(viewing.contactId ?? '');
+      setEventType((viewing.eventType as ViewingEventType) ?? 'viewing');
+      setNote(viewing.note ?? '');
+      const d = getViewingDate(viewing);
+      if (d) {
+        setDate(format(d, 'yyyy-MM-dd'));
+        setTime(format(d, 'HH:mm'));
+      }
+    }
+  }, [viewing]);
 
   const handleClose = useCallback(() => {
     sfx.menuClose();
@@ -78,26 +100,30 @@ export default function AddViewingModal({ initialDate, onClose, onSuccess }: Add
         setSaving(false);
         return;
       }
-      const property = properties.find((p) => p.id === propertyId);
-      const contact = contacts.find((c) => c.id === contactId);
-      const activityDetail = [property?.title || property?.address, contact?.name || contact?.email]
-        .filter(Boolean)
-        .join(' with ');
-      await createViewing(
-        {
-          propertyId,
-          contactId,
-          eventType,
-          scheduledAt: Timestamp.fromDate(scheduled),
-          status: 'scheduled',
-          note: note.trim() || undefined,
-        },
-        activityDetail || undefined
-      );
+      const payload = {
+        propertyId,
+        contactId,
+        eventType,
+        scheduledAt: Timestamp.fromDate(scheduled),
+        note: note.trim() || undefined,
+      };
+      if (isEdit && viewing?.id) {
+        await updateViewing(viewing.id, payload);
+      } else {
+        const property = properties.find((p) => p.id === propertyId);
+        const contact = contacts.find((c) => c.id === contactId);
+        const activityDetail = [property?.title || property?.address, contact?.name || contact?.email]
+          .filter(Boolean)
+          .join(' with ');
+        await createViewing(
+          { ...payload, status: 'scheduled' },
+          activityDetail || undefined
+        );
+      }
       onSuccess?.();
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to schedule viewing');
+      setError(err instanceof Error ? err.message : (isEdit ? 'Failed to update viewing' : 'Failed to schedule viewing'));
     } finally {
       setSaving(false);
     }
@@ -224,7 +250,7 @@ export default function AddViewingModal({ initialDate, onClose, onSuccess }: Add
                 type="date"
                 value={date}
                 onChange={(e) => { sfx.menuSelect(); setDate(e.target.value); }}
-                min={today}
+                min={isEdit ? undefined : today}
                 className={inputCls + (date ? ' text-accent' : '')}
                 required
               />
@@ -281,7 +307,7 @@ export default function AddViewingModal({ initialDate, onClose, onSuccess }: Add
               className="flex-1 py-2.5 bg-accent text-white dark:text-black font-bold rounded-xl text-sm flex items-center justify-center gap-2 disabled:opacity-50 hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2"
             >
               {saving ? <Loader2 size={18} className="animate-spin" /> : <Calendar size={18} />}
-              {saving ? 'Saving…' : 'Schedule'}
+              {saving ? 'Saving…' : isEdit ? 'Update' : 'Schedule'}
             </button>
           </div>
         </form>

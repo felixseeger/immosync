@@ -9,6 +9,7 @@ import {
   Building2,
   User,
   X,
+  Pencil,
 } from 'lucide-react';
 import {
   format,
@@ -28,6 +29,7 @@ import { getProperties } from '../services/propertyService';
 import { subscribeToContacts } from '../services/contactsService';
 import { logActivity } from '../services/activityService';
 import AddViewingModal from './AddViewingModal';
+import { sfx } from '../utils/sfx';
 import type { Viewing, Property, Contact, ViewingEventType } from '../types';
 import { VIEWING_EVENT_TYPE_LABELS } from '../types';
 
@@ -51,6 +53,7 @@ export default function CalendarView() {
   const [initialDate, setInitialDate] = useState<string | undefined>();
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
   const [detailViewing, setDetailViewing] = useState<Viewing | null>(null);
+  const [editViewing, setEditViewing] = useState<Viewing | null>(null);
 
   useEffect(() => {
     const unsub = subscribeToViewings(setViewings);
@@ -279,7 +282,7 @@ export default function CalendarView() {
         </div>
 
         {/* Side panel: selected day viewings */}
-        <div className="w-full lg:w-80 shrink-0 flex flex-col rounded-xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden">
+        <div className="w-full lg:w-80 shrink-0 flex flex-col rounded-xl overflow-hidden glass border border-gray-200/50 dark:border-white/10 shadow-xl shadow-black/5">
           {selectedDay ? (
             <>
               <div className="p-4 border-b border-gray-200 dark:border-zinc-800 flex items-center justify-between">
@@ -363,13 +366,28 @@ export default function CalendarView() {
             >
               <div className="p-4 border-b border-gray-200 dark:border-zinc-800 flex items-center justify-between">
                 <h3 className="font-semibold text-gray-900 dark:text-white">{detailViewing ? getEventTypeLabel(detailViewing) : 'Event'}</h3>
-                <button
-                  type="button"
-                  onClick={() => setDetailViewing(null)}
-                  className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-zinc-800"
-                >
-                  <X size={18} />
-                </button>
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      sfx.menuSelect();
+                      setEditViewing(detailViewing);
+                      setDetailViewing(null);
+                    }}
+                    className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-zinc-800 hover:text-accent"
+                    aria-label="Edit viewing"
+                  >
+                    <Pencil size={18} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDetailViewing(null)}
+                    className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-zinc-800"
+                    aria-label="Close"
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
               </div>
               <div className="p-4 space-y-3">
                 <div className="flex items-center gap-2 text-sm">
@@ -420,6 +438,13 @@ export default function CalendarView() {
           initialDate={initialDate}
           onClose={() => setShowAddModal(false)}
           onSuccess={() => setShowAddModal(false)}
+        />
+      )}
+      {editViewing && (
+        <AddViewingModal
+          viewing={editViewing}
+          onClose={() => setEditViewing(null)}
+          onSuccess={() => setEditViewing(null)}
         />
       )}
     </div>
