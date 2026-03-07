@@ -5,6 +5,7 @@ import {
   getDocs,
   addDoc,
   updateDoc,
+  deleteDoc,
   query,
   where,
   orderBy,
@@ -62,6 +63,11 @@ export async function updateViewing(
     ...data,
     updatedAt: serverTimestamp(),
   } as Record<string, unknown>);
+}
+
+export async function deleteViewing(viewingId: string): Promise<void> {
+  const ref = doc(db, VIEWINGS_COLLECTION, viewingId);
+  await deleteDoc(ref);
 }
 
 export function subscribeToViewingsByProperty(propertyId: string, callback: (viewings: Viewing[]) => void): () => void {

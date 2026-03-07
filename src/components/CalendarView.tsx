@@ -10,6 +10,7 @@ import {
   User,
   X,
   Pencil,
+  Trash2,
 } from 'lucide-react';
 import {
   format,
@@ -365,7 +366,12 @@ export default function CalendarView() {
               className="glass rounded-xl shadow-xl w-full max-w-sm overflow-hidden"
             >
               <div className="p-4 border-b border-gray-200 dark:border-zinc-800 flex items-center justify-between">
-                <h3 className="font-semibold text-gray-900 dark:text-white">{detailViewing ? getEventTypeLabel(detailViewing) : 'Event'}</h3>
+                <div className="flex items-center gap-2">
+                  <span className="p-2 rounded-lg bg-accent/20 border border-accent/40" aria-hidden>
+                    <CalendarIcon size={18} className="text-accent" />
+                  </span>
+                  <h3 className="font-semibold text-gray-900 dark:text-white">{detailViewing ? getEventTypeLabel(detailViewing) : 'Event'}</h3>
+                </div>
                 <div className="flex items-center gap-1">
                   <button
                     type="button"
@@ -374,7 +380,7 @@ export default function CalendarView() {
                       setEditViewing(detailViewing);
                       setDetailViewing(null);
                     }}
-                    className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-zinc-800 hover:text-accent"
+                    className="p-2 rounded-lg text-blue-500 hover:bg-blue-500/10 dark:hover:bg-blue-500/20 hover:text-blue-600 dark:hover:text-blue-400"
                     aria-label="Edit viewing"
                   >
                     <Pencil size={18} />
@@ -426,6 +432,25 @@ export default function CalendarView() {
                       </button>
                     </>
                   )}
+                </div>
+                <div className="pt-3 border-t border-gray-200 dark:border-zinc-800">
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      sfx.menuSelect();
+                      try {
+                        await deleteViewing(detailViewing.id);
+                        setDetailViewing(null);
+                      } catch (err) {
+                        console.error('Failed to delete viewing', err);
+                      }
+                    }}
+                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium bg-red-500/20 text-red-600 dark:text-red-400 hover:bg-red-500/30 border border-red-500/30"
+                    aria-label="Delete viewing"
+                  >
+                    <Trash2 size={16} />
+                    Delete
+                  </button>
                 </div>
               </div>
             </motion.div>
