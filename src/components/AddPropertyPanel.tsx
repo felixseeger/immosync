@@ -67,6 +67,10 @@ interface FormState {
   lotSize: string;
   rooms: string;
   bathrooms: string;
+  balconies: string;
+  bathtubs: string;
+  kitchens: string;
+  garage: string;
   yearBuilt: string;
   price: string;
   additionalCosts: string;
@@ -91,6 +95,10 @@ const DEFAULTS: FormState = {
   lotSize: '',
   rooms: '',
   bathrooms: '',
+  balconies: '',
+  bathtubs: '',
+  kitchens: '',
+  garage: '',
   yearBuilt: '',
   price: '',
   additionalCosts: '',
@@ -383,6 +391,50 @@ function Step3({
               step={0.5}
             />
           </div>
+          <div>
+            <Label>Balconies</Label>
+            <input
+              type="number"
+              value={form.balconies}
+              onChange={set('balconies')}
+              placeholder="0"
+              className={inputCls}
+              min={0}
+            />
+          </div>
+          <div>
+            <Label>Bathtubs</Label>
+            <input
+              type="number"
+              value={form.bathtubs}
+              onChange={set('bathtubs')}
+              placeholder="0"
+              className={inputCls}
+              min={0}
+            />
+          </div>
+          <div>
+            <Label>Kitchens</Label>
+            <input
+              type="number"
+              value={form.kitchens}
+              onChange={set('kitchens')}
+              placeholder="1"
+              className={inputCls}
+              min={0}
+            />
+          </div>
+          <div>
+            <Label>Garage</Label>
+            <input
+              type="number"
+              value={form.garage}
+              onChange={set('garage')}
+              placeholder="0"
+              className={inputCls}
+              min={0}
+            />
+          </div>
         </div>
         <div className="mt-3">
           <Label>Year of Construction</Label>
@@ -663,6 +715,10 @@ export default function AddPropertyPanel({ onClose, onSuccess, property, initial
         lotSize: property.lotSize != null ? String(property.lotSize) : '',
         rooms: property.rooms != null ? String(property.rooms) : '',
         bathrooms: property.bathrooms != null ? String(property.bathrooms) : '',
+        balconies: property.balconies != null ? String(property.balconies) : '',
+        bathtubs: property.bathtubs != null ? String(property.bathtubs) : '',
+        kitchens: property.kitchens != null ? String(property.kitchens) : '',
+        garage: property.garage != null ? String(property.garage) : '',
         yearBuilt: property.yearBuilt != null ? String(property.yearBuilt) : '',
         price: property.price != null ? String(property.price) : '',
         additionalCosts: property.additionalCosts != null ? String(property.additionalCosts) : '',
@@ -811,6 +867,10 @@ export default function AddPropertyPanel({ onClose, onSuccess, property, initial
         rooms: roomsNum || 0,
         bedrooms: roomsNum || 0,
         bathrooms: parseFloat(form.bathrooms) || 0,
+        balconies: parseFloat(form.balconies) || 0,
+        bathtubs: parseFloat(form.bathtubs) || 0,
+        kitchens: parseFloat(form.kitchens) || 0,
+        garage: parseFloat(form.garage) || 0,
         sqft: Math.round(livingSpaceNum * 10.764),
         yearBuilt: parseInt(form.yearBuilt) || 0,
         energyCertificate: parseFloat(form.energyCertificate) || 0,

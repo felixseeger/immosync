@@ -78,7 +78,7 @@ export default function AddDealPanel({ onClose, onSuccess, contacts, properties 
         animate={{ x: 0 }}
         exit={{ x: '100%' }}
         transition={{ type: 'tween', duration: 0.25 }}
-        className="relative w-full max-w-md bg-white dark:bg-zinc-900 border-l border-gray-200 dark:border-zinc-800 shadow-2xl flex flex-col max-h-full"
+        className="relative w-full max-w-md glass rounded-none rounded-l-2xl border-l border-gray-200/50 dark:border-white/10 shadow-2xl flex flex-col max-h-full"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"

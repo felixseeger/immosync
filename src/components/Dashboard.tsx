@@ -10,7 +10,7 @@ import {
   Calendar as CalendarIcon,
   ChevronRight,
 } from 'lucide-react';
-import { format, isToday } from 'date-fns';
+import { format, isToday, startOfDay } from 'date-fns';
 import ActivityStream from './ActivityStream';
 import { getProperties } from '../services/propertyService';
 import { subscribeToContacts } from '../services/contactsService';
@@ -38,7 +38,7 @@ const StatCard = ({
   <div
     role={onClick ? 'button' : undefined}
     onClick={onClick}
-    className={`bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl p-6 hover:border-accent/50 transition-colors group ${onClick ? 'cursor-pointer' : ''}`}
+    className={`glass rounded-xl p-6 hover:border-accent/50 transition-colors group ${onClick ? 'cursor-pointer' : ''}`}
   >
     <div className="flex justify-between items-start mb-4">
       <div className="p-2 bg-accent/10 rounded-lg group-hover:bg-accent/20 transition-colors border border-accent/20">
@@ -148,6 +148,18 @@ export default function Dashboard({ user, onAddProperty, onSelectProperty, onOpe
     const d = getViewingDate(v);
     return d && isToday(d) && v.status !== 'cancelled';
   });
+
+  const nextScheduledViewings = viewings
+    .filter((v) => {
+      const d = getViewingDate(v);
+      return d && d >= startOfDay(new Date()) && v.status !== 'cancelled';
+    })
+    .sort((a, b) => {
+      const da = getViewingDate(a)!.getTime();
+      const db = getViewingDate(b)!.getTime();
+      return da - db;
+    })
+    .slice(0, 10);
   const newLeadsCount = deals.filter((d) => d.stageId === 'lead').length;
   const activeDealsCount = deals.filter((d) => d.stageId !== 'closed').length;
 
@@ -246,7 +258,7 @@ export default function Dashboard({ user, onAddProperty, onSelectProperty, onOpe
         {/* Left: Revenue Overview + Active Deals / New Leads */}
         <div className="lg:col-span-2 flex flex-col gap-6">
           {/* Revenue Overview with graph */}
-          <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl p-6">
+          <div className="glass rounded-xl p-6">
             <h3 className="font-bold text-gray-900 dark:text-white mb-2">Revenue Overview</h3>
             {statsLoading ? (
               <div className="flex items-center gap-2 text-gray-500 dark:text-zinc-400">
@@ -298,25 +310,28 @@ export default function Dashboard({ user, onAddProperty, onSelectProperty, onOpe
           </div>
         </div>
 
-        {/* Right: Daily Agenda - single column only */}
+        {/* Right: Next Scheduled Events - single column only */}
         <div className="lg:col-span-1">
-          <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl p-5 flex flex-col h-full min-h-[280px]">
-            <h3 className="font-bold text-gray-900 dark:text-white mb-1">Daily Agenda</h3>
+          <div className="glass rounded-xl p-5 flex flex-col h-full min-h-[280px]">
+            <h3 className="font-bold text-gray-900 dark:text-white mb-1">Next Scheduled Events</h3>
             <p className="text-sm text-gray-500 dark:text-zinc-500 mb-4">{todayFormatted}</p>
-            {todayViewings.length === 0 ? (
+            {nextScheduledViewings.length === 0 ? (
               <div className="flex-1 flex flex-col items-center justify-center py-6 text-center">
-                <CalendarIcon className="text-accent mb-2" size={28} />
-                <p className="text-sm text-gray-600 dark:text-zinc-400">No tasks or events scheduled for today.</p>
+                <CalendarIcon className="text-blue-600 dark:text-blue-400 mb-2" size={28} />
+                <p className="text-sm text-gray-600 dark:text-zinc-400">No upcoming events scheduled.</p>
               </div>
             ) : (
-              <ul className="space-y-2 flex-1">
-                {todayViewings.map((v) => {
+              <ul className="space-y-2 flex-1 list-none p-0 m-0">
+                {nextScheduledViewings.map((v) => {
                   const d = getViewingDate(v);
                   const type = (v.eventType ?? 'viewing') as ViewingEventType;
                   const label = VIEWING_EVENT_TYPE_LABELS[type] ?? 'Viewing';
                   return (
-                    <li key={v.id} className="text-sm text-gray-700 dark:text-zinc-300">
-                      {d ? format(d, 'HH:mm') : '—'} {label}
+                    <li key={v.id} className="text-sm text-gray-700 dark:text-zinc-300 flex items-baseline gap-2 py-1 border-b border-gray-200/60 dark:border-zinc-700/60 last:border-0">
+                      <span className="font-medium text-gray-900 dark:text-zinc-200 shrink-0">
+                        {d ? (isToday(d) ? format(d, 'HH:mm') : format(d, 'MMM d, HH:mm')) : '—'}
+                      </span>
+                      <span>{label}</span>
                     </li>
                   );
                 })}
@@ -326,7 +341,7 @@ export default function Dashboard({ user, onAddProperty, onSelectProperty, onOpe
               <button
                 type="button"
                 onClick={onOpenCalendar}
-                className="mt-4 flex items-center gap-1 text-sm font-medium text-accent hover:opacity-90 transition-colors [&_svg]:text-accent"
+                className="mt-4 flex items-center gap-1 text-sm font-medium text-blue-600 dark:text-blue-400 hover:opacity-90 transition-colors [&_svg]:text-current"
               >
                 View Full Calendar
                 <ChevronRight size={16} />
@@ -340,13 +355,13 @@ export default function Dashboard({ user, onAddProperty, onSelectProperty, onOpe
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         {statsLoading ? (
           <>
-            <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl p-6 flex items-center justify-center min-h-[120px]">
+            <div className="glass rounded-xl p-6 flex items-center justify-center min-h-[120px]">
               <Loader2 size={24} className="animate-spin text-accent" />
             </div>
-            <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl p-6 flex items-center justify-center min-h-[120px]">
+            <div className="glass rounded-xl p-6 flex items-center justify-center min-h-[120px]">
               <Loader2 size={24} className="animate-spin text-accent" />
             </div>
-            <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl p-6 flex items-center justify-center min-h-[120px]">
+            <div className="glass rounded-xl p-6 flex items-center justify-center min-h-[120px]">
               <Loader2 size={24} className="animate-spin text-accent" />
             </div>
           </>
@@ -361,7 +376,7 @@ export default function Dashboard({ user, onAddProperty, onSelectProperty, onOpe
 
       {/* Recent Activity */}
       <div className="flex-1 min-h-0 flex flex-col">
-        <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl flex flex-col h-[400px] lg:h-[500px] overflow-hidden flex-1">
+        <div className="glass rounded-xl flex flex-col h-[400px] lg:h-[500px] overflow-hidden flex-1">
           <div className="p-4 border-b border-gray-200 dark:border-zinc-800">
             <h3 className="font-bold text-gray-900 dark:text-white">Recent Activity</h3>
           </div>

@@ -289,7 +289,7 @@ export default function MessagesView({ currentUser }: MessagesViewProps) {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 rounded-2xl shadow-xl w-full max-w-sm overflow-hidden transition-colors duration-200"
+              className="glass rounded-2xl shadow-xl w-full max-w-sm overflow-hidden transition-colors duration-200"
             >
               <div className="p-4 border-b border-gray-200 dark:border-zinc-800 flex items-center justify-between transition-colors duration-200">
                 <div className="flex items-center gap-2">

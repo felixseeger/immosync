@@ -194,7 +194,7 @@ export default function Contacts({
             )}
           </div>
         ) : (
-          <div className="rounded-xl border border-gray-200 dark:border-zinc-800 overflow-hidden bg-white dark:bg-zinc-900/50">
+          <div className="glass rounded-xl overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
                 <thead>
@@ -329,7 +329,7 @@ export default function Contacts({
               initial={{ scale: 0.95 }}
               animate={{ scale: 1 }}
               exit={{ scale: 0.95 }}
-              className="bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded-2xl p-6 max-w-sm w-full shadow-2xl"
+              className="glass rounded-2xl p-6 max-w-sm w-full shadow-2xl"
             >
               <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Delete contact?</h3>
               <p className="text-sm text-gray-600 dark:text-zinc-400 mb-4">

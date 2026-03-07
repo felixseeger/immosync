@@ -116,7 +116,7 @@ export default function GlobalSearchBar({
     <div ref={wrapperRef} className={`relative w-full max-w-xl ${className}`}>
       <div className="relative rounded-xl overflow-hidden border border-gray-300 dark:border-zinc-700 focus-within:border-accent focus-within:ring-2 focus-within:ring-accent/30">
         <LiquidGradientBackground
-          className="absolute inset-0 rounded-xl pointer-events-none"
+          className="absolute inset-0 rounded-xl pointer-events-none opacity-50"
           color1={[0.85, 1, 0]}   /* #D9FF00 */
           color2={[0.06, 0.06, 0.08]}
         />
@@ -142,7 +142,7 @@ export default function GlobalSearchBar({
             initial={{ opacity: 0, y: -4 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
-            className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl shadow-xl overflow-hidden z-50 max-h-[400px] overflow-y-auto"
+            className="absolute top-full left-0 right-0 mt-2 glass rounded-xl shadow-xl overflow-hidden z-50 max-h-[400px] overflow-y-auto"
           >
             {loading && !results ? (
               <div className="p-4 flex items-center justify-center gap-2 text-gray-500 dark:text-zinc-500 text-sm">

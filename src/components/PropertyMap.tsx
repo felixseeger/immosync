@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import Map, { Marker, Popup, NavigationControl, FullscreenControl, ScaleControl, GeolocateControl, useMap } from 'react-map-gl/mapbox';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { MapPin, Building2, Bed, Bath, Ruler, ExternalLink } from 'lucide-react';
+import { MapPin, Building2, LayoutGrid, Bath, Car, ExternalLink } from 'lucide-react';
 import type { Property } from '../types';
 import { geocodeAddresses } from '../utils/geocode';
 import { sfx } from '../utils/sfx';
@@ -78,12 +78,17 @@ interface PropertyMapProps {
   properties: Property[];
   isDarkMode?: boolean;
   onSelectProperty?: (propertyId: string) => void;
+  /** When set, this property's building is highlighted using actual building geometry from the map. */
+  selectedPropertyId?: string | null;
 }
 
 const PLOTS_SOURCE_ID = 'property-plots';
 const PLOTS_LAYER_ID = 'property-plots-circle';
 const ACTIVE_HIGHLIGHT_SOURCE_ID = 'property-active-3d-highlight';
 const ACTIVE_HIGHLIGHT_LAYER_ID = 'property-active-3d-highlight-layer';
+const TRAFFIC_SOURCE_ID = 'mapbox-traffic';
+const TRAFFIC_LAYER_ID = 'traffic-congestion';
+const TRAFFIC_SIMULATE_LAYER_ID = 'traffic-simulate-flow';
 
 /** Small square polygon (in degrees) around a point for 3D extrusion. ~25m half-size at mid-lat. */
 function squarePolygon(lng: number, lat: number, halfSizeDeg = 0.00015): [number, number][] {
@@ -98,14 +103,22 @@ function squarePolygon(lng: number, lat: number, halfSizeDeg = 0.00015): [number
 
 const MAP_STYLE_DARK = 'mapbox://styles/mapbox/dark-v11';
 const MAP_STYLE_LIGHT = 'mapbox://styles/mapbox/light-v11';
+const SELECTED_HIGHLIGHT_COLOR = '#D9FF00';
+const ACTIVE_HIGHLIGHT_COLOR = '#9372c9';
+const DEFAULT_HEIGHT = 24;
+const DEFAULT_MIN_HEIGHT = 0;
 
-export default function PropertyMap({ properties, isDarkMode = true, onSelectProperty }: PropertyMapProps) {
+export default function PropertyMap({ properties, isDarkMode = true, onSelectProperty, selectedPropertyId }: PropertyMapProps) {
   const mapStyleUrl = isDarkMode ? MAP_STYLE_DARK : MAP_STYLE_LIGHT;
   const [placed, setPlaced] = useState<PlacedProperty[]>([]);
   const [loading, setLoading] = useState(true);
   const [tilesLoading, setTilesLoading] = useState(true);
   const [popupProperty, setPopupProperty] = useState<PlacedProperty | null>(null);
   const [viewState, setViewState] = useState(DEFAULT_VIEW);
+  const [portfolioFilter, setPortfolioFilter] = useState<'All' | 'Active' | 'Pending' | 'Sold'>('All');
+  const [showTraffic, setShowTraffic] = useState(false);
+  const [simulateTraffic, setSimulateTraffic] = useState(false);
+  const trafficSimulateRef = useRef<number>(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<{
     getSource: (id: string) => { setData: (data: object) => void } | undefined;
@@ -191,10 +204,57 @@ export default function PropertyMap({ properties, isDarkMode = true, onSelectPro
         source: ACTIVE_HIGHLIGHT_SOURCE_ID,
         minzoom: 14,
         paint: {
-          'fill-extrusion-color': '#9372c9',
-          'fill-extrusion-height': 24,
-          'fill-extrusion-base': 0,
+          'fill-extrusion-color': ACTIVE_HIGHLIGHT_COLOR,
+          'fill-extrusion-height': ['coalesce', ['get', 'height'], DEFAULT_HEIGHT],
+          'fill-extrusion-base': ['coalesce', ['get', 'min_height'], DEFAULT_MIN_HEIGHT],
           'fill-extrusion-opacity': 0.92,
+        },
+      });
+    }
+    // Traffic (Mapbox Traffic v1 – real-time congestion, ~8 min updates)
+    if (!map.getSource(TRAFFIC_SOURCE_ID)) {
+      map.addSource(TRAFFIC_SOURCE_ID, {
+        type: 'vector',
+        url: 'mapbox://mapbox.mapbox-traffic-v1',
+      });
+    }
+    if (!map.getLayer(TRAFFIC_LAYER_ID)) {
+      map.addLayer({
+        id: TRAFFIC_LAYER_ID,
+        type: 'line',
+        source: TRAFFIC_SOURCE_ID,
+        'source-layer': 'traffic',
+        minzoom: 10,
+        layout: { visibility: 'none' },
+        paint: {
+          'line-color': [
+            'match',
+            ['get', 'congestion'],
+            'low', '#22c55e',
+            'moderate', '#eab308',
+            'heavy', '#f97316',
+            'severe', '#ef4444',
+            '#64748b',
+          ],
+          'line-width': ['interpolate', ['linear'], ['zoom'], 10, 1.5, 14, 3, 18, 5],
+          'line-opacity': 0.85,
+        },
+      });
+    }
+    if (!map.getLayer(TRAFFIC_SIMULATE_LAYER_ID)) {
+      map.addLayer({
+        id: TRAFFIC_SIMULATE_LAYER_ID,
+        type: 'line',
+        source: TRAFFIC_SOURCE_ID,
+        'source-layer': 'traffic',
+        minzoom: 10,
+        layout: { visibility: 'none' },
+        paint: {
+          'line-color': ['match', ['get', 'congestion'], 'low', '#22c55e', 'moderate', '#eab308', 'heavy', '#f97316', 'severe', '#ef4444', '#64748b'],
+          'line-width': ['interpolate', ['linear'], ['zoom'], 10, 1.5, 14, 3, 18, 5],
+          'line-opacity': 0.7,
+          'line-dasharray': [2, 2],
+          'line-dash-offset': 0,
         },
       });
     }
@@ -235,28 +295,84 @@ export default function PropertyMap({ properties, isDarkMode = true, onSelectPro
     (map.getSource(PLOTS_SOURCE_ID) as { setData: (data: object) => void }).setData(geojson);
   }, [placed]);
 
-  // Update yellow 3D highlight for active properties only
+  // Update 3D highlight: selected = one square marker (accent); otherwise all Active = square markers
   useEffect(() => {
     const map = mapRef.current;
     if (!map?.getSource(ACTIVE_HIGHLIGHT_SOURCE_ID)) return;
-    const active = placed.filter(({ property }) => property.status === 'Active');
+    const isSelected = Boolean(selectedPropertyId);
+    const candidates = isSelected
+      ? placed.filter(({ property }) => property.id === selectedPropertyId)
+      : placed.filter(({ property }) => property.status === 'Active');
+
+    const makeSquareFeature = (lng: number, lat: number) => ({
+      type: 'Feature' as const,
+      geometry: { type: 'Polygon' as const, coordinates: [squarePolygon(lng, lat)] },
+      properties: { height: DEFAULT_HEIGHT, min_height: DEFAULT_MIN_HEIGHT },
+    });
+
+    const source = map.getSource(ACTIVE_HIGHLIGHT_SOURCE_ID) as { setData: (data: object) => void };
+    const setPaint = (color: string, opacity: number) => {
+      (map as { setPaintProperty: (id: string, name: string, value: unknown) => void }).setPaintProperty(
+        ACTIVE_HIGHLIGHT_LAYER_ID,
+        'fill-extrusion-color',
+        color
+      );
+      (map as { setPaintProperty: (id: string, name: string, value: unknown) => void }).setPaintProperty(
+        ACTIVE_HIGHLIGHT_LAYER_ID,
+        'fill-extrusion-opacity',
+        opacity
+      );
+    };
+
+    if (candidates.length === 0) {
+      source.setData({ type: 'FeatureCollection', features: [] });
+      return;
+    }
+
     const geojson = {
       type: 'FeatureCollection' as const,
-      features: active.map(({ lng, lat }) => ({
-        type: 'Feature' as const,
-        geometry: {
-          type: 'Polygon' as const,
-          coordinates: [squarePolygon(lng, lat)],
-        },
-        properties: {},
-      })),
+      features: candidates.map(({ lng, lat }) => makeSquareFeature(lng, lat)),
     };
-    (map.getSource(ACTIVE_HIGHLIGHT_SOURCE_ID) as { setData: (data: object) => void }).setData(geojson);
-  }, [placed]);
+    source.setData(geojson);
+    setPaint(isSelected ? SELECTED_HIGHLIGHT_COLOR : ACTIVE_HIGHLIGHT_COLOR, isSelected ? 1 : 0.92);
+  }, [placed, selectedPropertyId]);
 
-  const activeCount = properties.filter((p) => p.status === 'Active').length;
-  const pendingCount = properties.filter((p) => p.status === 'Pending').length;
-  const soldCount = properties.filter((p) => p.status === 'Sold').length;
+  // Traffic layer visibility and simulate (animated dash) 
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map?.getLayer(TRAFFIC_LAYER_ID)) return;
+    const setVisibility = (layerId: string, visible: boolean) => {
+      (map as { setLayoutProperty: (id: string, name: string, value: unknown) => void }).setLayoutProperty(
+        layerId,
+        'visibility',
+        visible ? 'visible' : 'none'
+      );
+    };
+    setVisibility(TRAFFIC_LAYER_ID, showTraffic && !simulateTraffic);
+    setVisibility(TRAFFIC_SIMULATE_LAYER_ID, showTraffic && simulateTraffic);
+  }, [showTraffic, simulateTraffic]);
+
+  // Animate traffic flow (line-dash-offset) when simulate is on
+  useEffect(() => {
+    if (!simulateTraffic || !showTraffic) return;
+    const map = mapRef.current;
+    if (!map?.getLayer(TRAFFIC_SIMULATE_LAYER_ID)) return;
+    let offset = 0;
+    const step = () => {
+      trafficSimulateRef.current = requestAnimationFrame(step);
+      offset += 0.4;
+      (map as { setPaintProperty: (id: string, name: string, value: unknown) => void }).setPaintProperty(
+        TRAFFIC_SIMULATE_LAYER_ID,
+        'line-dash-offset',
+        offset
+      );
+      (map as { triggerRepaint?: () => void }).triggerRepaint?.();
+    };
+    step();
+    return () => {
+      if (trafficSimulateRef.current) cancelAnimationFrame(trafficSimulateRef.current);
+    };
+  }, [simulateTraffic, showTraffic]);
 
   if (!MAPBOX_TOKEN) {
     return (
@@ -317,6 +433,7 @@ export default function PropertyMap({ properties, isDarkMode = true, onSelectPro
             onClick={(e) => {
               e.originalEvent.stopPropagation();
               setPopupProperty({ property, lng, lat });
+              onSelectProperty?.(property.id);
               mapRef.current?.flyTo?.({
                 center: [lng, lat],
                 zoom: 16,
@@ -365,7 +482,7 @@ export default function PropertyMap({ properties, isDarkMode = true, onSelectPro
             anchor="bottom"
             className="property-map-popup"
           >
-            <div className="w-64 bg-white dark:bg-zinc-900 rounded-xl overflow-hidden border border-gray-200 dark:border-zinc-700 shadow-xl">
+            <div className="w-64 glass rounded-xl overflow-hidden shadow-xl">
               <div className="aspect-video bg-gray-100 dark:bg-zinc-800 relative">
                 <img
                   src={popupProperty.property.mainImage || `https://picsum.photos/seed/${popupProperty.property.id}/400/200`}
@@ -379,9 +496,9 @@ export default function PropertyMap({ properties, isDarkMode = true, onSelectPro
                   €{popupProperty.property.price?.toLocaleString()}
                 </p>
                 <div className="flex items-center gap-3 mt-2 text-[11px] text-gray-500 dark:text-zinc-400">
-                  <span className="flex items-center gap-1"><Bed size={12} /> {popupProperty.property.bedrooms ?? '—'}</span>
-                  <span className="flex items-center gap-1"><Bath size={12} /> {popupProperty.property.bathrooms ?? '—'}</span>
-                  <span className="flex items-center gap-1"><Ruler size={12} /> {popupProperty.property.sqft ?? '—'} sqft</span>
+                  <span className="flex items-center gap-1"><LayoutGrid size={12} /> {popupProperty.property.rooms ?? '—'} R</span>
+                  <span className="flex items-center gap-1"><Bath size={12} /> {popupProperty.property.bathrooms ?? '—'} B</span>
+                  <span className="flex items-center gap-1"><Car size={12} /> {popupProperty.property.garage ?? '—'} G</span>
                 </div>
                 {onSelectProperty && (
                   <button
@@ -399,28 +516,80 @@ export default function PropertyMap({ properties, isDarkMode = true, onSelectPro
         )}
       </Map>
 
-      <div className="absolute top-4 left-4 bg-white dark:bg-zinc-900 border-2 border-accent/40 p-4 rounded-xl z-10 shadow-xl shadow-black/10">
+      <div className="absolute top-4 left-4 glass border-2 border-accent/40 p-4 rounded-xl z-10 shadow-xl shadow-black/10 max-w-[280px]">
         <div className="flex items-center gap-2 mb-2">
           <span className="w-2 h-2 rounded-full bg-accent animate-pulse" style={{ boxShadow: '0 0 8px var(--tw-accent, #9372c9)' }} />
-          <span className="text-xs font-bold text-accent uppercase tracking-wider">LIVE PORTFOLIO</span>
+          <span className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">LIVE PORTFOLIO</span>
         </div>
         <h4 className="text-base font-bold text-gray-900 dark:text-white mb-0.5">Global Asset View</h4>
-        <p className="text-xs text-gray-500 dark:text-zinc-400">
+        <p className="text-xs text-gray-500 dark:text-zinc-400 mb-3">
           {placed.length} {placed.length === 1 ? 'Property' : 'Properties'} Tracked
         </p>
-        <div className="mt-3 pt-3 border-t border-gray-200 dark:border-zinc-700 space-y-1.5">
-          <div className="flex items-center gap-2 text-xs">
-            <div className="w-2 h-2 rounded-full bg-accent" style={{ boxShadow: '0 0 6px var(--tw-accent, #9372c9)' }} />
-            <span className="text-gray-700 dark:text-zinc-300">Active ({activeCount})</span>
-          </div>
-          <div className="flex items-center gap-2 text-xs">
-            <div className="w-2 h-2 rounded-full bg-blue-500" />
-            <span className="text-gray-700 dark:text-zinc-300">Pending ({pendingCount})</span>
-          </div>
-          <div className="flex items-center gap-2 text-xs">
-            <div className="w-2 h-2 rounded-full bg-zinc-500" />
-            <span className="text-gray-700 dark:text-zinc-300">Sold ({soldCount})</span>
-          </div>
+        <div className="flex flex-wrap gap-1.5 mb-2">
+          <button
+            type="button"
+            onClick={() => { sfx.menuSelect(); setShowTraffic(!showTraffic); if (showTraffic) setSimulateTraffic(false); }}
+            className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors flex items-center gap-1 ${
+              showTraffic ? 'bg-accent text-white dark:text-black' : 'bg-gray-200 dark:bg-zinc-700 text-gray-700 dark:text-zinc-300 hover:bg-gray-300 dark:hover:bg-zinc-600'
+            }`}
+            title="Real-time traffic (Mapbox, ~8 min updates)"
+          >
+            Traffic
+          </button>
+          <button
+            type="button"
+            onClick={() => { sfx.menuSelect(); setSimulateTraffic(!simulateTraffic); if (simulateTraffic && !showTraffic) setShowTraffic(true); }}
+            className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors flex items-center gap-1 ${
+              simulateTraffic ? 'bg-accent text-white dark:text-black' : 'bg-gray-200 dark:bg-zinc-700 text-gray-700 dark:text-zinc-300 hover:bg-gray-300 dark:hover:bg-zinc-600'
+            }`}
+            title="Simulate traffic flow (animated)"
+          >
+            Simulate
+          </button>
+        </div>
+        <div className="flex flex-wrap gap-1.5 mb-3">
+          {(['All', 'Active', 'Pending', 'Sold'] as const).map((status) => {
+            const count = status === 'All' ? placed.length : placed.filter(({ property }) => property.status === status).length;
+            const isActive = portfolioFilter === status;
+            return (
+              <button
+                key={status}
+                type="button"
+                onClick={() => { sfx.menuSelect(); setPortfolioFilter(status); }}
+                className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
+                  isActive
+                    ? 'bg-accent text-white dark:text-black'
+                    : 'bg-gray-200 dark:bg-zinc-700 text-gray-700 dark:text-zinc-300 hover:bg-gray-300 dark:hover:bg-zinc-600'
+                }`}
+              >
+                {status} ({count})
+              </button>
+            );
+          })}
+        </div>
+        <div className="pt-3 border-t border-gray-200 dark:border-zinc-700 max-h-[240px] overflow-y-auto space-y-1">
+          {(() => {
+            const filtered = placed.filter(({ property }) => portfolioFilter === 'All' || property.status === portfolioFilter);
+            if (filtered.length === 0) {
+              return (
+                <p className="text-xs text-gray-500 dark:text-zinc-500 px-2 py-2">No {portfolioFilter === 'All' ? 'properties' : portfolioFilter.toLowerCase()} to show.</p>
+              );
+            }
+            return filtered.map(({ property, lng, lat }) => (
+              <button
+                key={property.id}
+                type="button"
+                onClick={() => {
+                  sfx.menuSelect();
+                  mapRef.current?.flyTo?.({ center: [lng, lat], zoom: 16, pitch: 45, duration: 800 });
+                  setPopupProperty(null);
+                }}
+                className="w-full text-left px-2 py-1.5 rounded-lg text-sm text-accent hover:bg-accent/20 truncate border border-transparent hover:border-accent/40 transition-colors"
+              >
+                {property.title}
+              </button>
+            ));
+          })()}
         </div>
       </div>
     </div>

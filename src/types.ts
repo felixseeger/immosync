@@ -84,6 +84,10 @@ export interface Property {
   rooms?: number;
   bedrooms?: number;
   bathrooms?: number;
+  balconies?: number;
+  bathtubs?: number;
+  kitchens?: number;
+  garage?: number;
   sqft: number;
   yearBuilt?: number;
   // Energy & Legal

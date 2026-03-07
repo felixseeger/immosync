@@ -42,6 +42,21 @@
   @apply text-current;
 }
 
+/* Glassmorphism: cards and panels (light + dark). Use with rounded-xl or rounded-2xl. */
+.glass {
+  background: rgba(255, 255, 255, 0.23);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10.1px);
+  -webkit-backdrop-filter: blur(10.1px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.dark .glass {
+  background: rgba(26, 26, 26, 0.4);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
 ::-webkit-scrollbar {
   width: 6px;
 }

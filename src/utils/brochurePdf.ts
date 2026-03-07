@@ -1,16 +1,17 @@
 import { jsPDF } from 'jspdf';
+import { ref, getBlob } from 'firebase/storage';
+import { storage } from '../firebase';
 import type { Property } from '../types';
 
-const SITESYNC_SVG = `<svg width="120" height="120" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+const IMMOSYNC_LOGO_SVG = `<svg width="120" height="120" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
   <rect width="32" height="32" rx="8" fill="#D9FF00"/>
-  <polyline points="6,22 12,12 18,19 22,14 26,14" stroke="black" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-  <circle cx="26" cy="14" r="2.5" fill="black"/>
+  <text x="16" y="21" text-anchor="middle" font-weight="800" font-size="12" fill="black" font-family="system-ui, sans-serif">IM</text>
 </svg>`;
 
 /** Convert SVG string to PNG data URL via canvas (for use in jsPDF). */
 export function getSiteSyncLogoBase64(): Promise<string> {
   return new Promise((resolve, reject) => {
-    const svgBlob = new Blob([SITESYNC_SVG], { type: 'image/svg+xml;charset=utf-8' });
+    const svgBlob = new Blob([IMMOSYNC_LOGO_SVG], { type: 'image/svg+xml;charset=utf-8' });
     const url = URL.createObjectURL(svgBlob);
     const img = new Image();
     img.crossOrigin = 'anonymous';
@@ -38,8 +39,47 @@ export function getSiteSyncLogoBase64(): Promise<string> {
   });
 }
 
-/** Fetch image URL and return as JPEG base64 (for jsPDF). CORS may block external URLs. */
+/** Extract Firebase Storage path from download URL, or null if not a Firebase Storage URL. */
+function getStoragePathFromDownloadUrl(url: string): string | null {
+  if (!url || typeof url !== 'string') return null;
+  if (!url.includes('firebasestorage.googleapis.com') && !url.includes('firebase.storage')) return null;
+  const match = url.match(/\/o\/([^?]+)/);
+  if (!match) return null;
+  try {
+    let path = decodeURIComponent(match[1]);
+    if (path.startsWith('/')) path = path.slice(1);
+    return path;
+  } catch {
+    return null;
+  }
+}
+
+/** Load image via Firebase Storage SDK (avoids CORS). Returns data URL or null. */
+async function loadImageViaFirebaseStorage(url: string): Promise<string | null> {
+  const path = getStoragePathFromDownloadUrl(url);
+  if (!path) return null;
+  try {
+    const fileRef = ref(storage, path);
+    const blob = await getBlob(fileRef);
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    return null;
+  }
+}
+
+/** Fetch image URL and return as base64 data URL. Tries Firebase Storage first (no CORS), then fetch. */
 export async function imageUrlToBase64(url: string): Promise<string | null> {
+  if (!url || typeof url !== 'string') return null;
+  if (url.startsWith('data:image/')) return url;
+
+  const viaStorage = await loadImageViaFirebaseStorage(url);
+  if (viaStorage) return viaStorage;
+
   try {
     const res = await fetch(url, { mode: 'cors' });
     if (!res.ok) return null;
@@ -53,6 +93,11 @@ export async function imageUrlToBase64(url: string): Promise<string | null> {
   } catch {
     return null;
   }
+}
+
+/** Return jsPDF image format from a data URL. */
+function getFormatFromDataUrl(dataUrl: string): 'JPEG' | 'PNG' {
+  return dataUrl.startsWith('data:image/png') ? 'PNG' : 'JPEG';
 }
 
 const PAGE_W = 210;
@@ -93,14 +138,14 @@ export async function generateBrochurePdf(property: Property, logoBase64: string
     const mainBase64 = await imageUrlToBase64(mainImageUrl);
     if (mainBase64) {
       try {
-        doc.addImage(mainBase64, 'JPEG', MARGIN, 82, CONTENT_W, 100);
+        doc.addImage(mainBase64, getFormatFromDataUrl(mainBase64), MARGIN, 82, CONTENT_W, 100);
       } catch {
         doc.setFontSize(10);
         doc.text('[Image unavailable]', MARGIN, 130);
       }
     } else {
       doc.setFontSize(10);
-      doc.text('[Image unavailable - check CORS]', MARGIN, 130);
+      doc.text('[Image unavailable]', MARGIN, 130);
     }
   }
 
@@ -120,7 +165,7 @@ export async function generateBrochurePdf(property: Property, logoBase64: string
   doc.setTextColor(40, 40, 40);
   const details = [
     `Price: €${property.price.toLocaleString()}`,
-    `Beds: ${property.bedrooms ?? '—'}  |  Baths: ${property.bathrooms ?? '—'}  |  Sq Ft: ${property.sqft ?? '—'}`,
+    `Rooms: ${property.rooms ?? '—'}  |  Baths: ${property.bathrooms ?? '—'}  |  Balconies: ${property.balconies ?? '—'}  |  Bathtubs: ${property.bathtubs ?? '—'}  |  Kitchens: ${property.kitchens ?? '—'}  |  Garage: ${property.garage ?? '—'}`,
     `Type: ${property.type ?? '—'}  |  Status: ${property.status}`,
     `Address: ${property.address || '—'}`,
   ];
@@ -161,12 +206,16 @@ export async function generateBrochurePdf(property: Property, logoBase64: string
     const imgBase64 = await imageUrlToBase64(images[i]);
     if (imgBase64) {
       try {
-        doc.addImage(imgBase64, 'JPEG', MARGIN, 22, CONTENT_W, PAGE_H - 22 - MARGIN);
+        doc.addImage(imgBase64, getFormatFromDataUrl(imgBase64), MARGIN, 22, CONTENT_W, PAGE_H - 22 - MARGIN);
       } catch {
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(10);
         doc.text('[Image unavailable]', MARGIN, 40);
       }
+    } else {
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(10);
+      doc.text('[Image unavailable]', MARGIN, 40);
     }
   }
 

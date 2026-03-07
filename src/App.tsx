@@ -43,6 +43,8 @@ import ScrollToTop from './components/ScrollToTop';
 import { upsertUserProfile } from './services/usersService';
 import { sfx } from './utils/sfx';
 import AnimatedLink from './components/AnimatedLink';
+import LiquidGradientBackground from './components/LiquidGradientBackground';
+import Footer from './components/layout/Footer';
 
 const SidebarItem = ({ icon: Icon, label, active = false, onClick, collapsed = false }: { icon: React.ComponentType<{ size?: number }>, label: string, active?: boolean, onClick: () => void; collapsed?: boolean }) => (
   <div className={`relative ${collapsed ? 'px-0 flex justify-center md:justify-center' : 'px-4'}`}>
@@ -203,28 +205,32 @@ export default function App() {
       >
         <div className={`relative flex items-center gap-2 shrink-0 border-b border-gray-200 dark:border-border-dark ${(sidebarCollapsed && isMdOrLarger) ? 'p-3 md:justify-center md:flex-col md:gap-2 min-h-[72px]' : 'p-4 md:px-4 h-[72px]'} transition-all duration-200`}>
           {(sidebarCollapsed && isMdOrLarger) ? (
-            <>
-              <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0 hidden md:block">
+            <motion.span
+              className="shrink-0 hidden md:inline-flex"
+              initial={{ rotate: 0 }}
+              animate={{ rotate: [0, 5, 360] }}
+              transition={{ duration: 0.6, ease: 'easeInOut' }}
+              aria-hidden
+            >
+              <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <rect width="32" height="32" rx="8" fill="#D9FF00"/>
-                <polyline points="6,22 12,12 18,19 22,14 26,14" stroke="black" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-                <circle cx="26" cy="14" r="2.5" fill="black"/>
+                <text x="16" y="21" textAnchor="middle" fontWeight="800" fontSize="12" fill="black" fontFamily="system-ui, sans-serif">IM</text>
               </svg>
-            </>
+            </motion.span>
           ) : (
             <>
-              <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
+              <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0" aria-hidden>
                 <rect width="32" height="32" rx="8" fill="#D9FF00"/>
-                <polyline points="6,22 12,12 18,19 22,14 26,14" stroke="black" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-                <circle cx="26" cy="14" r="2.5" fill="black"/>
+                <text x="16" y="21" textAnchor="middle" fontWeight="800" fontSize="12" fill="black" fontFamily="system-ui, sans-serif">IM</text>
               </svg>
-              <h1 className="text-xl font-bold tracking-tighter text-gray-900 dark:text-white truncate">SITESYNC</h1>
+              <h1 className="text-xl font-bold tracking-tighter text-gray-900 dark:text-white truncate">IMMOSYNC</h1>
             </>
           )}
           {/* Mobile: close button */}
           <button
             type="button"
             onClick={closeSidebar}
-            className="md:hidden ml-auto p-2 rounded-lg text-gray-500 dark:text-zinc-400 hover:bg-gray-200 dark:hover:bg-zinc-800"
+            className="md:hidden ml-auto p-2 rounded-lg border-2 border-transparent text-gray-500 dark:text-zinc-400 hover:border-gray-400 dark:hover:border-zinc-500 transition-colors"
             aria-label="Close menu"
           >
             <X size={20} />
@@ -234,7 +240,7 @@ export default function App() {
             <button
               type="button"
               onClick={() => setSidebarCollapsed(true)}
-              className="hidden md:flex ml-auto p-2 rounded-lg text-gray-500 dark:text-zinc-400 hover:bg-gray-200 dark:hover:bg-zinc-800"
+              className="hidden md:flex ml-auto p-2 rounded-lg border-2 border-transparent text-gray-500 dark:text-zinc-400 hover:border-gray-400 dark:hover:border-zinc-500 transition-colors"
               aria-label="Collapse sidebar"
             >
               <ChevronLeft size={20} />
@@ -293,36 +299,38 @@ export default function App() {
 
       {/* Main Content */}
       <main className="flex-1 overflow-hidden relative bg-app-light dark:bg-app-dark flex flex-col">
-        {/* Background gradient behind content so map/live view is not covered */}
-        <div className="absolute inset-0 z-0 bg-[radial-gradient(ellipse_at_top_right,var(--tw-gradient-stops))] from-app-light dark:from-zinc-900/20 via-app-light dark:via-black to-app-light dark:to-black pointer-events-none" />
+        {/* Liquid gradient page background (light/dark variant) */}
+        <LiquidGradientBackground
+          variant={isDarkMode ? 'dark' : 'light'}
+          className="absolute inset-0 z-0 pointer-events-none opacity-50"
+        />
 
         {/* Global header with search */}
         <header className="relative z-20 shrink-0 h-[72px] min-h-[72px] px-4 flex items-center gap-4 border-b border-gray-200 dark:border-zinc-800 bg-app-light/80 dark:bg-app-dark/80 backdrop-blur-md">
           <button
             type="button"
             onClick={openSidebar}
-            className="md:hidden p-2 -ml-2 rounded-lg text-gray-600 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 hover:text-gray-900 dark:hover:text-white"
+            className="md:hidden p-2 -ml-2 rounded-lg border-2 border-transparent text-gray-600 dark:text-zinc-400 hover:border-gray-400 dark:hover:border-zinc-500 hover:text-gray-900 dark:hover:text-white transition-colors"
             aria-label="Open menu"
           >
             <Menu size={24} />
           </button>
           {/* Mobile: logo between burger and search */}
           <div className="md:hidden flex items-center gap-2 shrink-0">
-            <svg width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
+            <svg width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0" aria-hidden>
               <rect width="32" height="32" rx="8" fill="#D9FF00"/>
-              <polyline points="6,22 12,12 18,19 22,14 26,14" stroke="black" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-              <circle cx="26" cy="14" r="2.5" fill="black"/>
+              <text x="16" y="21" textAnchor="middle" fontWeight="800" fontSize="12" fill="black" fontFamily="system-ui, sans-serif">IM</text>
             </svg>
-            <h1 className="text-lg font-bold tracking-tighter text-gray-900 dark:text-white truncate">SITESYNC</h1>
+            <h1 className="text-lg font-bold tracking-tighter text-gray-900 dark:text-white truncate">IMMOSYNC</h1>
           </div>
           {/* When aside collapsed (desktop): logo text + expand toggle in header */}
           {sidebarCollapsed && (
             <div className="hidden md:flex items-center gap-2 shrink-0">
-              <h1 className="text-lg font-bold tracking-tighter text-gray-900 dark:text-white truncate">SITESYNC</h1>
+              <h1 className="text-lg font-bold tracking-tighter text-gray-900 dark:text-white truncate">IMMOSYNC</h1>
               <button
                 type="button"
                 onClick={() => setSidebarCollapsed(false)}
-                className="p-2 rounded-lg text-gray-500 dark:text-zinc-400 hover:bg-gray-200 dark:hover:bg-zinc-800 hover:text-gray-900 dark:hover:text-white"
+                className="p-2 rounded-lg border-2 border-transparent text-gray-500 dark:text-zinc-400 hover:border-gray-400 dark:hover:border-zinc-500 hover:text-gray-900 dark:hover:text-white transition-colors"
                 aria-label="Expand sidebar"
               >
                 <ChevronRight size={20} />
@@ -387,6 +395,7 @@ export default function App() {
           </div>
           )}
         </div>
+        <Footer />
       </main>
 
       {showUserSettings && user && (

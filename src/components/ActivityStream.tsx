@@ -24,7 +24,12 @@ const ActivityIcon = ({ type }: { type: string }) => {
   }
 };
 
-export default function ActivityStream() {
+interface ActivityStreamProps {
+  /** Max number of activities to show (default 10). Use 1 for single latest. */
+  limit?: number;
+}
+
+export default function ActivityStream({ limit: limitProp = 10 }: ActivityStreamProps = {}) {
   const [activities, setActivities] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -32,7 +37,7 @@ export default function ActivityStream() {
     const q = query(
       collection(db, 'recent_activity'),
       orderBy('timestamp', 'desc'),
-      limit(10)
+      limit(limitProp)
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -45,7 +50,7 @@ export default function ActivityStream() {
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [limitProp]);
 
   if (loading) {
     return (
@@ -93,7 +98,7 @@ export default function ActivityStream() {
             
             <div className="flex-1 min-w-0">
               <div className="flex justify-between items-start">
-                <p className="text-sm font-medium text-zinc-200 truncate">
+                <p className="text-sm font-medium text-blue-600 dark:text-blue-400 truncate">
                   {item.action}
                 </p>
                 <span className="text-[10px] text-zinc-500 whitespace-nowrap ml-2">

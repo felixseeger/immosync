@@ -1,6 +1,6 @@
 import React from 'react';
 import { Property } from '../types';
-import { MapPin, Bed, Bath, Ruler, ArrowRight } from 'lucide-react';
+import { MapPin, ArrowRight } from 'lucide-react';
 
 interface PropertyListProps {
   properties: Property[];
@@ -9,7 +9,7 @@ interface PropertyListProps {
 
 export default function PropertyList({ properties, onSelectProperty }: PropertyListProps) {
   return (
-    <div className="rounded-xl border border-gray-200 dark:border-zinc-800 overflow-hidden bg-white dark:bg-zinc-900/50">
+    <div className="glass rounded-xl overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm">
           <thead>
@@ -17,9 +17,12 @@ export default function PropertyList({ properties, onSelectProperty }: PropertyL
               <th className="px-4 py-3 font-semibold text-gray-700 dark:text-zinc-300">Property</th>
               <th className="px-4 py-3 font-semibold text-gray-700 dark:text-zinc-300">Address</th>
               <th className="px-4 py-3 font-semibold text-gray-700 dark:text-zinc-300">Price</th>
-              <th className="px-4 py-3 font-semibold text-gray-700 dark:text-zinc-300">Beds</th>
+              <th className="px-4 py-3 font-semibold text-gray-700 dark:text-zinc-300">Rooms</th>
               <th className="px-4 py-3 font-semibold text-gray-700 dark:text-zinc-300">Baths</th>
-              <th className="px-4 py-3 font-semibold text-gray-700 dark:text-zinc-300">Sq ft</th>
+              <th className="px-4 py-3 font-semibold text-gray-700 dark:text-zinc-300">Balc.</th>
+              <th className="px-4 py-3 font-semibold text-gray-700 dark:text-zinc-300">Tubs</th>
+              <th className="px-4 py-3 font-semibold text-gray-700 dark:text-zinc-300">Kit.</th>
+              <th className="px-4 py-3 font-semibold text-gray-700 dark:text-zinc-300">Garage</th>
               <th className="px-4 py-3 font-semibold text-gray-700 dark:text-zinc-300">Status</th>
               <th className="px-4 py-3 w-10" aria-hidden />
             </tr>

@@ -192,7 +192,7 @@ export default function CalendarView() {
             </div>
           </div>
 
-          <div className="flex-1 min-h-0 rounded-xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-auto">
+          <div className="flex-1 min-h-0 glass rounded-xl overflow-auto">
             <table className="w-full border-collapse table-fixed" style={{ minHeight: 320 }}>
               <thead>
                 <tr>
@@ -359,7 +359,7 @@ export default function CalendarView() {
               animate={{ scale: 1 }}
               exit={{ scale: 0.95 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 rounded-xl shadow-xl w-full max-w-sm overflow-hidden"
+              className="glass rounded-xl shadow-xl w-full max-w-sm overflow-hidden"
             >
               <div className="p-4 border-b border-gray-200 dark:border-zinc-800 flex items-center justify-between">
                 <h3 className="font-semibold text-gray-900 dark:text-white">{detailViewing ? getEventTypeLabel(detailViewing) : 'Event'}</h3>

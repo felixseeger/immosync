@@ -33,7 +33,7 @@ export default function DealCard({ deal, contactName, propertyTitle, index, onCl
           onClick={onClick}
           className={`
             rounded-xl border p-4 cursor-pointer transition-all
-            bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-800
+            glass border-gray-200/50 dark:border-white/10
             hover:border-accent/60 hover:shadow-lg hover:shadow-accent/5
             ${stageBorderClass ?? 'border-l-4 border-l-gray-300 dark:border-l-zinc-600'}
             ${snapshot.isDragging ? 'opacity-90 shadow-xl ring-2 ring-accent/50 border-accent' : ''}

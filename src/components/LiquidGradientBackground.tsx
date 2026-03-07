@@ -315,10 +315,20 @@ export interface LiquidGradientBackgroundProps {
   color1?: GradientColor;
   /** Dark base color – used for uColor2, uColor4, uColor6, uDarkNavy */
   color2?: GradientColor;
+  /** Page background: use light or dark preset; overrides color1/color2 when set */
+  variant?: 'light' | 'dark';
 }
 
 const DEFAULT_COLOR1: GradientColor = [0.945, 0.353, 0.133];
 const DEFAULT_COLOR2: GradientColor = [0.039, 0.055, 0.153];
+
+/** Light mode page: Aside bg --color-app-light #FEC97D and variants */
+const LIGHT_PAGE_COLOR1: GradientColor = [0.996, 0.788, 0.49];   // #FEC97D
+const LIGHT_PAGE_COLOR2: GradientColor = [0.99, 0.8, 0.55];     // same family, slight shift
+
+/** Dark mode page: Aside bg --color-app-dark #0C1821 and variants */
+const DARK_PAGE_COLOR1: GradientColor = [0.058, 0.098, 0.137];  // slightly lighter #0C1821
+const DARK_PAGE_COLOR2: GradientColor = [0.047, 0.094, 0.129];  // #0C1821 (12, 24, 33)
 
 function lerpColor(a: GradientColor, b: GradientColor, t: number): GradientColor {
   return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
@@ -345,10 +355,15 @@ function applyColors(
 export default function LiquidGradientBackground({
   className = '',
   style,
-  color1 = DEFAULT_COLOR1,
-  color2 = DEFAULT_COLOR2,
+  color1: color1Prop = DEFAULT_COLOR1,
+  color2: color2Prop = DEFAULT_COLOR2,
+  variant,
 }: LiquidGradientBackgroundProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const color1 = variant === 'light' ? LIGHT_PAGE_COLOR1 : variant === 'dark' ? DARK_PAGE_COLOR1 : color1Prop;
+  const color2 = variant === 'light' ? LIGHT_PAGE_COLOR2 : variant === 'dark' ? DARK_PAGE_COLOR2 : color2Prop;
+  const sceneBackgroundHex = variant === 'light' ? 0xfec97d : variant === 'dark' ? 0x0c1821 : null;
 
   useEffect(() => {
     const container = containerRef.current;
@@ -375,7 +390,11 @@ export default function LiquidGradientBackground({
     camera.position.z = 50;
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x0a0e27);
+    if (sceneBackgroundHex !== null) {
+      scene.background = new THREE.Color(sceneBackgroundHex);
+    } else {
+      scene.background = new THREE.Color(0x0a0e27);
+    }
 
     const clock = new THREE.Clock();
 

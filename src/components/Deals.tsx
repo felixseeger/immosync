@@ -159,47 +159,47 @@ export default function Deals({
       </div>
 
       <div className="flex-1 min-h-0 flex flex-col">
-        <div className="flex-1 min-h-0 overflow-x-auto overflow-y-hidden p-6 custom-scrollbar">
+        <div className="flex-1 min-h-0 overflow-hidden p-6 flex flex-col gap-4">
           <DragDropContext onDragEnd={handleDragEnd}>
             <div className="flex gap-4 min-w-max h-full">
-              {DEAL_STAGES.map((stage) => {
+              {DEAL_STAGES.filter((s) => s.id !== 'lead' && s.id !== 'closed').map((stage) => {
                 const colors = STAGE_COLORS[stage.id] ?? { borderLeft: '', headerBg: '', headerText: 'text-gray-900 dark:text-white', columnBg: '' };
                 return (
-                <div
-                  key={stage.id}
-                  className={`w-72 shrink-0 flex flex-col rounded-xl border-2 border-gray-200 dark:border-zinc-700 overflow-hidden ${colors.borderLeft} ${colors.columnBg || 'bg-gray-50/50 dark:bg-zinc-900/50'}`}
-                >
-                  <div className={`p-3 border-b-2 border-gray-200 dark:border-zinc-700 flex items-center justify-between ${colors.headerBg}`}>
-                    <h3 className={`text-sm ${colors.headerText}`}>{stage.label}</h3>
-                    <span className="text-xs font-medium text-gray-600 dark:text-zinc-400 bg-white/60 dark:bg-app-dark/30 px-2.5 py-1 rounded-full">
-                      {(dealsByStage[stage.id] ?? []).length}
-                    </span>
+                  <div
+                    key={stage.id}
+                    className={`w-72 shrink-0 flex flex-col rounded-xl border-2 border-gray-200 dark:border-zinc-700 overflow-hidden ${colors.borderLeft} ${colors.columnBg || 'bg-gray-50/50 dark:bg-zinc-900/50'}`}
+                  >
+                    <div className={`p-3 border-b-2 border-gray-200 dark:border-zinc-700 flex items-center justify-between ${colors.headerBg}`}>
+                      <h3 className={`text-sm ${colors.headerText}`}>{stage.label}</h3>
+                      <span className="text-xs font-medium text-gray-600 dark:text-zinc-400 bg-white/60 dark:bg-app-dark/30 px-2.5 py-1 rounded-full">
+                        {(dealsByStage[stage.id] ?? []).length}
+                      </span>
+                    </div>
+                    <Droppable droppableId={stage.id}>
+                      {(provided, snapshot) => (
+                        <div
+                          ref={provided.innerRef}
+                          {...provided.droppableProps}
+                          className={`flex-1 p-2 overflow-y-auto space-y-2 min-h-[200px] transition-colors ${
+                            snapshot.isDraggingOver ? 'bg-accent/10 dark:bg-accent/15' : ''
+                          }`}
+                        >
+                          {(dealsByStage[stage.id] ?? []).map((deal, index) => (
+                            <DealCard
+                              key={deal.id}
+                              deal={deal}
+                              contactName={contactMap.get(deal.contactId)?.name ?? '—'}
+                              propertyTitle={propertyMap.get(deal.propertyId)?.title ?? '—'}
+                              index={index}
+                              onClick={() => setSelectedDeal(deal)}
+                              stageBorderClass={STAGE_COLORS[deal.stageId]?.borderLeft}
+                            />
+                          ))}
+                          {provided.placeholder}
+                        </div>
+                      )}
+                    </Droppable>
                   </div>
-                  <Droppable droppableId={stage.id}>
-                    {(provided, snapshot) => (
-                      <div
-                        ref={provided.innerRef}
-                        {...provided.droppableProps}
-                        className={`flex-1 p-2 overflow-y-auto space-y-2 min-h-[200px] transition-colors ${
-                          snapshot.isDraggingOver ? 'bg-accent/10 dark:bg-accent/15' : ''
-                        }`}
-                      >
-                        {(dealsByStage[stage.id] ?? []).map((deal, index) => (
-                          <DealCard
-                            key={deal.id}
-                            deal={deal}
-                            contactName={contactMap.get(deal.contactId)?.name ?? '—'}
-                            propertyTitle={propertyMap.get(deal.propertyId)?.title ?? '—'}
-                            index={index}
-                            onClick={() => setSelectedDeal(deal)}
-                            stageBorderClass={STAGE_COLORS[deal.stageId]?.borderLeft}
-                          />
-                        ))}
-                        {provided.placeholder}
-                      </div>
-                    )}
-                  </Droppable>
-                </div>
                 );
               })}
             </div>
@@ -207,13 +207,13 @@ export default function Deals({
         </div>
 
         {/* Recent Activity - bottom section */}
-        <div className="shrink-0 border-t border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50">
+        <div className="shrink-0 border-t border-gray-200/50 dark:border-white/10 glass">
           <div className="px-6 py-3 border-b border-gray-200 dark:border-zinc-800 flex items-center gap-2">
             <Activity size={18} className="text-accent" />
             <h3 className="font-bold text-gray-900 dark:text-white text-sm">Recent Activity</h3>
           </div>
-          <div className="h-[220px] overflow-hidden px-6 py-3">
-            <ActivityStream />
+          <div className="min-h-0 overflow-hidden px-6 py-3">
+            <ActivityStream limit={1} />
           </div>
         </div>
       </div>

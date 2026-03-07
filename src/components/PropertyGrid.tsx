@@ -1,7 +1,7 @@
 import React from 'react';
 import { Property } from '../types';
 import { motion } from 'motion/react';
-import { MapPin, Bed, Bath, Ruler, ArrowRight } from 'lucide-react';
+import { MapPin, LayoutGrid, Bath, Box, Droplets, UtensilsCrossed, Car, ArrowRight } from 'lucide-react';
 
 interface PropertyGridProps {
   properties: Property[];
@@ -16,7 +16,7 @@ export default function PropertyGrid({ properties, onSelectProperty }: PropertyG
           key={property.id}
           layoutId={`property-${property.id}`}
           onClick={() => onSelectProperty(property)}
-          className="group relative bg-white dark:bg-zinc-900 rounded-2xl overflow-hidden border border-gray-300 dark:border-zinc-800 hover:border-gray-400 dark:hover:border-zinc-700 transition-colors cursor-pointer"
+          className="group relative glass rounded-2xl overflow-hidden hover:border-gray-400 dark:hover:border-white/20 transition-colors cursor-pointer"
           whileHover={{ y: -4 }}
         >
           {/* Image Container */}
@@ -53,27 +53,36 @@ export default function PropertyGrid({ properties, onSelectProperty }: PropertyG
               </span>
             </div>
 
-            <div className="grid grid-cols-3 gap-2 py-4 border-t border-gray-300 dark:border-zinc-800">
+            <div className="grid grid-cols-3 gap-1.5 py-3 border-t border-gray-300 dark:border-zinc-800">
               <div className="flex flex-col items-center text-center">
-                <div className="flex items-center text-gray-600 dark:text-zinc-400 mb-1">
-                  <Bed size={16} className="mr-1" />
-                  <span className="text-sm font-medium">{property.bedrooms}</span>
-                </div>
-                <span className="text-[10px] text-gray-500 dark:text-zinc-600 uppercase tracking-wider">Beds</span>
+                <LayoutGrid size={14} className="text-gray-600 dark:text-zinc-400 mb-0.5" />
+                <span className="text-xs font-medium text-gray-900 dark:text-white">{property.rooms ?? '—'}</span>
+                <span className="text-[9px] text-gray-500 dark:text-zinc-600 uppercase">Rooms</span>
               </div>
               <div className="flex flex-col items-center text-center border-l border-gray-300 dark:border-zinc-800">
-                <div className="flex items-center text-gray-600 dark:text-zinc-400 mb-1">
-                  <Bath size={16} className="mr-1" />
-                  <span className="text-sm font-medium">{property.bathrooms}</span>
-                </div>
-                <span className="text-[10px] text-gray-500 dark:text-zinc-600 uppercase tracking-wider">Baths</span>
+                <Bath size={14} className="text-gray-600 dark:text-zinc-400 mb-0.5" />
+                <span className="text-xs font-medium text-gray-900 dark:text-white">{property.bathrooms ?? '—'}</span>
+                <span className="text-[9px] text-gray-500 dark:text-zinc-600 uppercase">Baths</span>
               </div>
               <div className="flex flex-col items-center text-center border-l border-gray-300 dark:border-zinc-800">
-                <div className="flex items-center text-gray-600 dark:text-zinc-400 mb-1">
-                  <Ruler size={16} className="mr-1" />
-                  <span className="text-sm font-medium">{property.sqft}</span>
-                </div>
-                <span className="text-[10px] text-gray-500 dark:text-zinc-600 uppercase tracking-wider">Sq Ft</span>
+                <Box size={14} className="text-gray-600 dark:text-zinc-400 mb-0.5" />
+                <span className="text-xs font-medium text-gray-900 dark:text-white">{property.balconies ?? '—'}</span>
+                <span className="text-[9px] text-gray-500 dark:text-zinc-600 uppercase">Balc.</span>
+              </div>
+              <div className="flex flex-col items-center text-center">
+                <Droplets size={14} className="text-gray-600 dark:text-zinc-400 mb-0.5" />
+                <span className="text-xs font-medium text-gray-900 dark:text-white">{property.bathtubs ?? '—'}</span>
+                <span className="text-[9px] text-gray-500 dark:text-zinc-600 uppercase">Tubs</span>
+              </div>
+              <div className="flex flex-col items-center text-center border-l border-gray-300 dark:border-zinc-800">
+                <UtensilsCrossed size={14} className="text-gray-600 dark:text-zinc-400 mb-0.5" />
+                <span className="text-xs font-medium text-gray-900 dark:text-white">{property.kitchens ?? '—'}</span>
+                <span className="text-[9px] text-gray-500 dark:text-zinc-600 uppercase">Kit.</span>
+              </div>
+              <div className="flex flex-col items-center text-center border-l border-gray-300 dark:border-zinc-800">
+                <Car size={14} className="text-gray-600 dark:text-zinc-400 mb-0.5" />
+                <span className="text-xs font-medium text-gray-900 dark:text-white">{property.garage ?? '—'}</span>
+                <span className="text-[9px] text-gray-500 dark:text-zinc-600 uppercase">Garage</span>
               </div>
             </div>
 

@@ -180,6 +180,7 @@ export default function Properties({
               <PropertyMap
                 properties={properties}
                 isDarkMode={isDarkMode}
+                selectedPropertyId={selectedProperty?.id ?? null}
                 onSelectProperty={(id) => {
                   const p = properties.find((x) => x.id === id);
                   if (p) setSelectedProperty(p);
