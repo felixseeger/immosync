@@ -97,6 +97,8 @@ export interface Property {
   description: string;
   mainImage: string;
   images: string[];
+  /** Optional video URLs (e.g. MP4/WebM uploaded to Firebase Storage). */
+  videos?: string[];
   features: string[];
   createdAt: any; // Firestore Timestamp
   agentId: string;

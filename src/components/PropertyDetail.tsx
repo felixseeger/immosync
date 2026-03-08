@@ -185,6 +185,25 @@ export default function PropertyDetail({ property, onClose, onDeleted }: Propert
                   </button>
                 </div>
               </div>
+
+              {/* Videos */}
+              {property.videos && property.videos.length > 0 && (
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Videos</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {property.videos.map((videoUrl, index) => (
+                      <div key={index} className="aspect-video rounded-lg overflow-hidden bg-gray-300 dark:bg-zinc-800">
+                        <video
+                          src={videoUrl}
+                          controls
+                          className="w-full h-full object-contain"
+                          playsInline
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Sidebar */}

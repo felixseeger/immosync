@@ -40,6 +40,30 @@ export const uploadPropertyImage = async (
   }
 };
 
+/** Upload a property video (MP4, WebM, etc.) to Firebase Storage. Same path pattern as images. */
+export const uploadPropertyVideo = async (
+  file: File,
+  propertyId: string,
+  onProgress: (progress: number) => void
+): Promise<string> => {
+  const storageRef = ref(storage, `properties/${propertyId}/${file.name}-${Date.now()}`);
+  const uploadTask = uploadBytesResumable(storageRef, file);
+  return new Promise((resolve, reject) => {
+    uploadTask.on(
+      'state_changed',
+      (snapshot) => {
+        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        onProgress(progress);
+      },
+      (error) => reject(error),
+      async () => {
+        const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+        resolve(downloadURL);
+      }
+    );
+  });
+};
+
 /** Upload a document for a deal (lease, credit check, notary, etc.). Returns download URL. */
 export const uploadDealDocument = async (
   file: File,

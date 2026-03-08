@@ -3,6 +3,9 @@ import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
+// Production custom domain: https://immosync.felixseeger.de/
+// Add it to Firebase Console → Authentication → Settings → Authorized domains,
+// otherwise login and password reset will fail on that domain.
 const firebaseConfig = {
   apiKey: "REDACTED_FIREBASE_API_KEY",
   authDomain: "sitesync-c3f9a.firebaseapp.com",

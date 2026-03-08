@@ -13,10 +13,11 @@ import {
   Zap,
   UploadCloud,
   Trash2,
+  Video,
 } from 'lucide-react';
-import { createProperty, updatePropertyImages, updateProperty, deletePropertyImage } from '../services/propertyService';
+import { createProperty, updatePropertyImages, updatePropertyVideos, updateProperty, deletePropertyImage, deletePropertyVideo } from '../services/propertyService';
 import { sfx } from '../utils/sfx';
-import { uploadPropertyImage } from '../services/storageService';
+import { uploadPropertyImage, uploadPropertyVideo } from '../services/storageService';
 import { auth } from '../firebase';
 import type { MarketingType, HeatingType, Property } from '../types';
 
@@ -108,6 +109,11 @@ const DEFAULTS: FormState = {
 };
 
 interface StagedFile {
+  file: File;
+  preview: string;
+}
+
+interface StagedVideoFile {
   file: File;
   preview: string;
 }
@@ -543,6 +549,15 @@ function Step4({
   isDeleting,
   deletingImageUrl,
   onDeleteImage,
+  propertyVideos,
+  stagedVideoFiles,
+  getVideoRootProps,
+  getVideoInputProps,
+  isVideoDragActive,
+  removeVideoFile,
+  isDeletingVideo,
+  deletingVideoUrl,
+  onDeleteVideo,
 }: {
   stagedFiles: StagedFile[];
   getRootProps: () => object;
@@ -554,13 +569,22 @@ function Step4({
   isDeleting: boolean;
   deletingImageUrl: string | null;
   onDeleteImage: (url: string) => Promise<void>;
+  propertyVideos: string[];
+  stagedVideoFiles: StagedVideoFile[];
+  getVideoRootProps: () => object;
+  getVideoInputProps: () => object;
+  isVideoDragActive: boolean;
+  removeVideoFile: (i: number) => void;
+  isDeletingVideo: boolean;
+  deletingVideoUrl: string | null;
+  onDeleteVideo: (url: string) => Promise<void>;
 }) {
   return (
     <div className="space-y-5">
       <p className="text-sm text-zinc-400 leading-relaxed">
         Upload property photos to Firebase Storage. The{' '}
         <span className="text-accent font-semibold">first image</span> becomes the cover photo
-        on the dashboard grid. Drag to reorder in the preview below.
+        on the dashboard grid. You can also add optional videos (MP4, WebM).
       </p>
 
       {/* Existing images section (edit mode) */}
@@ -680,11 +704,59 @@ function Step4({
           </div>
         )}
       </div>
+
+      {/* Videos section */}
+      <div className="pt-6 border-t border-gray-300 dark:border-zinc-800">
+        <p className="text-xs font-semibold text-gray-600 dark:text-zinc-400 uppercase tracking-wider mb-3">Videos (optional)</p>
+        {isEditing && propertyVideos.length > 0 && (
+          <div className="mb-4">
+            <p className="text-[11px] text-gray-600 dark:text-zinc-600 mb-2">Existing videos — click to delete</p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {propertyVideos.map((videoUrl) => (
+                <div key={videoUrl} className="relative group aspect-video rounded-xl overflow-hidden bg-gray-300 dark:bg-zinc-800 ring-1 ring-gray-300 dark:ring-zinc-700">
+                  <video src={videoUrl} className="w-full h-full object-cover" muted playsInline />
+                  <button
+                    type="button"
+                    onClick={() => onDeleteVideo(videoUrl)}
+                    disabled={isDeletingVideo && deletingVideoUrl === videoUrl}
+                    className="absolute top-2 right-2 p-1 bg-black/70 backdrop-blur-sm rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500 disabled:opacity-50"
+                  >
+                    {isDeletingVideo && deletingVideoUrl === videoUrl ? <Loader2 size={10} className="animate-spin" /> : <Trash2 size={10} />}
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        <div
+          {...getVideoRootProps()}
+          className={`border-2 border-dashed rounded-xl p-6 flex flex-col items-center justify-center text-center cursor-pointer select-none transition-all ${
+            isVideoDragActive ? 'border-accent bg-accent/5' : 'border-gray-300 dark:border-zinc-700 hover:border-gray-400 dark:hover:border-zinc-500'
+          }`}
+        >
+          <input {...getVideoInputProps()} />
+          <Video className="text-gray-500 dark:text-zinc-500 mb-2" size={22} />
+          <p className="text-xs text-gray-600 dark:text-zinc-500">Drop videos here or click · MP4, WebM · max 5 MB</p>
+        </div>
+        {stagedVideoFiles.length > 0 && (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {stagedVideoFiles.map((sv, i) => (
+              <div key={i} className="flex items-center gap-2 bg-gray-200 dark:bg-zinc-800 rounded-lg px-2 py-1.5 text-xs">
+                <Video size={12} />
+                <span className="truncate max-w-[120px]">{sv.file.name}</span>
+                <button type="button" onClick={() => removeVideoFile(i)} className="p-0.5 hover:bg-gray-300 dark:hover:bg-zinc-600 rounded">
+                  <X size={12} />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
 
-/* ─── Main Component ────────────────────────────────────────────────────────── */
+/* ─── Main Component ────────────────────────────────────────── */
 
 interface AddPropertyPanelProps {
   onClose: () => void;
@@ -739,6 +811,10 @@ export default function AddPropertyPanel({ onClose, onSuccess, property, initial
   const [isDeleting, setIsDeleting] = useState(false);
   const [deletingImageUrl, setDeletingImageUrl] = useState<string | null>(null);
   const [propertyImages, setPropertyImages] = useState<string[]>(property?.images ?? []);
+  const [propertyVideos, setPropertyVideos] = useState<string[]>(property?.videos ?? []);
+  const [stagedVideoFiles, setStagedVideoFiles] = useState<StagedVideoFile[]>([]);
+  const [isDeletingVideo, setIsDeletingVideo] = useState(false);
+  const [deletingVideoUrl, setDeletingVideoUrl] = useState<string | null>(null);
 
   // Generic field setter
   const set =
@@ -761,8 +837,29 @@ export default function AddPropertyPanel({ onClose, onSuccess, property, initial
     maxSize: 20 * 1024 * 1024,
   });
 
+  const onVideoDrop = useCallback((accepted: File[]) => {
+    const staged: StagedVideoFile[] = accepted.map((file) => ({
+      file,
+      preview: URL.createObjectURL(file),
+    }));
+    setStagedVideoFiles((prev) => [...prev, ...staged]);
+  }, []);
+
+  const { getRootProps: getVideoRootProps, getInputProps: getVideoInputProps, isDragActive: isVideoDragActive } = useDropzone({
+    onDrop: onVideoDrop,
+    accept: { 'video/*': ['.mp4', '.webm', '.mov'] },
+    maxSize: 5 * 1024 * 1024,
+  });
+
   const removeFile = (idx: number) => {
     setStagedFiles((prev) => {
+      URL.revokeObjectURL(prev[idx].preview);
+      return prev.filter((_, i) => i !== idx);
+    });
+  };
+
+  const removeVideoFile = (idx: number) => {
+    setStagedVideoFiles((prev) => {
       URL.revokeObjectURL(prev[idx].preview);
       return prev.filter((_, i) => i !== idx);
     });
@@ -795,6 +892,22 @@ export default function AddPropertyPanel({ onClose, onSuccess, property, initial
     } finally {
       setIsDeleting(false);
       setDeletingImageUrl(null);
+    }
+  };
+
+  const handleDeleteVideo = async (videoUrl: string) => {
+    if (!property) return;
+    setIsDeletingVideo(true);
+    setDeletingVideoUrl(videoUrl);
+    setError(null);
+    try {
+      await deletePropertyVideo(property.id, videoUrl);
+      setPropertyVideos((prev) => prev.filter((v) => v !== videoUrl));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete video');
+    } finally {
+      setIsDeletingVideo(false);
+      setDeletingVideoUrl(null);
     }
   };
 
@@ -877,6 +990,7 @@ export default function AddPropertyPanel({ onClose, onSuccess, property, initial
         heatingType: form.heatingType ? (form.heatingType as HeatingType) : 'Gas',
         mainImage: isEditing ? (property?.mainImage ?? '') : '',
         images: isEditing ? (property?.images ?? []) : [],
+        videos: isEditing ? (propertyVideos ?? []) : [],
         features: [],
         agentId: auth.currentUser?.uid ?? 'unknown',
       };
@@ -909,6 +1023,15 @@ export default function AddPropertyPanel({ onClose, onSuccess, property, initial
           const allImages = [...existingImages, ...urls];
           await updatePropertyImages(property.id, allImages);
         }
+        if (stagedVideoFiles.length > 0) {
+          const videoUrls: string[] = [];
+          for (let i = 0; i < stagedVideoFiles.length; i++) {
+            setUploadStatus({ current: i + 1, total: stagedVideoFiles.length });
+            const url = await uploadPropertyVideo(stagedVideoFiles[i].file, property.id, () => {});
+            videoUrls.push(url);
+          }
+          await updatePropertyVideos(property.id, [...propertyVideos, ...videoUrls]);
+        }
       } else {
         // When creating, upload to new property
         console.log('=== CREATE MODE ===');
@@ -940,6 +1063,15 @@ export default function AddPropertyPanel({ onClose, onSuccess, property, initial
         } else {
           console.log('No images to upload for this property');
         }
+        if (stagedVideoFiles.length > 0) {
+          const videoUrls: string[] = [];
+          for (let i = 0; i < stagedVideoFiles.length; i++) {
+            setUploadStatus({ current: i + 1, total: stagedVideoFiles.length });
+            const url = await uploadPropertyVideo(stagedVideoFiles[i].file, propertyId, () => {});
+            videoUrls.push(url);
+          }
+          await updatePropertyVideos(propertyId, videoUrls);
+        }
       }
 
       console.log('Calling onSuccess()');
@@ -954,8 +1086,8 @@ export default function AddPropertyPanel({ onClose, onSuccess, property, initial
     } finally {
       setSubmitting(false);
       setUploadStatus(null);
-      // Clear staged files after successful upload
       setStagedFiles([]);
+      setStagedVideoFiles([]);
     }
   };
 
@@ -1068,6 +1200,15 @@ export default function AddPropertyPanel({ onClose, onSuccess, property, initial
                   isDeleting={isDeleting}
                   deletingImageUrl={deletingImageUrl}
                   onDeleteImage={handleDeleteImage}
+                  propertyVideos={propertyVideos}
+                  stagedVideoFiles={stagedVideoFiles}
+                  getVideoRootProps={getVideoRootProps}
+                  getVideoInputProps={getVideoInputProps}
+                  isVideoDragActive={isVideoDragActive}
+                  removeVideoFile={removeVideoFile}
+                  isDeletingVideo={isDeletingVideo}
+                  deletingVideoUrl={deletingVideoUrl}
+                  onDeleteVideo={handleDeleteVideo}
                 />
               )}
             </motion.div>

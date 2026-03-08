@@ -14,6 +14,30 @@ export default function PasswordReset({ onBack }: PasswordResetProps) {
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
 
+  const getErrorMessage = (err: unknown): string => {
+    if (!err || typeof err !== 'object' || !('code' in err)) {
+      return 'Failed to send reset email. Check the address and try again.';
+    }
+    const code = (err as { code?: string }).code;
+    switch (code) {
+      case 'auth/invalid-email':
+        return 'Please enter a valid email address.';
+      case 'auth/user-not-found':
+        return 'No account found for this email. Try signing up or check the address.';
+      case 'auth/unauthorized-domain':
+        return 'This app’s domain is not authorized for password reset. Please contact the site administrator.';
+      case 'auth/invalid-continue-uri':
+      case 'auth/invalid-dynamic-link-domain':
+        return 'Redirect URL is not allowed. Please contact the site administrator.';
+      case 'auth/too-many-requests':
+        return 'Too many attempts. Please try again later.';
+      default:
+        return (err as { message?: string }).message
+          ? String((err as { message: string }).message)
+          : 'Failed to send reset email. Check the address and try again.';
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -21,17 +45,24 @@ export default function PasswordReset({ onBack }: PasswordResetProps) {
 
     try {
       const trimmed = email.trim().toLowerCase();
+      if (!trimmed) {
+        setError('Please enter your email address.');
+        setLoading(false);
+        return;
+      }
       const origin = typeof window !== 'undefined' ? window.location.origin : '';
-      const actionCodeSettings = origin
+      const isValidOrigin = origin && origin !== 'null' && !origin.startsWith('file:');
+      // continueUrl domain must be in Firebase Console → Authentication → Authorized domains
+      const actionCodeSettings = isValidOrigin
         ? { url: `${origin}/`, handleCodeInApp: false }
         : undefined;
       await sendPasswordResetEmail(auth, trimmed, actionCodeSettings);
       setSent(true);
     } catch (err: unknown) {
-      const message = err && typeof err === 'object' && 'message' in err
-        ? String((err as { message: string }).message)
-        : 'Failed to send reset email. Check the address and try again.';
-      setError(message);
+      if (import.meta.env.DEV) {
+        console.error('Password reset error:', err);
+      }
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }

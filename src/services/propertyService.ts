@@ -183,6 +183,31 @@ export const deletePropertyImage = async (
   }
 };
 
+export const updatePropertyVideos = async (
+  propertyId: string,
+  videos: string[]
+): Promise<void> => {
+  const propertyRef = doc(db, PROPERTIES_COLLECTION, propertyId);
+  await updateDoc(propertyRef, { videos });
+};
+
+/** Delete a video from Storage and remove its URL from the property's videos array. */
+export const deletePropertyVideo = async (
+  propertyId: string,
+  videoUrl: string
+): Promise<void> => {
+  const urlParts = videoUrl.split('/o/');
+  if (urlParts.length < 2) throw new Error('Invalid video URL format');
+  let filePath = decodeURIComponent(urlParts[1].split('?')[0]);
+  if (filePath.startsWith('/')) filePath = filePath.slice(1);
+  const fileRef = ref(storage, filePath);
+  await deleteObject(fileRef);
+  const propertyRef = doc(db, PROPERTIES_COLLECTION, propertyId);
+  const docSnap = await getDoc(propertyRef);
+  const current = (docSnap.data()?.videos ?? []) as string[];
+  await updateDoc(propertyRef, { videos: current.filter((v) => v !== videoUrl) });
+};
+
 export const updateProperty = async (
   propertyId: string,
   data: Partial<Omit<Property, 'id' | 'createdAt'>>
