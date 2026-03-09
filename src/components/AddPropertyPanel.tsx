@@ -65,14 +65,17 @@ interface FormState {
   country: string;
   // Step 3
   livingSpace: string;
-  lotSize: string;
   rooms: string;
   bathrooms: string;
   balconies: string;
   bathtubs: string;
   kitchens: string;
   garage: string;
-  yearBuilt: string;
+  objectDescription: string;
+  featuresInput: string;
+  featuresInput2: string;
+  featuresInput3: string;
+  locationDescription: string;
   price: string;
   additionalCosts: string;
   commission: string;
@@ -93,14 +96,17 @@ const DEFAULTS: FormState = {
   state: '',
   country: 'Germany',
   livingSpace: '',
-  lotSize: '',
   rooms: '',
   bathrooms: '',
   balconies: '',
   bathtubs: '',
   kitchens: '',
   garage: '',
-  yearBuilt: '',
+  objectDescription: '',
+  featuresInput: '',
+  featuresInput2: '',
+  featuresInput3: '',
+  locationDescription: '',
   price: '',
   additionalCosts: '',
   commission: '',
@@ -231,7 +237,7 @@ function Step1({
       </div>
 
       <div>
-        <Label>Description</Label>
+        <Label>Short Description</Label>
         <textarea
           value={form.description}
           onChange={set('description')}
@@ -345,6 +351,65 @@ function Step3({
 }) {
   return (
     <div className="space-y-7">
+      {/* Object Description, Features, Location */}
+      <div>
+        <p className="text-[11px] font-bold text-gray-600 dark:text-zinc-500 uppercase tracking-widest mb-3 flex items-center gap-2 before:flex-1 before:h-px before:bg-gray-300 dark:before:bg-zinc-800 after:flex-1 after:h-px after:bg-gray-300 dark:after:bg-zinc-800">
+          <span>Content</span>
+        </p>
+        <div className="space-y-3">
+          <div>
+            <Label>Object Description</Label>
+            <textarea
+              value={form.objectDescription}
+              onChange={set('objectDescription')}
+              placeholder="Detailed description of the property, condition, highlights..."
+              className={`${inputCls} resize-none`}
+              rows={4}
+            />
+          </div>
+          <div>
+            <Label>Features</Label>
+            <input
+              type="text"
+              value={form.featuresInput}
+              onChange={set('featuresInput')}
+              placeholder="e.g. Elevator, Garden, Parking, Balcony (comma-separated)"
+              className={inputCls}
+            />
+          </div>
+          <div>
+            <Label>Features (2)</Label>
+            <input
+              type="text"
+              value={form.featuresInput2}
+              onChange={set('featuresInput2')}
+              placeholder="e.g. Terrace, Storage, Bike room (comma-separated)"
+              className={inputCls}
+            />
+          </div>
+          <div>
+            <Label>Features (3)</Label>
+            <input
+              type="text"
+              value={form.featuresInput3}
+              onChange={set('featuresInput3')}
+              placeholder="e.g. Pet-friendly, Barrier-free (comma-separated)"
+              className={inputCls}
+            />
+          </div>
+          <div>
+            <Label>Location</Label>
+            <textarea
+              value={form.locationDescription}
+              onChange={set('locationDescription')}
+              placeholder="e.g. Central Munich, near English Garden"
+              className={`${inputCls} resize-none`}
+              rows={4}
+            />
+          </div>
+        </div>
+      </div>
+
       {/* Physical */}
       <div>
         <p className="text-[11px] font-bold text-gray-600 dark:text-zinc-500 uppercase tracking-widest mb-3 flex items-center gap-2 before:flex-1 before:h-px before:bg-gray-300 dark:before:bg-zinc-800 after:flex-1 after:h-px after:bg-gray-300 dark:after:bg-zinc-800">
@@ -358,17 +423,6 @@ function Step3({
               value={form.livingSpace}
               onChange={set('livingSpace')}
               placeholder="120"
-              className={inputCls}
-              min={0}
-            />
-          </div>
-          <div>
-            <Label>Lot Size (m²)</Label>
-            <input
-              type="number"
-              value={form.lotSize}
-              onChange={set('lotSize')}
-              placeholder="350"
               className={inputCls}
               min={0}
             />
@@ -441,18 +495,6 @@ function Step3({
               min={0}
             />
           </div>
-        </div>
-        <div className="mt-3">
-          <Label>Year of Construction</Label>
-          <input
-            type="number"
-            value={form.yearBuilt}
-            onChange={set('yearBuilt')}
-            placeholder="2012"
-            className={inputCls}
-            min={1800}
-            max={2030}
-          />
         </div>
       </div>
 
@@ -774,6 +816,7 @@ export default function AddPropertyPanel({ onClose, onSuccess, property, initial
     ? {
         title: property.title ?? '',
         description: property.description ?? '',
+        objectDescription: property.objectDescription ?? '',
         marketingType: (property.marketingType as 'Sale' | 'Rent') ?? 'Sale',
         propertyType: property.propertyType ?? 'Apartment',
         status: property.status ?? 'Active',
@@ -784,14 +827,16 @@ export default function AddPropertyPanel({ onClose, onSuccess, property, initial
         state: property.state ?? '',
         country: property.country ?? 'Germany',
         livingSpace: property.livingSpace != null ? String(property.livingSpace) : '',
-        lotSize: property.lotSize != null ? String(property.lotSize) : '',
         rooms: property.rooms != null ? String(property.rooms) : '',
         bathrooms: property.bathrooms != null ? String(property.bathrooms) : '',
         balconies: property.balconies != null ? String(property.balconies) : '',
         bathtubs: property.bathtubs != null ? String(property.bathtubs) : '',
         kitchens: property.kitchens != null ? String(property.kitchens) : '',
         garage: property.garage != null ? String(property.garage) : '',
-        yearBuilt: property.yearBuilt != null ? String(property.yearBuilt) : '',
+        featuresInput: property.features?.length ? property.features.join(', ') : '',
+        featuresInput2: '',
+        featuresInput3: '',
+        locationDescription: property.locationDescription ?? '',
         price: property.price != null ? String(property.price) : '',
         additionalCosts: property.additionalCosts != null ? String(property.additionalCosts) : '',
         commission: property.commission != null ? String(property.commission) : '',
@@ -958,9 +1003,24 @@ export default function AddPropertyPanel({ onClose, onSuccess, property, initial
       const livingSpaceNum = parseFloat(form.livingSpace) || 0;
       const roomsNum = parseFloat(form.rooms) || 0;
 
+      const descriptionTrim = form.description.trim();
+      const objectDescriptionTrim = form.objectDescription.trim();
+      const parseFeatures = (s: string) =>
+        s
+          .split(/[,;\n]/)
+          .map((x) => x.trim())
+          .filter(Boolean);
+      const featuresList = [
+        ...parseFeatures(form.featuresInput ?? ''),
+        ...parseFeatures(form.featuresInput2 ?? ''),
+        ...parseFeatures(form.featuresInput3 ?? ''),
+      ];
+
       const propertyData: Omit<Property, 'id' | 'createdAt'> = {
         title: form.title.trim(),
-        description: form.description.trim(),
+        description: descriptionTrim,
+        objectDescription: objectDescriptionTrim,
+        locationDescription: form.locationDescription.trim() || undefined,
         address,
         street: form.street || '',
         houseNumber: form.houseNumber || '',
@@ -976,7 +1036,6 @@ export default function AddPropertyPanel({ onClose, onSuccess, property, initial
         additionalCosts: parseFloat(form.additionalCosts) || 0,
         commission: parseFloat(form.commission) || 0,
         livingSpace: livingSpaceNum || 0,
-        lotSize: parseFloat(form.lotSize) || 0,
         rooms: roomsNum || 0,
         bedrooms: roomsNum || 0,
         bathrooms: parseFloat(form.bathrooms) || 0,
@@ -985,13 +1044,12 @@ export default function AddPropertyPanel({ onClose, onSuccess, property, initial
         kitchens: parseFloat(form.kitchens) || 0,
         garage: parseFloat(form.garage) || 0,
         sqft: Math.round(livingSpaceNum * 10.764),
-        yearBuilt: parseInt(form.yearBuilt) || 0,
         energyCertificate: parseFloat(form.energyCertificate) || 0,
         heatingType: form.heatingType ? (form.heatingType as HeatingType) : 'Gas',
-        mainImage: isEditing ? (property?.mainImage ?? '') : '',
-        images: isEditing ? (property?.images ?? []) : [],
-        videos: isEditing ? (propertyVideos ?? []) : [],
-        features: [],
+        mainImage: isEditing ? (propertyImages[0] ?? property?.mainImage ?? '') : '',
+        images: isEditing ? propertyImages : [],
+        videos: isEditing ? propertyVideos : [],
+        features: featuresList,
         agentId: auth.currentUser?.uid ?? 'unknown',
       };
 
@@ -1153,7 +1211,7 @@ export default function AddPropertyPanel({ onClose, onSuccess, property, initial
                         : 'bg-gray-200 dark:bg-zinc-800 text-gray-600 dark:text-zinc-500 border border-gray-300 dark:border-zinc-700'
                     }`}
                   >
-                    {i < step ? <Check size={12} strokeWidth={3} /> : i + 1}
+                    {i < step ? <Check size={12} strokeWidth={3} className="text-black" /> : i + 1}
                   </div>
                   <span
                     className={`text-xs font-semibold hidden sm:block whitespace-nowrap ${

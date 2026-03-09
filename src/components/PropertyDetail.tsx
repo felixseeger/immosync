@@ -1,10 +1,11 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { Property } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, MapPin, LayoutGrid, Bath, Box, Droplets, UtensilsCrossed, Car, CheckCircle, Image as ImageIcon, ArrowLeft, Pencil, Trash2, Loader2, FileDown, Calendar } from 'lucide-react';
+import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
+import { X, MapPin, LayoutGrid, Bath, Box, Droplets, UtensilsCrossed, Car, CheckCircle, Image as ImageIcon, ArrowLeft, Pencil, Trash2, Loader2, FileDown, Calendar, ChevronLeft, ChevronRight, GripVertical } from 'lucide-react';
 import AddPropertyPanel from './AddPropertyPanel';
 import ScheduleViewingModal from './ScheduleViewingModal';
-import { deleteProperty } from '../services/propertyService';
+import { deleteProperty, deletePropertyImage, updatePropertyImages } from '../services/propertyService';
 import { downloadBrochurePdf } from '../utils/brochurePdf';
 import { sfx } from '../utils/sfx';
 
@@ -12,14 +13,23 @@ interface PropertyDetailProps {
   property: Property;
   onClose: () => void;
   onDeleted?: () => void;
+  /** Called after a successful edit so the parent can refetch and update the property. */
+  onPropertyUpdated?: () => void;
 }
 
-export default function PropertyDetail({ property, onClose, onDeleted }: PropertyDetailProps) {
+export default function PropertyDetail({ property, onClose, onDeleted, onPropertyUpdated }: PropertyDetailProps) {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [carouselIndex, setCarouselIndex] = useState(0);
   const [showEditPanel, setShowEditPanel] = useState(false);
+
+  const mainImage = property.mainImage || (property.images?.[0] ? property.images[0] : `https://picsum.photos/seed/${property.id}/1200/800`);
+  const allImages = [mainImage, ...(property.images ?? []).filter((url) => url !== mainImage)];
+  const safeIndex = allImages.length ? Math.min(carouselIndex, allImages.length - 1) : 0;
+  const currentImage = allImages[safeIndex] ?? mainImage;
   const [editPanelInitialStep, setEditPanelInitialStep] = useState(0);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [deletingImageUrl, setDeletingImageUrl] = useState<string | null>(null);
   const [generatingBrochure, setGeneratingBrochure] = useState(false);
   const [showScheduleViewing, setShowScheduleViewing] = useState(false);
 
@@ -48,27 +58,82 @@ export default function PropertyDetail({ property, onClose, onDeleted }: Propert
     }
   };
 
+  const handleDeleteImage = useCallback(
+    async (imageUrl: string) => {
+      setDeletingImageUrl(imageUrl);
+      try {
+        sfx.menuSelect();
+        await deletePropertyImage(property.id, imageUrl);
+        onPropertyUpdated?.();
+      } catch (err) {
+        console.error('Failed to delete image:', err);
+      } finally {
+        setDeletingImageUrl(null);
+      }
+    },
+    [property.id, onPropertyUpdated]
+  );
+
   const handleClose = useCallback(() => {
     sfx.menuClose();
     onClose();
   }, [onClose]);
 
+  const handleGalleryDragEnd = useCallback(
+    async (result: DropResult) => {
+      if (!result.destination || result.source.index === result.destination.index) return;
+      const reordered = [...allImages];
+      const [removed] = reordered.splice(result.source.index, 1);
+      reordered.splice(result.destination.index, 0, removed);
+      try {
+        sfx.menuSelect();
+        await updatePropertyImages(property.id, reordered);
+        onPropertyUpdated?.();
+      } catch (err) {
+        console.error('Failed to reorder gallery:', err);
+      }
+    },
+    [property.id, allImages, onPropertyUpdated]
+  );
+
   useEffect(() => {
     sfx.menuOpen();
   }, []);
+
+  useEffect(() => {
+    if (!selectedImage || allImages.length === 0) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setSelectedImage(null);
+        return;
+      }
+      const idx = Math.max(0, allImages.findIndex((url) => url === selectedImage));
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        sfx.menuSelect();
+        setSelectedImage(allImages[idx <= 0 ? allImages.length - 1 : idx - 1]);
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        sfx.menuSelect();
+        setSelectedImage(allImages[idx >= allImages.length - 1 ? 0 : idx + 1]);
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [selectedImage, allImages]);
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 20 }}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 max-[1560px]:p-2"
+      className="fixed inset-0 z-50 flex items-center justify-center pt-12 pb-4 px-4 sm:pt-16 sm:pb-6 sm:px-6 max-[1560px]:pt-10 max-[1560px]:pb-2 max-[1560px]:px-2"
     >
       <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={handleClose} />
       
-      <div className="relative w-full max-w-5xl max-[1560px]:max-w-[94vw] max-[1560px]:max-h-[96vh] bg-app-light dark:bg-app-dark border border-gray-200 dark:border-zinc-800 rounded-2xl max-[1560px]:rounded-xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+      <div className="relative w-full max-w-5xl max-[1560px]:max-w-[94vw] max-[1560px]:max-h-[96vh] bg-app-light/85 dark:bg-app-dark/85 rounded-2xl max-[1560px]:rounded-xl overflow-hidden flex flex-col max-h-[90vh] border border-white/40 dark:border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.1)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-sm">
         {/* Header */}
-        <div className="flex flex-wrap items-center justify-between gap-3 p-6 max-[1560px]:p-4 border-b border-gray-300 dark:border-zinc-800 bg-white/90 dark:bg-app-dark backdrop-blur-md sticky top-0 z-10">
+        <div className="flex flex-wrap items-center justify-between gap-3 p-6 max-[1560px]:p-4 border-b border-gray-200 dark:border-zinc-800 bg-app-light/80 dark:bg-app-dark/80 backdrop-blur-sm sticky top-0 z-10">
           <div className="flex items-center gap-3 max-[1560px]:gap-2 min-w-0 flex-1">
             <button 
               onClick={handleClose}
@@ -116,68 +181,119 @@ export default function PropertyDetail({ property, onClose, onDeleted }: Propert
           <div className="grid grid-cols-1 lg:grid-cols-3 max-[1560px]:grid-cols-1 gap-8 max-[1560px]:gap-6">
             {/* Main Content */}
             <div className="lg:col-span-2 max-[1560px]:col-span-1 space-y-8 max-[1560px]:space-y-6">
-              {/* Main Image */}
-              <div className="aspect-video max-[1560px]:aspect-16/10 rounded-xl overflow-hidden bg-gray-300 dark:bg-zinc-800 relative group">
-                <img 
-                  src={property.mainImage || `https://picsum.photos/seed/${property.id}/1200/800`} 
-                  alt={property.title}
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-6">
+              {/* Image Carousel */}
+              <div className="rounded-xl overflow-hidden bg-gray-300 dark:bg-zinc-800 border border-white/40 dark:border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.1)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.4)] relative group aspect-video max-[1560px]:aspect-16/10">
+                <AnimatePresence mode="wait" initial={false}>
+                  <motion.img
+                    key={safeIndex}
+                    src={currentImage}
+                    alt={`${property.title} – ${carouselIndex + 1}`}
+                    className="w-full h-full object-cover block"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                  />
+                </AnimatePresence>
+                {allImages.length > 1 && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); sfx.menuSelect(); setCarouselIndex((i) => (i <= 0 ? allImages.length - 1 : i - 1)); }}
+                      aria-label="Previous image"
+                      className="absolute left-2 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-black/50 hover:bg-black/70 text-white transition-colors focus:outline-none focus:ring-2 focus:ring-white/50"
+                    >
+                      <ChevronLeft size={24} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); sfx.menuSelect(); setCarouselIndex((i) => (i >= allImages.length - 1 ? 0 : i + 1)); }}
+                      aria-label="Next image"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-black/50 hover:bg-black/70 text-white transition-colors focus:outline-none focus:ring-2 focus:ring-white/50"
+                    >
+                      <ChevronRight size={24} />
+                    </button>
+                    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10 flex gap-1.5">
+                      {allImages.map((_, i) => (
+                        <button
+                          key={i}
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); sfx.menuSelect(); setCarouselIndex(i); }}
+                          className={`w-2 h-2 rounded-full transition-colors ${
+                            i === safeIndex ? 'bg-white scale-125' : 'bg-white/50 hover:bg-white/80'
+                          }`}
+                          aria-label={`Go to image ${i + 1}`}
+                        />
+                      ))}
+                    </div>
+                  </>
+                )}
+                <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-6 pointer-events-none">
                   <button
-                    onClick={(e) => { e.stopPropagation(); sfx.menuSelect(); setSelectedImage(property.mainImage || null); }}
-                    className="bg-accent text-white dark:text-black px-4 py-2 rounded-lg font-bold text-sm hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-black/60"
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); sfx.menuSelect(); setSelectedImage(currentImage); }}
+                    className="pointer-events-auto bg-accent text-white dark:text-black px-4 py-2 rounded-lg font-bold text-sm hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-black/60"
                   >
                     View Full Screen
                   </button>
                 </div>
               </div>
 
-              {/* Description */}
-              <div>
-                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">About this property</h3>
-                <p className="text-gray-600 dark:text-zinc-400 leading-relaxed">
-                  {property.description || "No description available for this property."}
-                </p>
-              </div>
-
-              {/* Features */}
-              <div>
-                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Features</h3>
-                <div className="grid grid-cols-2 sm:grid-cols-3 max-[1560px]:grid-cols-2 gap-4">
-                  {property.features?.map((feature, index) => (
-                    <div key={index} className="flex items-center gap-2 text-gray-700 dark:text-zinc-400 text-sm">
-                      <CheckCircle size={14} className="text-accent shrink-0" />
-                      {feature}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Gallery */}
-              <div>
+              {/* Gallery – thumbnails under carousel (reorderable) */}
+              <div className="rounded-xl p-6 bg-app-light dark:bg-app-dark border border-white/40 dark:border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.1)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.4)]">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-bold text-gray-900 dark:text-white">Gallery</h3>
-                  <span className="text-xs text-gray-600 dark:text-zinc-500">{property.images?.length || 0} photos</span>
+                  <span className="text-xs text-gray-600 dark:text-zinc-500">{allImages.length} photo{allImages.length !== 1 ? 's' : ''}</span>
                 </div>
-                
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 max-[1560px]:grid-cols-2 max-[1560px]:sm:grid-cols-3 gap-4">
-                  {property.images?.map((image, index) => (
-                    <div 
-                      key={index} 
-                      className={`aspect-square rounded-lg overflow-hidden bg-gray-300 dark:bg-zinc-800 cursor-pointer transition-all ring-2 ${
-                        selectedImage === image ? 'ring-accent ring-offset-2 ring-offset-white dark:ring-offset-zinc-900' : 'ring-transparent hover:opacity-90'
-                      }`}
-                      onClick={() => { sfx.menuSelect(); setSelectedImage(image); }}
-                    >
-                      <img src={image} alt={`Gallery ${index}`} className="w-full h-full object-cover" />
-                    </div>
-                  ))}
-                  
-                  {/* Upload Placeholder */}
+                  <DragDropContext onDragEnd={handleGalleryDragEnd}>
+                    <Droppable droppableId="gallery">
+                      {(provided) => (
+                        <div
+                          ref={provided.innerRef}
+                          {...provided.droppableProps}
+                          className="contents"
+                        >
+                          {allImages.map((image, index) => (
+                            <Draggable key={image} draggableId={`gallery-${index}`} index={index}>
+                              {(provided, snapshot) => (
+                                <div
+                                  ref={provided.innerRef}
+                                  {...provided.draggableProps}
+                                  className={`relative group aspect-square rounded-lg overflow-hidden bg-gray-300 dark:bg-zinc-800 transition-all ring-2 ${
+                                    safeIndex === index ? 'ring-accent ring-offset-2 ring-offset-white dark:ring-offset-zinc-900' : 'ring-transparent hover:opacity-90'
+                                  } ${snapshot.isDragging ? 'opacity-90 shadow-xl ring-2 ring-accent z-10' : ''}`}
+                                  onClick={() => { sfx.menuSelect(); setCarouselIndex(index); }}
+                                >
+                                  <div {...provided.dragHandleProps} className="absolute left-1 top-1 z-1 p-1 rounded bg-black/50 text-white/90 hover:bg-black/70 cursor-grab active:cursor-grabbing touch-none">
+                                    <GripVertical size={16} />
+                                  </div>
+                                  <img src={image} alt={`Gallery ${index + 1}`} className="w-full h-full object-cover pointer-events-none select-none" draggable={false} />
+                                  <button
+                                    type="button"
+                                    onClick={(e) => { e.stopPropagation(); handleDeleteImage(image); }}
+                                    disabled={deletingImageUrl === image}
+                                    className="absolute top-2 right-2 p-1.5 rounded-full bg-black/70 text-white hover:bg-red-500 disabled:opacity-60 disabled:cursor-wait transition-colors focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-black/50"
+                                    title="Delete image"
+                                  >
+                                    {deletingImageUrl === image ? (
+                                      <Loader2 size={14} className="animate-spin" />
+                                    ) : (
+                                      <Trash2 size={14} />
+                                    )}
+                                  </button>
+                                </div>
+                              )}
+                            </Draggable>
+                          ))}
+                          {provided.placeholder}
+                        </div>
+                      )}
+                    </Droppable>
+                  </DragDropContext>
                   <button
                     type="button"
-                    className="aspect-square rounded-lg border-2 border-dashed border-gray-400 dark:border-zinc-800 flex flex-col items-center justify-center text-gray-500 dark:text-zinc-600 hover:border-accent hover:text-accent active:border-accent active:bg-accent/10 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-zinc-900"
+                    className="aspect-square rounded-lg border-2 border-dashed border-white/40 dark:border-white/10 bg-app-light dark:bg-app-dark flex flex-col items-center justify-center text-gray-500 dark:text-zinc-500 hover:border-accent hover:text-accent active:border-accent active:bg-accent/10 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-zinc-900 shadow-[0_4px_30px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.3)]"
                     onClick={() => { sfx.menuSelect(); setEditPanelInitialStep(3); setShowEditPanel(true); }}
                   >
                     <ImageIcon size={24} className="mb-2" />
@@ -186,13 +302,41 @@ export default function PropertyDetail({ property, onClose, onDeleted }: Propert
                 </div>
               </div>
 
+              {/* Short Description */}
+              <div className="rounded-xl p-6 bg-app-light dark:bg-app-dark border border-white/40 dark:border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.1)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.4)]">
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Short Description</h3>
+                <p className="text-gray-600 dark:text-zinc-400 leading-relaxed whitespace-pre-line">
+                  {property.description || "No description available for this property."}
+                </p>
+              </div>
+
+              {/* Object Description */}
+              {property.objectDescription && (
+                <div className="rounded-xl p-6 bg-app-light dark:bg-app-dark border border-white/40 dark:border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.1)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.4)]">
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Object Description</h3>
+                  <p className="text-gray-600 dark:text-zinc-400 leading-relaxed whitespace-pre-line">
+                    {property.objectDescription}
+                  </p>
+                </div>
+              )}
+
+              {/* Location */}
+              {property.locationDescription && (
+                <div className="rounded-xl p-6 bg-app-light dark:bg-app-dark border border-white/40 dark:border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.1)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.4)]">
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Location</h3>
+                  <p className="text-gray-600 dark:text-zinc-400 leading-relaxed whitespace-pre-line">
+                    {property.locationDescription}
+                  </p>
+                </div>
+              )}
+
               {/* Videos */}
               {property.videos && property.videos.length > 0 && (
-                <div>
+                <div className="rounded-xl p-6 bg-app-light dark:bg-app-dark border border-white/40 dark:border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.1)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.4)]">
                   <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Videos</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {property.videos.map((videoUrl, index) => (
-                      <div key={index} className="aspect-video rounded-lg overflow-hidden bg-gray-300 dark:bg-zinc-800">
+                      <div key={index} className="aspect-video rounded-lg overflow-hidden bg-gray-300 dark:bg-zinc-800 border border-white/40 dark:border-white/10">
                         <video
                           src={videoUrl}
                           controls
@@ -208,7 +352,7 @@ export default function PropertyDetail({ property, onClose, onDeleted }: Propert
 
             {/* Sidebar */}
             <div className="space-y-6 max-[1560px]:space-y-4 max-[1560px]:lg:col-span-1">
-              <div className="bg-white dark:bg-zinc-800/50 rounded-xl p-6 max-[1560px]:p-4 border border-gray-300 dark:border-zinc-800">
+              <div className="rounded-xl p-6 max-[1560px]:p-4 bg-app-light dark:bg-app-dark border border-white/40 dark:border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.1)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.4)]">
                 <div className="text-3xl max-[1560px]:text-2xl font-bold text-gray-900 dark:text-white mb-1">
                   €{property.price.toLocaleString()}
                 </div>
@@ -217,32 +361,32 @@ export default function PropertyDetail({ property, onClose, onDeleted }: Propert
                 </div>
 
                 <div className="grid grid-cols-3 max-[1560px]:gap-2 gap-3 mb-6 max-[1560px]:mb-4">
-                  <div className="text-center p-3 bg-gray-100 dark:bg-zinc-900 rounded-lg border-2 border-gray-300 dark:border-zinc-800 hover:border-accent/50 transition-colors">
+                  <div className="text-center p-3 bg-app-light dark:bg-app-dark rounded-lg border border-white/40 dark:border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.3)] hover:border-accent/50 transition-colors">
                     <LayoutGrid size={20} className="mx-auto mb-1 text-gray-600 dark:text-zinc-400" />
                     <div className="text-lg font-bold text-gray-900 dark:text-white">{property.rooms ?? '—'}</div>
                     <div className="text-[10px] text-gray-600 dark:text-white uppercase">Rooms</div>
                   </div>
-                  <div className="text-center p-3 bg-gray-100 dark:bg-zinc-900 rounded-lg border-2 border-gray-300 dark:border-zinc-800 hover:border-accent/50 transition-colors">
+                  <div className="text-center p-3 bg-app-light dark:bg-app-dark rounded-lg border border-white/40 dark:border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.3)] hover:border-accent/50 transition-colors">
                     <Bath size={20} className="mx-auto mb-1 text-gray-600 dark:text-zinc-400" />
                     <div className="text-lg font-bold text-gray-900 dark:text-white">{property.bathrooms ?? '—'}</div>
                     <div className="text-[10px] text-gray-600 dark:text-white uppercase">Baths</div>
                   </div>
-                  <div className="text-center p-3 bg-gray-100 dark:bg-zinc-900 rounded-lg border-2 border-gray-300 dark:border-zinc-800 hover:border-accent/50 transition-colors">
+                  <div className="text-center p-3 bg-app-light dark:bg-app-dark rounded-lg border border-white/40 dark:border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.3)] hover:border-accent/50 transition-colors">
                     <Box size={20} className="mx-auto mb-1 text-gray-600 dark:text-zinc-400" />
                     <div className="text-lg font-bold text-gray-900 dark:text-white">{property.balconies ?? '—'}</div>
                     <div className="text-[10px] text-gray-600 dark:text-white uppercase">Balconies</div>
                   </div>
-                  <div className="text-center p-3 bg-gray-100 dark:bg-zinc-900 rounded-lg border-2 border-gray-300 dark:border-zinc-800 hover:border-accent/50 transition-colors">
+                  <div className="text-center p-3 bg-app-light dark:bg-app-dark rounded-lg border border-white/40 dark:border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.3)] hover:border-accent/50 transition-colors">
                     <Droplets size={20} className="mx-auto mb-1 text-gray-600 dark:text-zinc-400" />
                     <div className="text-lg font-bold text-gray-900 dark:text-white">{property.bathtubs ?? '—'}</div>
                     <div className="text-[10px] text-gray-600 dark:text-white uppercase">Bathtubs</div>
                   </div>
-                  <div className="text-center p-3 bg-gray-100 dark:bg-zinc-900 rounded-lg border-2 border-gray-300 dark:border-zinc-800 hover:border-accent/50 transition-colors">
+                  <div className="text-center p-3 bg-app-light dark:bg-app-dark rounded-lg border border-white/40 dark:border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.3)] hover:border-accent/50 transition-colors">
                     <UtensilsCrossed size={20} className="mx-auto mb-1 text-gray-600 dark:text-zinc-400" />
                     <div className="text-lg font-bold text-gray-900 dark:text-white">{property.kitchens ?? '—'}</div>
                     <div className="text-[10px] text-gray-600 dark:text-white uppercase">Kitchens</div>
                   </div>
-                  <div className="text-center p-3 bg-gray-100 dark:bg-zinc-900 rounded-lg border-2 border-gray-300 dark:border-zinc-800 hover:border-accent/50 transition-colors">
+                  <div className="text-center p-3 bg-app-light dark:bg-app-dark rounded-lg border border-white/40 dark:border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.3)] hover:border-accent/50 transition-colors">
                     <Car size={20} className="mx-auto mb-1 text-gray-600 dark:text-zinc-400" />
                     <div className="text-lg font-bold text-gray-900 dark:text-white">{property.garage ?? '—'}</div>
                     <div className="text-[10px] text-gray-600 dark:text-white uppercase">Garage</div>
@@ -267,6 +411,19 @@ export default function PropertyDetail({ property, onClose, onDeleted }: Propert
                   Schedule Viewing
                 </button>
               </div>
+
+              {/* Features */}
+              <div className="rounded-xl p-6 max-[1560px]:p-4 bg-app-light dark:bg-app-dark border border-white/40 dark:border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.1)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.4)]">
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Features</h3>
+                <div className="grid grid-cols-2 max-[1560px]:gap-2 gap-3">
+                  {property.features?.map((feature, index) => (
+                    <div key={index} className="flex items-center gap-2 text-gray-700 dark:text-zinc-400 text-sm">
+                      <CheckCircle size={14} className="text-accent shrink-0" />
+                      {feature}
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -274,27 +431,69 @@ export default function PropertyDetail({ property, onClose, onDeleted }: Propert
 
       {/* Lightbox */}
       <AnimatePresence>
-        {selectedImage && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-60 bg-black/95 flex items-center justify-center p-4"
-            onClick={() => { sfx.menuSelect(); setSelectedImage(null); }}
-          >
-            <button 
-              className="absolute top-4 right-4 p-2 bg-black/50 rounded-full text-white hover:bg-accent/20 hover:text-accent transition-colors focus:outline-none focus:ring-2 focus:ring-accent"
-              onClick={(e) => { e.stopPropagation(); sfx.menuSelect(); setSelectedImage(null); }}
+        {selectedImage && (() => {
+          const lightboxIndex = Math.max(0, allImages.findIndex((url) => url === selectedImage));
+          const goPrev = (e: React.MouseEvent) => {
+            e.stopPropagation();
+            sfx.menuSelect();
+            const next = lightboxIndex <= 0 ? allImages.length - 1 : lightboxIndex - 1;
+            setSelectedImage(allImages[next]);
+          };
+          const goNext = (e: React.MouseEvent) => {
+            e.stopPropagation();
+            sfx.menuSelect();
+            const next = lightboxIndex >= allImages.length - 1 ? 0 : lightboxIndex + 1;
+            setSelectedImage(allImages[next]);
+          };
+          return (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-60 bg-black/95 flex items-center justify-center p-4"
+              onClick={() => { sfx.menuSelect(); setSelectedImage(null); }}
             >
-              <X size={24} />
-            </button>
-            <img 
-              src={selectedImage} 
-              alt="Full screen" 
-              className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
-            />
-          </motion.div>
-        )}
+              <button
+                type="button"
+                className="absolute top-4 right-4 z-10 p-2 bg-black/50 rounded-full text-white hover:bg-accent/20 hover:text-accent transition-colors focus:outline-none focus:ring-2 focus:ring-accent"
+                onClick={(e) => { e.stopPropagation(); sfx.menuSelect(); setSelectedImage(null); }}
+                aria-label="Close"
+              >
+                <X size={24} />
+              </button>
+              <div
+                className="flex flex-col items-center gap-4"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <img
+                  src={selectedImage}
+                  alt={`Full screen ${lightboxIndex + 1} of ${allImages.length}`}
+                  className="max-w-[55vw] max-h-[60vh] w-auto h-auto object-contain rounded-lg shadow-2xl"
+                />
+                {allImages.length > 1 && (
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={goPrev}
+                      aria-label="Previous image"
+                      className="p-3 rounded-full bg-black/50 hover:bg-black/70 text-white transition-colors focus:outline-none focus:ring-2 focus:ring-white/50"
+                    >
+                      <ChevronLeft size={32} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={goNext}
+                      aria-label="Next image"
+                      className="p-3 rounded-full bg-black/50 hover:bg-black/70 text-white transition-colors focus:outline-none focus:ring-2 focus:ring-white/50"
+                    >
+                      <ChevronRight size={32} />
+                    </button>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          );
+        })()}
       </AnimatePresence>
 
       {/* Delete Confirmation Modal */}
@@ -354,7 +553,10 @@ export default function PropertyDetail({ property, onClose, onDeleted }: Propert
             property={property}
             initialStep={editPanelInitialStep}
             onClose={() => setShowEditPanel(false)}
-            onSuccess={() => setShowEditPanel(false)}
+            onSuccess={() => {
+              setShowEditPanel(false);
+              onPropertyUpdated?.();
+            }}
           />
         )}
       </AnimatePresence>

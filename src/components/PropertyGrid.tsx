@@ -45,9 +45,14 @@ export default function PropertyGrid({ properties, onSelectProperty }: PropertyG
           {/* Details */}
           <div className="p-4">
             <div className="flex items-center justify-between mb-4">
-              <span className="text-2xl font-bold text-gray-900 dark:text-white">
-                €{property.price.toLocaleString()}
-              </span>
+              <div>
+                <span className="text-2xl font-bold text-gray-900 dark:text-white">
+                  €{property.price.toLocaleString()}
+                </span>
+                {property.livingSpace != null && (
+                  <div className="text-sm text-gray-600 dark:text-zinc-400 mt-0.5">{property.livingSpace} m²</div>
+                )}
+              </div>
               <span className="text-xs text-gray-600 dark:text-zinc-500 uppercase tracking-wider font-medium">
                 {property.type}
               </span>

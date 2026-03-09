@@ -204,7 +204,13 @@ export default function Properties({
         {selectedProperty && (
           <PropertyDetail 
             property={selectedProperty} 
-            onClose={() => setSelectedProperty(null)} 
+            onClose={() => setSelectedProperty(null)}
+            onPropertyUpdated={async () => {
+              const data = await getProperties();
+              setProperties(data);
+              const updated = data.find((p) => p.id === selectedProperty?.id);
+              if (updated) setSelectedProperty(updated);
+            }}
           />
         )}
       </AnimatePresence>

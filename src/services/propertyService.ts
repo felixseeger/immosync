@@ -2,6 +2,7 @@ import { db, storage } from '../firebase';
 import { collection, getDocs, getDoc, doc, updateDoc, arrayUnion, query, orderBy, addDoc, serverTimestamp, deleteDoc } from 'firebase/firestore';
 import { ref, deleteObject, listAll } from 'firebase/storage';
 import { Property } from '../types';
+import { findPropertyAndReport, type PropertyImageArtifactReport } from '../utils/checkPropertyImageArtifacts';
 
 const PROPERTIES_COLLECTION = 'properties';
 
@@ -143,44 +144,35 @@ export const deletePropertyImage = async (
   propertyId: string,
   imageUrl: string
 ): Promise<void> => {
-  try {
-    // Extract file path from download URL
-    // Firebase download URL format: https://firebasestorage.googleapis.com/v0/b/{bucket}/o/{encoded_path}?alt=media&token={token}
-    const urlParts = imageUrl.split('/o/');
-    if (urlParts.length < 2) {
-      throw new Error('Invalid image URL format');
+  const propertyRef = doc(db, PROPERTIES_COLLECTION, propertyId);
+
+  // Try to delete from Storage when it's a Firebase Storage URL; never block Firestore update
+  const urlParts = imageUrl.split('/o/');
+  if (urlParts.length >= 2) {
+    try {
+      let encodedPath = urlParts[1].split('?')[0];
+      let filePath = decodeURIComponent(encodedPath);
+      if (filePath.startsWith('/')) filePath = filePath.substring(1);
+      const fileRef = ref(storage, filePath);
+      await deleteObject(fileRef);
+    } catch (storageError: unknown) {
+      const code = (storageError as { code?: string })?.code;
+      if (code === 'storage/object-not-found') {
+        // File already gone — continue to remove from Firestore
+      } else {
+        console.warn('Could not delete file from Storage (will still remove from property):', storageError);
+      }
     }
-    
-    let encodedPath = urlParts[1].split('?')[0];
-    let filePath = decodeURIComponent(encodedPath);
-    
-    // Remove leading slash if present
-    if (filePath.startsWith('/')) {
-      filePath = filePath.substring(1);
-    }
-    
-    console.log('Deleting image with path:', filePath);
-    const fileRef = ref(storage, filePath);
-    
-    // Delete from Storage
-    await deleteObject(fileRef);
-    console.log('Image deleted from Storage');
-    
-    // Remove URL from Firestore document
-    const propertyRef = doc(db, PROPERTIES_COLLECTION, propertyId);
-    const propertyDoc = await getDoc(propertyRef);
-    const currentImages = propertyDoc.data()?.images ?? [];
-    const updatedImages = currentImages.filter((img: string) => img !== imageUrl);
-    
-    await updateDoc(propertyRef, {
-      images: updatedImages,
-      mainImage: updatedImages[0] ?? ''
-    });
-    console.log('Firestore document updated');
-  } catch (error) {
-    console.error('Error deleting property image:', error);
-    throw error;
   }
+
+  // Always remove the image from the property document so the UI updates
+  const propertyDoc = await getDoc(propertyRef);
+  const currentImages = (propertyDoc.data()?.images ?? []) as string[];
+  const updatedImages = currentImages.filter((img) => img !== imageUrl);
+  await updateDoc(propertyRef, {
+    images: updatedImages,
+    mainImage: updatedImages[0] ?? ''
+  });
 };
 
 export const updatePropertyVideos = async (
@@ -208,13 +200,30 @@ export const deletePropertyVideo = async (
   await updateDoc(propertyRef, { videos: current.filter((v) => v !== videoUrl) });
 };
 
+/** Build a Firestore-safe payload: no undefined, no NaN. */
+function sanitizeForFirestore<T extends Record<string, unknown>>(obj: T): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(obj)) {
+    if (v === undefined) continue;
+    if (typeof v === 'number' && Number.isNaN(v)) {
+      out[k] = 0;
+    } else if (typeof v === 'object' && v !== null && !Array.isArray(v) && !(v instanceof Date)) {
+      continue; // skip nested objects (e.g. Timestamp) to avoid overwriting
+    } else {
+      out[k] = v;
+    }
+  }
+  return out;
+}
+
 export const updateProperty = async (
   propertyId: string,
   data: Partial<Omit<Property, 'id' | 'createdAt'>>
 ): Promise<void> => {
   try {
     const propertyRef = doc(db, PROPERTIES_COLLECTION, propertyId);
-    await updateDoc(propertyRef, data as Record<string, unknown>);
+    const safe = sanitizeForFirestore(data as Record<string, unknown>);
+    await updateDoc(propertyRef, safe);
   } catch (error) {
     console.error('Error updating property:', error);
     throw error;
@@ -370,4 +379,28 @@ export const seedProperties = async () => {
     console.error("Error seeding properties:", error);
     throw error;
   }
+};
+
+/**
+ * Fetches all properties, finds the one matching "Lütticher Strasse" (title or address),
+ * and returns a report on thumbnail/cache artifacts in its image URLs.
+ * Run from browser console: (await import('./services/propertyService')).checkLutticherPropertyImageArtifacts();
+ */
+export const checkLutticherPropertyImageArtifacts = async (): Promise<PropertyImageArtifactReport | null> => {
+  const properties = await getProperties();
+  const report = findPropertyAndReport(properties, 'Lütticher');
+  if (!report) {
+    console.warn('No property found matching "Lütticher" (title or address).');
+    return null;
+  }
+  console.log('Lütticher Strasse property image artifact report:', report);
+  if (report.summary.likelyArtifacts > 0) {
+    console.warn(
+      `Found ${report.summary.likelyArtifacts} image URL(s) that look like thumbnail/cache artifacts.`,
+      report.reports.filter((r) => r.isLikelyThumbOrCache)
+    );
+  } else {
+    console.log('No thumbnail/cache URL patterns detected in image URLs.');
+  }
+  return report;
 };

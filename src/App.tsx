@@ -51,13 +51,13 @@ const SidebarItem = ({ icon: Icon, label, active = false, onClick, collapsed = f
     {active && !collapsed && (
       <motion.div
         layoutId="active-nav"
-        className="absolute -left-4 top-0 bottom-0 w-1 bg-accent rounded-r-full"
+        className="absolute -left-4 top-0 bottom-0 w-1 bg-blue-500 dark:bg-blue-400 rounded-r-full"
       />
     )}
     <AnimatedLink
       active={active}
       onClick={onClick}
-      className={`flex items-center gap-3 py-3 w-full cursor-pointer ${collapsed ? 'justify-center md:justify-center px-0' : ''}`}
+      className={`flex items-center gap-3 py-3 w-full cursor-pointer ${collapsed ? 'justify-center md:justify-center px-0' : ''} ${active ? 'text-blue-600 dark:text-blue-400 focus:ring-blue-500/50' : ''}`}
       title={collapsed ? label : undefined}
       aria-label={label}
     >

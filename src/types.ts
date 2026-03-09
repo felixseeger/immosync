@@ -95,6 +95,10 @@ export interface Property {
   heatingType?: HeatingType;
   // Content
   description: string;
+  /** Detailed object/condition description (step 3). Persisted separately so it saves and prefills on edit. */
+  objectDescription?: string;
+  /** Free-text location/area description (e.g. "Central Munich, near English Garden"). */
+  locationDescription?: string;
   mainImage: string;
   images: string[];
   /** Optional video URLs (e.g. MP4/WebM uploaded to Firebase Storage). */

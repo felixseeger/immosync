@@ -50,8 +50,11 @@ export default function PropertyList({ properties, onSelectProperty }: PropertyL
                 <td className="px-4 py-3 text-gray-600 dark:text-zinc-400 max-w-[200px] truncate" title={property.address}>
                   {property.address}
                 </td>
-                <td className="px-4 py-3 font-semibold text-gray-900 dark:text-white">
-                  €{property.price?.toLocaleString() ?? '—'}
+                <td className="px-4 py-3">
+                  <div className="font-semibold text-gray-900 dark:text-white">€{property.price?.toLocaleString() ?? '—'}</div>
+                  {property.livingSpace != null && (
+                    <div className="text-xs text-gray-600 dark:text-zinc-400">{property.livingSpace} m²</div>
+                  )}
                 </td>
                 <td className="px-4 py-3 text-gray-600 dark:text-zinc-400">{property.bedrooms ?? '—'}</td>
                 <td className="px-4 py-3 text-gray-600 dark:text-zinc-400">{property.bathrooms ?? '—'}</td>
