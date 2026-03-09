@@ -122,16 +122,25 @@ export default function PropertyDetail({ property, onClose, onDeleted, onPropert
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [selectedImage, allImages]);
 
+  const panelTransition = { type: 'spring' as const, stiffness: 380, damping: 22 };
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
       className="fixed inset-0 z-50 flex items-center justify-center pt-12 pb-4 px-4 sm:pt-16 sm:pb-6 sm:px-6 max-[1560px]:pt-10 max-[1560px]:pb-2 max-[1560px]:px-2"
     >
       <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={handleClose} />
       
-      <div className="relative w-full max-w-5xl max-[1560px]:max-w-[94vw] max-[1560px]:max-h-[96vh] bg-app-light/85 dark:bg-app-dark/85 rounded-2xl max-[1560px]:rounded-xl overflow-hidden flex flex-col max-h-[90vh] border border-white/40 dark:border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.1)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-sm">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.92, y: 32 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.96, y: 20 }}
+        transition={panelTransition}
+        className="relative w-full max-w-5xl max-[1560px]:max-w-[94vw] max-[1560px]:max-h-[96vh] bg-app-light/85 dark:bg-app-dark/85 rounded-2xl max-[1560px]:rounded-xl overflow-hidden flex flex-col max-h-[90vh] border border-white/40 dark:border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.1)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-sm"
+      >
         {/* Header */}
         <div className="flex flex-wrap items-center justify-between gap-3 p-6 max-[1560px]:p-4 border-b border-gray-200 dark:border-zinc-800 bg-app-light/80 dark:bg-app-dark/80 backdrop-blur-sm sticky top-0 z-10">
           <div className="flex items-center gap-3 max-[1560px]:gap-2 min-w-0 flex-1">
@@ -427,7 +436,7 @@ export default function PropertyDetail({ property, onClose, onDeleted, onPropert
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Lightbox */}
       <AnimatePresence>
