@@ -242,9 +242,10 @@ export default function ContactSlideOverPanel({ contact, onClose, onSuccess }: C
             <button
               type="button"
               onClick={handleClose}
+              aria-label="Close"
               className="p-2 hover:bg-gray-200 dark:hover:bg-zinc-800 rounded-lg transition-colors text-gray-600 dark:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-accent/50"
             >
-              <X size={20} />
+              <X size={20} aria-hidden="true" />
             </button>
           </div>
 
@@ -365,10 +366,10 @@ export default function ContactSlideOverPanel({ contact, onClose, onSuccess }: C
                               type="button"
                               onClick={() => handleUnlinkProperty(pid)}
                               disabled={unlinkingId === pid}
+                              aria-label="Unlink from contact"
                               className="p-1.5 rounded-md text-gray-500 dark:text-zinc-400 hover:bg-red-500/10 hover:text-red-500 transition-colors disabled:opacity-50"
-                              title="Unlink from contact"
                             >
-                              {unlinkingId === pid ? <Loader2 size={14} className="animate-spin" /> : <Unlink size={14} />}
+                              {unlinkingId === pid ? <Loader2 size={14} className="animate-spin" aria-hidden="true" /> : <Unlink size={14} aria-hidden="true" />}
                             </button>
                           </li>
                         );

@@ -1,0 +1,31 @@
+{
+  "welcome": {
+    "subject": "Willkommen bei IMMOSYNC",
+    "bodyLines": [
+      "Hallo {{firstName}},",
+      "",
+      "willkommen bei IMMOSYNC. Sie können sich jetzt anmelden und alle Funktionen nutzen.",
+      "",
+      "Anmelden: {{loginLink}}",
+      "{{#if bookingLink}}Zur App: {{bookingLink}}{{/if}}",
+      "",
+      "Bei Fragen antworten Sie einfach auf diese E-Mail.",
+      "",
+      "Ihr IMMOSYNC-Team"
+    ]
+  },
+  "reminder": {
+    "subject": "Ihr Termin bei IMMOSYNC",
+    "bodyLines": [
+      "Hallo {{firstName}},",
+      "",
+      "dies ist eine Erinnerung an Ihren anstehenden Termin.",
+      "",
+      "{{details}}",
+      "",
+      "Bei Fragen antworten Sie einfach auf diese E-Mail.",
+      "",
+      "Ihr IMMOSYNC-Team"
+    ]
+  }
+}

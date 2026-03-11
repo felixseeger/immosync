@@ -90,8 +90,8 @@ export default function AddDealPanel({ onClose, onSuccess, contacts, properties 
             </div>
             <h2 className="text-lg font-bold text-gray-900 dark:text-white">New deal</h2>
           </div>
-          <button type="button" onClick={handleClose} className="p-2 rounded-lg text-gray-500 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-accent/50">
-            <X size={20} />
+          <button type="button" onClick={handleClose} aria-label="Close" className="p-2 rounded-lg text-gray-500 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-accent/50">
+            <X size={20} aria-hidden="true" />
           </button>
         </div>
         <div className="p-4 overflow-y-auto space-y-4">

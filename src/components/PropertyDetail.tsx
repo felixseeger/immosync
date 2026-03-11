@@ -144,11 +144,12 @@ export default function PropertyDetail({ property, onClose, onDeleted, onPropert
         {/* Header */}
         <div className="flex flex-wrap items-center justify-between gap-3 p-6 max-[1560px]:p-4 border-b border-gray-200 dark:border-zinc-800 bg-app-light/80 dark:bg-app-dark/80 backdrop-blur-sm sticky top-0 z-10">
           <div className="flex items-center gap-3 max-[1560px]:gap-2 min-w-0 flex-1">
-            <button 
+            <button
               onClick={handleClose}
+              aria-label="Go back"
               className="p-2 shrink-0 hover:bg-gray-200 dark:hover:bg-zinc-800 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-accent/50 text-gray-600 dark:text-zinc-400"
             >
-              <ArrowLeft size={20} className="max-[1560px]:w-5 max-[1560px]:h-5" />
+              <ArrowLeft size={20} className="max-[1560px]:w-5 max-[1560px]:h-5" aria-hidden="true" />
             </button>
             <div className="min-w-0">
               <h2 className="text-2xl max-[1560px]:text-lg font-bold text-gray-900 dark:text-white truncate">{property.title}</h2>
@@ -169,19 +170,19 @@ export default function PropertyDetail({ property, onClose, onDeleted, onPropert
             <button
               onClick={() => { sfx.menuSelect(); setEditPanelInitialStep(0); setShowEditPanel(true); }}
               className="p-2 hover:bg-gray-200 dark:hover:bg-zinc-800 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-accent/50 text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
-              title="Edit property"
+              aria-label="Edit property"
             >
-              <Pencil size={16} />
+              <Pencil size={16} aria-hidden="true" />
             </button>
             <button
               onClick={() => { sfx.menuSelect(); setShowDeleteConfirm(true); }}
               className="p-2 hover:bg-gray-200 dark:hover:bg-zinc-800 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-accent/50 text-gray-600 dark:text-zinc-400 hover:text-red-600 dark:hover:text-red-400"
-              title="Delete property"
+              aria-label="Delete property"
             >
-              <Trash2 size={16} />
+              <Trash2 size={16} aria-hidden="true" />
             </button>
-            <button onClick={handleClose} className="p-2 hover:bg-gray-200 dark:hover:bg-zinc-800 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-accent/50">
-              <X size={20} className="text-gray-600 dark:text-zinc-400" />
+            <button onClick={handleClose} aria-label="Close" className="p-2 hover:bg-gray-200 dark:hover:bg-zinc-800 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-accent/50">
+              <X size={20} className="text-gray-600 dark:text-zinc-400" aria-hidden="true" />
             </button>
           </div>
         </div>

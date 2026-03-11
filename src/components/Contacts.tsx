@@ -284,17 +284,17 @@ export default function Contacts({
                         <div className="flex items-center gap-1">
                           <button
                             onClick={() => setPanelContact(c)}
+                            aria-label="Edit contact"
                             className="p-2 rounded-lg text-blue-600 dark:text-blue-400 hover:bg-blue-500/15 dark:hover:bg-blue-500/15 border border-transparent hover:border-blue-500/40 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500/50"
-                            title="Edit"
                           >
-                            <Pencil size={14} />
+                            <Pencil size={14} aria-hidden="true" />
                           </button>
                           <button
                             onClick={() => setDeleteConfirm(c)}
+                            aria-label="Delete contact"
                             className="p-2 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-500/15 dark:hover:bg-red-500/15 border border-transparent hover:border-red-500/40 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500/50"
-                            title="Delete"
                           >
-                            <Trash2 size={14} />
+                            <Trash2 size={14} aria-hidden="true" />
                           </button>
                         </div>
                       </td>

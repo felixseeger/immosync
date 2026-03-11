@@ -295,10 +295,10 @@ export default function DealDetailSlideOver({
                       type="button"
                       onClick={() => handleDeleteDocument(doc.id)}
                       disabled={deletingId === doc.id}
+                      aria-label="Remove document"
                       className="p-1.5 rounded text-gray-500 dark:text-zinc-400 hover:bg-red-500/10 hover:text-red-500 disabled:opacity-50"
-                      title="Remove document"
                     >
-                      {deletingId === doc.id ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                      {deletingId === doc.id ? <Loader2 size={14} className="animate-spin" aria-hidden="true" /> : <Trash2 size={14} aria-hidden="true" />}
                     </button>
                   </li>
                 ))}

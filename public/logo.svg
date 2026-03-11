@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+  <g fill="#E0A040">
+    <!-- Roof: symmetrical gable with eaves -->
+    <path d="M16 2 2 13h2.5L16 5l11.5 8H30L16 2Z" />
+    <!-- Letter I -->
+    <rect x="11" y="14" width="10" height="2" rx=".4" />
+    <rect x="14" y="16" width="4" height="10" rx=".4" />
+    <rect x="11" y="26" width="10" height="2" rx=".4" />
+  </g>
+</svg>

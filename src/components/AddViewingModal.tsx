@@ -162,9 +162,10 @@ export default function AddViewingModal({ initialDate, viewing, onClose, onSucce
           <button
             type="button"
             onClick={handleClose}
+            aria-label="Close"
             className="p-2 rounded-lg text-gray-500 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 hover:text-gray-900 dark:hover:text-white focus:outline-none focus:ring-2 focus:ring-accent/50"
           >
-            <X size={20} />
+            <X size={20} aria-hidden="true" />
           </button>
         </div>
 

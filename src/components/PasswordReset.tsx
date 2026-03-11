@@ -1,6 +1,4 @@
 import React, { useState } from 'react';
-import { sendPasswordResetEmail } from 'firebase/auth';
-import { auth } from '../firebase';
 import { motion } from 'motion/react';
 import { Mail, ArrowLeft, Loader2, AlertCircle, CheckCircle } from 'lucide-react';
 
@@ -14,55 +12,53 @@ export default function PasswordReset({ onBack }: PasswordResetProps) {
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
 
-  const getErrorMessage = (err: unknown): string => {
-    if (!err || typeof err !== 'object' || !('code' in err)) {
-      return 'Failed to send reset email. Check the address and try again.';
-    }
-    const code = (err as { code?: string }).code;
-    switch (code) {
-      case 'auth/invalid-email':
-        return 'Please enter a valid email address.';
-      case 'auth/user-not-found':
-        return 'No account found for this email. Try signing up or check the address.';
-      case 'auth/unauthorized-domain':
-        return 'This app’s domain is not authorized for password reset. Please contact the site administrator.';
-      case 'auth/invalid-continue-uri':
-      case 'auth/invalid-dynamic-link-domain':
-        return 'Redirect URL is not allowed. Please contact the site administrator.';
-      case 'auth/too-many-requests':
-        return 'Too many attempts. Please try again later.';
-      default:
-        return (err as { message?: string }).message
-          ? String((err as { message: string }).message)
-          : 'Failed to send reset email. Check the address and try again.';
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
+    const trimmed = email.trim().toLowerCase();
+    if (!trimmed) {
+      setError('Please enter your email address.');
+      setLoading(false);
+      return;
+    }
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
     try {
-      const trimmed = email.trim().toLowerCase();
-      if (!trimmed) {
-        setError('Please enter your email address.');
-        setLoading(false);
+      const res = await fetch(`${origin}/api/send-password-reset`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: trimmed }),
+      });
+      const text = await res.text();
+      let data: { ok?: boolean; error?: string };
+      try {
+        data = text ? (JSON.parse(text) as { ok?: boolean; error?: string }) : {};
+      } catch {
+        setError(
+          res.ok
+            ? 'Invalid server response. Try again.'
+            : 'Password reset API is not available. When running locally, start the API with "vercel dev".'
+        );
         return;
       }
-      const origin = typeof window !== 'undefined' ? window.location.origin : '';
-      const isValidOrigin = origin && origin !== 'null' && !origin.startsWith('file:');
-      // continueUrl domain must be in Firebase Console → Authentication → Authorized domains
-      const actionCodeSettings = isValidOrigin
-        ? { url: `${origin}/`, handleCodeInApp: false }
-        : undefined;
-      await sendPasswordResetEmail(auth, trimmed, actionCodeSettings);
+      if (!res.ok || !data.ok) {
+        const msg = typeof data.error === 'string' && data.error.trim() ? data.error.trim() : null;
+        if (res.status === 404) {
+          setError('Password reset API not found. Run "vercel dev" locally or deploy to Vercel.');
+        } else {
+          setError(msg || `Request failed (${res.status}). Check server logs or env (FIREBASE_SERVICE_ACCOUNT_JSON, RESEND_API_KEY).`);
+        }
+        return;
+      }
       setSent(true);
     } catch (err: unknown) {
-      if (import.meta.env.DEV) {
-        console.error('Password reset error:', err);
-      }
-      setError(getErrorMessage(err));
+      if (import.meta.env.DEV) console.error('Password reset error:', err);
+      setError(
+        err instanceof TypeError && err.message?.includes('fetch')
+          ? 'Network error. Check your connection or try again later.'
+          : 'Failed to send reset email. Check your connection and try again.'
+      );
     } finally {
       setLoading(false);
     }
@@ -92,7 +88,7 @@ export default function PasswordReset({ onBack }: PasswordResetProps) {
         <div className="bg-app-light dark:bg-app-dark border border-gray-200 dark:border-zinc-800 rounded-2xl p-8 shadow-2xl backdrop-blur-sm">
           <h2 className="text-2xl font-bold mb-2">Reset password</h2>
           <p className="text-zinc-500 text-sm mb-8">
-            Enter your account email and we’ll send a link to set a new password.
+            Enter your account email and weâ€™ll send a link to set a new password.
           </p>
 
           {sent ? (
@@ -105,10 +101,10 @@ export default function PasswordReset({ onBack }: PasswordResetProps) {
                 <CheckCircle size={24} className="shrink-0" />
                 <div className="text-sm space-y-1">
                   <p>
-                    If an account exists for <strong className="text-white">{email}</strong>, you’ll receive a password reset link.
+                    If an account exists for <strong className="text-white">{email}</strong>, youâ€™ll receive a password reset link.
                   </p>
                   <p className="text-zinc-400 text-xs">
-                    Check spam/junk and the email you use to sign in. If you still don’t see it, the account may not exist for this address—try signing up or use another sign-in method.
+                    Check spam/junk and the email you use to sign in. If you still donâ€™t see it, the account may not exist for this addressâ€”try signing up or use another sign-in method.
                   </p>
                 </div>
               </div>
@@ -178,7 +174,7 @@ export default function PasswordReset({ onBack }: PasswordResetProps) {
         </div>
 
         <p className="text-center mt-8 text-zinc-600 text-[10px] uppercase tracking-[0.2em] font-mono">
-          Secure Access • SiteSync.io
+          Secure Access â€¢ SiteSync.io
         </p>
       </motion.div>
     </div>

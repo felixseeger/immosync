@@ -226,7 +226,7 @@ export default function CalendarView() {
                             role="button"
                             tabIndex={0}
                             onClick={() => setSelectedDay(day)}
-                            onKeyDown={(e) => e.key === 'Enter' && setSelectedDay(day)}
+                            onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && setSelectedDay(day)}
                             className={`h-full min-h-[72px] md:min-h-[88px] rounded-lg p-1.5 md:p-2 cursor-pointer transition-colors ${
                               !isSameMonth(day, monthStart)
                                 ? 'bg-gray-50 dark:bg-zinc-900/50 text-gray-400 dark:text-zinc-600'
