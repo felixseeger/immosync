@@ -7,3 +7,5 @@ coverage/
 .env*
 !.env.example
 .vercel
+*-firebase-adminsdk-*.json
+sitesync-c3f9a-firebase-adminsdk-fbsvc-3811ae7f72.json
