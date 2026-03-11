@@ -5,9 +5,8 @@
  * Env: RESEND_API_KEY, FIREBASE_SERVICE_ACCOUNT_JSON (full JSON string), APP_URL
  * Self-contained (no ../src) so Vercel serverless can load it.
  */
-import * as admin from "firebase-admin";
 import { getAuth } from "firebase-admin/auth";
-import { getApps, initializeApp, type ServiceAccount } from "firebase-admin/app";
+import { cert, getApps, initializeApp, type ServiceAccount } from "firebase-admin/app";
 import { Resend } from "resend";
 
 type VercelRes = { status: (code: number) => { json: (data: object) => void } };
@@ -25,7 +24,7 @@ function getFirebaseAuth() {
   } catch {
     throw new Error("FIREBASE_SERVICE_ACCOUNT_JSON invalid JSON");
   }
-  initializeApp({ credential: admin.credential.cert(cred) });
+  initializeApp({ credential: cert(cred) });
   return getAuth();
 }
 
