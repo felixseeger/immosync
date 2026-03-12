@@ -13,7 +13,7 @@ import {
   ExternalLink,
   Activity,
   FolderOpen,
-  Briefcase,
+  CheckSquare,
 } from 'lucide-react';
 import AnimatedLink from './AnimatedLink';
 import { formatDistanceToNow } from 'date-fns';
@@ -29,10 +29,10 @@ import {
 import type { Deal, DealActivity, DealDocument, DealStageId, DealDocumentCategory } from '../types';
 
 const DOC_CATEGORIES: { value: DealDocumentCategory; label: string }[] = [
-  { value: 'lease', label: 'Lease agreement' },
-  { value: 'credit_check', label: 'Credit check' },
-  { value: 'notary', label: 'Notary draft' },
-  { value: 'other', label: 'Other' },
+  { value: 'lease', label: 'Mietvertrag' },
+  { value: 'credit_check', label: 'Kreditabfrage' },
+  { value: 'notary', label: 'Notar / Vertrag' },
+  { value: 'other', label: 'Sonstiges' },
 ];
 
 const inputCls =
@@ -163,7 +163,7 @@ export default function DealDetailSlideOver({
           <div className="p-4 border-b border-gray-200 dark:border-zinc-800 flex items-center justify-between shrink-0">
             <div className="flex items-center gap-2">
               <span className="p-2 rounded-lg bg-accent/15 border-2 border-accent/40">
-                <Briefcase size={18} className="text-accent" />
+                <CheckSquare size={18} className="text-accent" />
               </span>
               <h2 id="deal-panel-title" className="text-lg font-bold text-gray-900 dark:text-white">
                 Deal details
@@ -305,7 +305,7 @@ export default function DealDetailSlideOver({
               </ul>
               {documents.length === 0 && !uploading && (
                 <p className="text-sm text-gray-500 dark:text-zinc-500 py-4 text-center">
-                  No documents yet. Upload lease agreements, credit checks, or notary drafts above.
+                  Noch keine Dokumente vorhanden. Laden Sie oben Mietverträge, Kreditabfragen oder Notarunterlagen hoch.
                 </p>
               )}
             </section>

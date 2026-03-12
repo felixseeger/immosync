@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Lock, ArrowRight, AlertCircle } from 'lucide-react';
 import { motion } from 'motion/react';
+import { t } from '../i18n/de';
 
 const GATE_PASSWORD = 'sitesync123';
 const STORAGE_KEY = 'sitesync-gate-unlocked';
@@ -29,7 +30,7 @@ export default function LandingPassword({ onUnlock }: LandingPasswordProps) {
       setGateUnlocked();
       onUnlock();
     } else {
-      setError('Incorrect password. Please try again.');
+      setError(t.landing.incorrectPassword);
     }
   };
 

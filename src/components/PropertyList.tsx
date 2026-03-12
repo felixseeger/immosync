@@ -1,5 +1,6 @@
 import React from 'react';
 import { Property } from '../types';
+import { t } from '../i18n/de';
 import { MapPin, ArrowRight } from 'lucide-react';
 
 interface PropertyListProps {
@@ -14,8 +15,8 @@ export default function PropertyList({ properties, onSelectProperty }: PropertyL
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b border-gray-200 dark:border-zinc-800 bg-gray-50 dark:bg-zinc-900/80">
-              <th className="px-4 py-3 font-semibold text-gray-700 dark:text-zinc-300">Property</th>
-              <th className="px-4 py-3 font-semibold text-gray-700 dark:text-zinc-300">Address</th>
+              <th className="px-4 py-3 font-semibold text-gray-700 dark:text-zinc-300">{t.property.property}</th>
+              <th className="px-4 py-3 font-semibold text-gray-700 dark:text-zinc-300">{t.property.address}</th>
               <th className="px-4 py-3 font-semibold text-gray-700 dark:text-zinc-300">Price</th>
               <th className="px-4 py-3 font-semibold text-gray-700 dark:text-zinc-300">Rooms</th>
               <th className="px-4 py-3 font-semibold text-gray-700 dark:text-zinc-300">Baths</th>

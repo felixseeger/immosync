@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { Mail, ArrowLeft, Loader2, AlertCircle, CheckCircle } from 'lucide-react';
+import { t } from '../i18n/de';
 
 interface PasswordResetProps {
   onBack: () => void;
@@ -19,7 +20,7 @@ export default function PasswordReset({ onBack }: PasswordResetProps) {
 
     const trimmed = email.trim().toLowerCase();
     if (!trimmed) {
-      setError('Please enter your email address.');
+      setError(t.passwordReset.errorEmailRequired);
       setLoading(false);
       return;
     }
@@ -35,19 +36,15 @@ export default function PasswordReset({ onBack }: PasswordResetProps) {
       try {
         data = text ? (JSON.parse(text) as { ok?: boolean; error?: string }) : {};
       } catch {
-        setError(
-          res.ok
-            ? 'Invalid server response. Try again.'
-            : 'Password reset API is not available. When running locally, start the API with "vercel dev".'
-        );
+        setError(res.ok ? t.passwordReset.errorInvalidResponse : t.passwordReset.errorApiUnavailable);
         return;
       }
       if (!res.ok || !data.ok) {
         const msg = typeof data.error === 'string' && data.error.trim() ? data.error.trim() : null;
         if (res.status === 404) {
-          setError('Password reset API not found. Run "vercel dev" locally or deploy to Vercel.');
+          setError(t.passwordReset.errorApiNotFound);
         } else {
-          setError(msg || `Request failed (${res.status}). Check server logs or env (FIREBASE_SERVICE_ACCOUNT_JSON, RESEND_API_KEY).`);
+          setError(msg || t.passwordReset.errorRequestFailed);
         }
         return;
       }
@@ -56,8 +53,8 @@ export default function PasswordReset({ onBack }: PasswordResetProps) {
       if (import.meta.env.DEV) console.error('Password reset error:', err);
       setError(
         err instanceof TypeError && err.message?.includes('fetch')
-          ? 'Network error. Check your connection or try again later.'
-          : 'Failed to send reset email. Check your connection and try again.'
+          ? t.passwordReset.errorNetwork
+          : t.passwordReset.errorSendFailed
       );
     } finally {
       setLoading(false);
@@ -86,9 +83,9 @@ export default function PasswordReset({ onBack }: PasswordResetProps) {
         </div>
 
         <div className="bg-app-light dark:bg-app-dark border border-gray-200 dark:border-zinc-800 rounded-2xl p-8 shadow-2xl backdrop-blur-sm">
-          <h2 className="text-2xl font-bold mb-2">Reset password</h2>
+          <h2 className="text-2xl font-bold mb-2">{t.passwordReset.title}</h2>
           <p className="text-zinc-500 text-sm mb-8">
-            Enter your account email and weâ€™ll send a link to set a new password.
+            {t.passwordReset.subtitle}
           </p>
 
           {sent ? (
@@ -101,13 +98,7 @@ export default function PasswordReset({ onBack }: PasswordResetProps) {
                 <CheckCircle size={24} className="shrink-0" />
                 <div className="text-sm space-y-1">
                   <p>
-                    Falls ein Konto für <strong className="text-white">{email}</strong> existiert, erhalten Sie in Kürze einen Link zum Zurücksetzen des Passworts.
-                  </p>
-                  <p className="text-zinc-400 text-xs">
-                    Prüfen Sie Spam/Junk und die E-Mail-Adresse, mit der Sie sich anmelden. Wenn nichts ankommt, existiert möglicherweise kein Konto für diese Adresse – registrieren Sie sich oder nutzen Sie eine andere Anmeldemethode.
-                  </p>
-                  <p className="text-zinc-400 text-xs mt-2">
-                    Nach dem Zurücksetzen: Melden Sie sich in der App ab (falls eingeloggt), dann mit dem <strong className="text-white">neuen</strong> Passwort an.
+                    {t.passwordReset.successMessage.replace('{email}', email)}
                   </p>
                 </div>
               </div>
@@ -117,13 +108,13 @@ export default function PasswordReset({ onBack }: PasswordResetProps) {
                 className="w-full flex items-center justify-center gap-2 bg-accent text-white dark:text-black font-bold py-3 rounded-lg hover:bg-accent/90 transition-all active:scale-[0.98]"
               >
                 <ArrowLeft size={18} />
-                <span className="uppercase tracking-tight">Zurück zur Anmeldung</span>
+                <span className="uppercase tracking-tight">{t.passwordReset.backToSignIn}</span>
               </button>
             </motion.div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-1.5">
-                <label className="technical-label text-zinc-400 ml-1">Email address</label>
+                <label className="technical-label text-zinc-400 ml-1">{t.passwordReset.emailLabel}</label>
                 <div className="relative group">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-accent transition-colors" size={18} />
                   <input
@@ -131,7 +122,7 @@ export default function PasswordReset({ onBack }: PasswordResetProps) {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="name@example.com"
+                    placeholder={t.auth.emailPlaceholder}
                     className="w-full bg-app-dark border border-border-dark rounded-lg py-2.5 pl-10 pr-4 text-sm focus:outline-none focus:border-accent/50 transition-all"
                   />
                 </div>
@@ -156,7 +147,7 @@ export default function PasswordReset({ onBack }: PasswordResetProps) {
                 {loading ? (
                   <Loader2 className="animate-spin" size={20} />
                 ) : (
-                  <span className="uppercase tracking-tight">Send reset link</span>
+                  <span className="uppercase tracking-tight">{t.passwordReset.sendLink}</span>
                 )}
               </button>
             </form>
@@ -170,14 +161,14 @@ export default function PasswordReset({ onBack }: PasswordResetProps) {
                 className="text-zinc-500 text-sm hover:text-accent font-medium transition-colors inline-flex items-center gap-1.5"
               >
                 <ArrowLeft size={14} />
-                Back to sign in
+                {t.passwordReset.backToSignIn}
               </button>
             </div>
           )}
         </div>
 
         <p className="text-center mt-8 text-zinc-600 text-[10px] uppercase tracking-[0.2em] font-mono">
-          Secure Access â€¢ SiteSync.io
+          Secure Access · SiteSync.io
         </p>
       </motion.div>
     </div>

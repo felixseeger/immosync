@@ -1,5 +1,6 @@
 import React from 'react';
 import { Property } from '../types';
+import { t } from '../i18n/de';
 import { motion } from 'motion/react';
 import { MapPin, LayoutGrid, Bath, Box, Droplets, UtensilsCrossed, Car, ArrowRight } from 'lucide-react';
 
@@ -92,7 +93,7 @@ export default function PropertyGrid({ properties, onSelectProperty }: PropertyG
             </div>
 
             <div className="mt-4 pt-4 border-t border-gray-300 dark:border-zinc-800 flex justify-between items-center group/btn">
-              <span className="text-xs text-gray-600 dark:text-zinc-500">View Details</span>
+              <span className="text-xs text-gray-600 dark:text-zinc-500">{t.property.viewDetails}</span>
               <div className="w-8 h-8 rounded-full bg-gray-300 dark:bg-zinc-800 flex items-center justify-center group-hover/btn:bg-accent group-hover/btn:text-white dark:group-hover/btn:text-black transition-colors text-blue-600 dark:text-blue-400 group-hover/btn:text-black">
                 <ArrowRight size={14} />
               </div>

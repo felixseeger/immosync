@@ -8,6 +8,7 @@ import ScheduleViewingModal from './ScheduleViewingModal';
 import { deleteProperty, deletePropertyImage, updatePropertyImages } from '../services/propertyService';
 import { downloadBrochurePdf } from '../utils/brochurePdf';
 import { sfx } from '../utils/sfx';
+import { t } from '../i18n/de';
 
 interface PropertyDetailProps {
   property: Property;
@@ -146,7 +147,7 @@ export default function PropertyDetail({ property, onClose, onDeleted, onPropert
           <div className="flex items-center gap-3 max-[1560px]:gap-2 min-w-0 flex-1">
             <button
               onClick={handleClose}
-              aria-label="Go back"
+              aria-label={t.propertyDetail.goBack}
               className="p-2 shrink-0 hover:bg-gray-200 dark:hover:bg-zinc-800 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-accent/50 text-gray-600 dark:text-zinc-400"
             >
               <ArrowLeft size={20} className="max-[1560px]:w-5 max-[1560px]:h-5" aria-hidden="true" />
@@ -163,25 +164,26 @@ export default function PropertyDetail({ property, onClose, onDeleted, onPropert
             <span className={`px-3 py-1 rounded-full text-xs font-medium border-2 ${
               property.status === 'Active' ? 'bg-accent/15 border-accent text-accent' :
               property.status === 'Pending' ? 'bg-blue-500/10 border-blue-500/30 text-blue-400' :
+              property.status === 'Rented' ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' :
               'bg-zinc-500/10 border-zinc-500/20 text-zinc-400'
             }`}>
-              {property.status}
+              {property.status === 'Active' ? t.propertyStatus.active : property.status === 'Pending' ? t.propertyStatus.pending : property.status === 'Rented' ? t.propertyStatus.rented : t.propertyStatus.sold}
             </span>
             <button
               onClick={() => { sfx.menuSelect(); setEditPanelInitialStep(0); setShowEditPanel(true); }}
               className="p-2 hover:bg-gray-200 dark:hover:bg-zinc-800 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-accent/50 text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
-              aria-label="Edit property"
+              aria-label={t.propertyDetail.editProperty}
             >
               <Pencil size={16} aria-hidden="true" />
             </button>
             <button
               onClick={() => { sfx.menuSelect(); setShowDeleteConfirm(true); }}
               className="p-2 hover:bg-gray-200 dark:hover:bg-zinc-800 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-accent/50 text-gray-600 dark:text-zinc-400 hover:text-red-600 dark:hover:text-red-400"
-              aria-label="Delete property"
+              aria-label={t.propertyDetail.deleteProperty}
             >
               <Trash2 size={16} aria-hidden="true" />
             </button>
-            <button onClick={handleClose} aria-label="Close" className="p-2 hover:bg-gray-200 dark:hover:bg-zinc-800 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-accent/50">
+            <button onClick={handleClose} aria-label={t.propertyDetail.close} className="p-2 hover:bg-gray-200 dark:hover:bg-zinc-800 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-accent/50">
               <X size={20} className="text-gray-600 dark:text-zinc-400" aria-hidden="true" />
             </button>
           </div>
@@ -210,7 +212,7 @@ export default function PropertyDetail({ property, onClose, onDeleted, onPropert
                     <button
                       type="button"
                       onClick={(e) => { e.stopPropagation(); sfx.menuSelect(); setCarouselIndex((i) => (i <= 0 ? allImages.length - 1 : i - 1)); }}
-                      aria-label="Previous image"
+                      aria-label={t.propertyDetail.previousImage}
                       className="absolute left-2 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-black/50 hover:bg-black/70 text-white transition-colors focus:outline-none focus:ring-2 focus:ring-white/50"
                     >
                       <ChevronLeft size={24} />
@@ -218,7 +220,7 @@ export default function PropertyDetail({ property, onClose, onDeleted, onPropert
                     <button
                       type="button"
                       onClick={(e) => { e.stopPropagation(); sfx.menuSelect(); setCarouselIndex((i) => (i >= allImages.length - 1 ? 0 : i + 1)); }}
-                      aria-label="Next image"
+                      aria-label={t.propertyDetail.nextImage}
                       className="absolute right-2 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-black/50 hover:bg-black/70 text-white transition-colors focus:outline-none focus:ring-2 focus:ring-white/50"
                     >
                       <ChevronRight size={24} />
@@ -232,7 +234,7 @@ export default function PropertyDetail({ property, onClose, onDeleted, onPropert
                           className={`w-2 h-2 rounded-full transition-colors ${
                             i === safeIndex ? 'bg-white scale-125' : 'bg-white/50 hover:bg-white/80'
                           }`}
-                          aria-label={`Go to image ${i + 1}`}
+                          aria-label={t.propertyDetail.goToImage.replace('{n}', String(i + 1))}
                         />
                       ))}
                     </div>
@@ -244,7 +246,7 @@ export default function PropertyDetail({ property, onClose, onDeleted, onPropert
                     onClick={(e) => { e.stopPropagation(); sfx.menuSelect(); setSelectedImage(currentImage); }}
                     className="pointer-events-auto bg-accent text-white dark:text-black px-4 py-2 rounded-lg font-bold text-sm hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-black/60"
                   >
-                    View Full Screen
+                    {t.propertyDetail.viewFullScreen}
                   </button>
                 </div>
               </div>
@@ -252,8 +254,8 @@ export default function PropertyDetail({ property, onClose, onDeleted, onPropert
               {/* Gallery – thumbnails under carousel (reorderable) */}
               <div className="rounded-xl p-6 bg-app-light dark:bg-app-dark border border-white/40 dark:border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.1)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.4)]">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-bold text-gray-900 dark:text-white">Gallery</h3>
-                  <span className="text-xs text-gray-600 dark:text-zinc-500">{allImages.length} photo{allImages.length !== 1 ? 's' : ''}</span>
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white">{t.propertyDetail.gallery}</h3>
+                  <span className="text-xs text-gray-600 dark:text-zinc-500">{allImages.length} {allImages.length !== 1 ? t.propertyDetail.photos : t.propertyDetail.photo}</span>
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 max-[1560px]:grid-cols-2 max-[1560px]:sm:grid-cols-3 gap-4">
                   <DragDropContext onDragEnd={handleGalleryDragEnd}>
@@ -284,7 +286,7 @@ export default function PropertyDetail({ property, onClose, onDeleted, onPropert
                                     onClick={(e) => { e.stopPropagation(); handleDeleteImage(image); }}
                                     disabled={deletingImageUrl === image}
                                     className="absolute top-2 right-2 p-1.5 rounded-full bg-black/70 text-white hover:bg-red-500 disabled:opacity-60 disabled:cursor-wait transition-colors focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-black/50"
-                                    title="Delete image"
+                                    title={t.propertyDetail.deleteImage}
                                   >
                                     {deletingImageUrl === image ? (
                                       <Loader2 size={14} className="animate-spin" />
@@ -307,23 +309,23 @@ export default function PropertyDetail({ property, onClose, onDeleted, onPropert
                     onClick={() => { sfx.menuSelect(); setEditPanelInitialStep(3); setShowEditPanel(true); }}
                   >
                     <ImageIcon size={24} className="mb-2" />
-                    <span className="text-xs">Add Photo</span>
+                    <span className="text-xs">{t.propertyDetail.addPhoto}</span>
                   </button>
                 </div>
               </div>
 
               {/* Short Description */}
               <div className="rounded-xl p-6 bg-app-light dark:bg-app-dark border border-white/40 dark:border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.1)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.4)]">
-                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Short Description</h3>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">{t.propertyDetail.shortDescription}</h3>
                 <p className="text-gray-600 dark:text-zinc-400 leading-relaxed whitespace-pre-line">
-                  {property.description || "No description available for this property."}
+                  {property.description || t.propertyDetail.noDescription}
                 </p>
               </div>
 
               {/* Object Description */}
               {property.objectDescription && (
                 <div className="rounded-xl p-6 bg-app-light dark:bg-app-dark border border-white/40 dark:border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.1)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.4)]">
-                  <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Object Description</h3>
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">{t.propertyDetail.objectDescription}</h3>
                   <p className="text-gray-600 dark:text-zinc-400 leading-relaxed whitespace-pre-line">
                     {property.objectDescription}
                   </p>
@@ -333,7 +335,7 @@ export default function PropertyDetail({ property, onClose, onDeleted, onPropert
               {/* Location */}
               {property.locationDescription && (
                 <div className="rounded-xl p-6 bg-app-light dark:bg-app-dark border border-white/40 dark:border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.1)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.4)]">
-                  <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Location</h3>
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">{t.propertyDetail.location}</h3>
                   <p className="text-gray-600 dark:text-zinc-400 leading-relaxed whitespace-pre-line">
                     {property.locationDescription}
                   </p>
@@ -343,7 +345,7 @@ export default function PropertyDetail({ property, onClose, onDeleted, onPropert
               {/* Videos */}
               {property.videos && property.videos.length > 0 && (
                 <div className="rounded-xl p-6 bg-app-light dark:bg-app-dark border border-white/40 dark:border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.1)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.4)]">
-                  <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Videos</h3>
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">{t.propertyDetail.videos}</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {property.videos.map((videoUrl, index) => (
                       <div key={index} className="aspect-video rounded-lg overflow-hidden bg-gray-300 dark:bg-zinc-800 border border-white/40 dark:border-white/10">
@@ -367,39 +369,73 @@ export default function PropertyDetail({ property, onClose, onDeleted, onPropert
                   €{property.price.toLocaleString()}
                 </div>
                 <div className="text-gray-600 dark:text-zinc-500 text-sm max-[1560px]:text-xs mb-6 max-[1560px]:mb-4">
-                  Est. Mortgage: €{Math.round(property.price * 0.0045).toLocaleString()}/mo
+                  {t.propertyDetail.estMortgage.replace('{amount}', Math.round(property.price * 0.0045).toLocaleString())}
                 </div>
+
+                {property.status === 'Rented' && (property.moveInDate || property.moveOutDate) && (
+                  <div className="mb-6 max-[1560px]:mb-4 p-3 rounded-xl bg-emerald-500/10 dark:bg-emerald-500/15 border border-emerald-500/30 space-y-2">
+                    {property.moveInDate && (
+                      <p className="text-sm text-gray-700 dark:text-zinc-300">
+                        <span className="text-gray-500 dark:text-zinc-500">{t.propertyRental.moveInDate}:</span>{' '}
+                        {new Date(property.moveInDate + 'T12:00:00').toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                      </p>
+                    )}
+                    {property.moveOutDate && (
+                      <p className="text-sm text-gray-700 dark:text-zinc-300">
+                        <span className="text-gray-500 dark:text-zinc-500">{t.propertyRental.moveOutDate}:</span>{' '}
+                        {new Date(property.moveOutDate + 'T12:00:00').toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {property.status === 'Sold' && (property.purchaseDate || property.saleDate) && (
+                  <div className="mb-6 max-[1560px]:mb-4 p-3 rounded-xl bg-zinc-500/10 dark:bg-zinc-500/15 border border-zinc-500/30 space-y-2">
+                    {property.purchaseDate && (
+                      <p className="text-sm text-gray-700 dark:text-zinc-300">
+                        <span className="text-gray-500 dark:text-zinc-500">{t.propertySale.purchaseDate}:</span>{' '}
+                        {new Date(property.purchaseDate + 'T12:00:00').toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                      </p>
+                    )}
+                    {property.saleDate && (
+                      <p className="text-sm text-gray-700 dark:text-zinc-300">
+                        <span className="text-gray-500 dark:text-zinc-500">{t.propertySale.saleDate}:</span>{' '}
+                        {new Date(property.saleDate + 'T12:00:00').toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                      </p>
+                    )}
+                  </div>
+                )}
 
                 <div className="grid grid-cols-3 max-[1560px]:gap-2 gap-3 mb-6 max-[1560px]:mb-4">
                   <div className="text-center p-3 bg-app-light dark:bg-app-dark rounded-lg border border-white/40 dark:border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.3)] hover:border-accent/50 transition-colors">
                     <LayoutGrid size={20} className="mx-auto mb-1 text-gray-600 dark:text-zinc-400" />
                     <div className="text-lg font-bold text-gray-900 dark:text-white">{property.rooms ?? '—'}</div>
-                    <div className="text-[10px] text-gray-600 dark:text-white uppercase">Rooms</div>
+                    <div className="text-[10px] text-gray-600 dark:text-white uppercase">{t.propertyDetail.rooms}</div>
                   </div>
                   <div className="text-center p-3 bg-app-light dark:bg-app-dark rounded-lg border border-white/40 dark:border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.3)] hover:border-accent/50 transition-colors">
                     <Bath size={20} className="mx-auto mb-1 text-gray-600 dark:text-zinc-400" />
                     <div className="text-lg font-bold text-gray-900 dark:text-white">{property.bathrooms ?? '—'}</div>
-                    <div className="text-[10px] text-gray-600 dark:text-white uppercase">Baths</div>
+                    <div className="text-[10px] text-gray-600 dark:text-white uppercase">{t.propertyDetail.baths}</div>
                   </div>
                   <div className="text-center p-3 bg-app-light dark:bg-app-dark rounded-lg border border-white/40 dark:border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.3)] hover:border-accent/50 transition-colors">
                     <Box size={20} className="mx-auto mb-1 text-gray-600 dark:text-zinc-400" />
                     <div className="text-lg font-bold text-gray-900 dark:text-white">{property.balconies ?? '—'}</div>
-                    <div className="text-[10px] text-gray-600 dark:text-white uppercase">Balconies</div>
+                    <div className="text-[10px] text-gray-600 dark:text-white uppercase">{t.propertyDetail.balconies}</div>
                   </div>
                   <div className="text-center p-3 bg-app-light dark:bg-app-dark rounded-lg border border-white/40 dark:border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.3)] hover:border-accent/50 transition-colors">
                     <Droplets size={20} className="mx-auto mb-1 text-gray-600 dark:text-zinc-400" />
                     <div className="text-lg font-bold text-gray-900 dark:text-white">{property.bathtubs ?? '—'}</div>
-                    <div className="text-[10px] text-gray-600 dark:text-white uppercase">Bathtubs</div>
+                    <div className="text-[10px] text-gray-600 dark:text-white uppercase">{t.propertyDetail.bathtubs}</div>
                   </div>
                   <div className="text-center p-3 bg-app-light dark:bg-app-dark rounded-lg border border-white/40 dark:border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.3)] hover:border-accent/50 transition-colors">
                     <UtensilsCrossed size={20} className="mx-auto mb-1 text-gray-600 dark:text-zinc-400" />
                     <div className="text-lg font-bold text-gray-900 dark:text-white">{property.kitchens ?? '—'}</div>
-                    <div className="text-[10px] text-gray-600 dark:text-white uppercase">Kitchens</div>
+                    <div className="text-[10px] text-gray-600 dark:text-white uppercase">{t.propertyDetail.kitchens}</div>
                   </div>
                   <div className="text-center p-3 bg-app-light dark:bg-app-dark rounded-lg border border-white/40 dark:border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.3)] hover:border-accent/50 transition-colors">
                     <Car size={20} className="mx-auto mb-1 text-gray-600 dark:text-zinc-400" />
                     <div className="text-lg font-bold text-gray-900 dark:text-white">{property.garage ?? '—'}</div>
-                    <div className="text-[10px] text-gray-600 dark:text-white uppercase">Garage</div>
+                    <div className="text-[10px] text-gray-600 dark:text-white uppercase">{t.propertyDetail.garage}</div>
                   </div>
                 </div>
 
@@ -410,7 +446,7 @@ export default function PropertyDetail({ property, onClose, onDeleted, onPropert
                   className="w-full bg-gray-200 dark:bg-zinc-800 text-gray-900 dark:text-white font-medium py-3 rounded-xl border-2 border-gray-300 dark:border-zinc-700 hover:border-accent/50 focus:outline-none focus:ring-2 focus:ring-accent/50 transition-colors mb-3 flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   {generatingBrochure ? <Loader2 size={18} className="animate-spin" /> : <FileDown size={18} />}
-                  {generatingBrochure ? 'Generating…' : 'Generate Brochure'}
+                  {generatingBrochure ? t.propertyDetail.generating : t.propertyDetail.generateBrochure}
                 </button>
                 <button
                   type="button"
@@ -418,13 +454,13 @@ export default function PropertyDetail({ property, onClose, onDeleted, onPropert
                   className="w-full bg-accent text-white dark:text-black font-bold py-3 rounded-xl hover:opacity-90 transition-opacity mb-3 flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-zinc-900"
                 >
                   <Calendar size={18} />
-                  Schedule Viewing
+                  {t.propertyDetail.scheduleViewing}
                 </button>
               </div>
 
               {/* Features */}
               <div className="rounded-xl p-6 max-[1560px]:p-4 bg-app-light dark:bg-app-dark border border-white/40 dark:border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.1)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.4)]">
-                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Features</h3>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">{t.propertyDetail.features}</h3>
                 <div className="grid grid-cols-2 max-[1560px]:gap-2 gap-3">
                   {property.features?.map((feature, index) => (
                     <div key={index} className="flex items-center gap-2 text-gray-700 dark:text-zinc-400 text-sm">
@@ -467,7 +503,7 @@ export default function PropertyDetail({ property, onClose, onDeleted, onPropert
                 type="button"
                 className="absolute top-4 right-4 z-10 p-2 bg-black/50 rounded-full text-white hover:bg-accent/20 hover:text-accent transition-colors focus:outline-none focus:ring-2 focus:ring-accent"
                 onClick={(e) => { e.stopPropagation(); sfx.menuSelect(); setSelectedImage(null); }}
-                aria-label="Close"
+                aria-label={t.propertyDetail.close}
               >
                 <X size={24} />
               </button>
@@ -485,7 +521,7 @@ export default function PropertyDetail({ property, onClose, onDeleted, onPropert
                     <button
                       type="button"
                       onClick={goPrev}
-                      aria-label="Previous image"
+                      aria-label={t.propertyDetail.previousImage}
                       className="p-3 rounded-full bg-black/50 hover:bg-black/70 text-white transition-colors focus:outline-none focus:ring-2 focus:ring-white/50"
                     >
                       <ChevronLeft size={32} />
@@ -493,7 +529,7 @@ export default function PropertyDetail({ property, onClose, onDeleted, onPropert
                     <button
                       type="button"
                       onClick={goNext}
-                      aria-label="Next image"
+                      aria-label={t.propertyDetail.nextImage}
                       className="p-3 rounded-full bg-black/50 hover:bg-black/70 text-white transition-colors focus:outline-none focus:ring-2 focus:ring-white/50"
                     >
                       <ChevronRight size={32} />
@@ -525,11 +561,10 @@ export default function PropertyDetail({ property, onClose, onDeleted, onPropert
                 <div className="p-2 bg-red-500/10 rounded-full">
                   <Trash2 size={20} className="text-red-400" />
                 </div>
-                <h3 className="text-lg font-bold text-gray-900 dark:text-white">Delete Property?</h3>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white">{t.propertyDetail.deleteConfirmTitle}</h3>
               </div>
               <p className="text-sm text-gray-600 dark:text-zinc-400 mb-6">
-                This will permanently delete{' '}
-                <span className="text-gray-900 dark:text-white font-medium">{property.title}</span>{' '}                and all associated images. This action cannot be undone.
+                {t.propertyDetail.deleteConfirmDesc}
               </p>
               <div className="flex gap-3">
                 <button
@@ -537,7 +572,7 @@ export default function PropertyDetail({ property, onClose, onDeleted, onPropert
                   disabled={isDeleting}
                   className="flex-1 py-2.5 bg-gray-200 dark:bg-zinc-800 hover:bg-gray-300 dark:hover:bg-zinc-700 hover:border-accent/50 border-2 border-transparent text-gray-900 dark:text-white text-sm font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-accent/50"
                 >
-                  Cancel
+                  {t.common.cancel}
                 </button>
                 <button
                   onClick={() => { sfx.menuSelect(); handleDelete(); }}
@@ -545,9 +580,9 @@ export default function PropertyDetail({ property, onClose, onDeleted, onPropert
                   className="flex-1 py-2.5 bg-red-500 hover:bg-red-600 text-white text-sm font-bold rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-red-400"
                 >
                   {isDeleting ? (
-                    <><Loader2 className="animate-spin" size={14} /> Deleting…</>
+                    <><Loader2 className="animate-spin" size={14} /> {t.propertyDetail.deleting}</>
                   ) : (
-                    'Delete'
+                    t.common.delete
                   )}
                 </button>
               </div>

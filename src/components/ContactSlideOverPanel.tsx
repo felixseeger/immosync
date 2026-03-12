@@ -5,6 +5,7 @@ import { X, Loader2, Trash2, User, Building2, Unlink } from 'lucide-react';
 import { createContact, updateContact, deleteContact, getLinkedPropertyIdsForContact, linkContactToProperty, unlinkContactFromProperty } from '../services/contactsService';
 import { getProperties } from '../services/propertyService';
 import { sfx } from '../utils/sfx';
+import { t } from '../i18n/de';
 import type { Contact, ContactCategory, LeadStatus, MarketingType, Property } from '../types';
 
 const inputCls =
@@ -236,13 +237,13 @@ export default function ContactSlideOverPanel({ contact, onClose, onSuccess }: C
                 <User size={18} className="text-accent" />
               </div>
               <h2 id="contact-panel-title" className="text-lg font-bold text-gray-900 dark:text-white">
-                {isEditing ? 'Edit Contact' : 'New Contact'}
+                {isEditing ? t.contact.editContact : t.contact.newContact}
               </h2>
             </div>
             <button
               type="button"
               onClick={handleClose}
-              aria-label="Close"
+              aria-label={t.common.close}
               className="p-2 hover:bg-gray-200 dark:hover:bg-zinc-800 rounded-lg transition-colors text-gray-600 dark:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-accent/50"
             >
               <X size={20} aria-hidden="true" />
@@ -251,29 +252,29 @@ export default function ContactSlideOverPanel({ contact, onClose, onSuccess }: C
 
           <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-4 space-y-5" noValidate>
             <div>
-              <Label required>Full name</Label>
+              <Label required>{t.contact.name}</Label>
               <input
                 type="text"
                 value={form.name}
                 onChange={set('name')}
-                placeholder="Jane Smith"
+                placeholder={t.contact.namePlaceholder}
                 className={inputCls}
                 required
               />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label>Email</Label>
-                <input type="email" value={form.email} onChange={set('email')} placeholder="jane@example.com" className={inputCls} />
+                <Label>{t.contact.email}</Label>
+                <input type="email" value={form.email} onChange={set('email')} placeholder={t.contact.emailPlaceholder} className={inputCls} />
               </div>
               <div>
-                <Label>Phone</Label>
-                <input type="tel" value={form.phone} onChange={set('phone')} placeholder="+1 555 000 0000" className={inputCls} />
+                <Label>{t.contact.phone}</Label>
+                <input type="tel" value={form.phone} onChange={set('phone')} placeholder={t.contact.phonePlaceholder} className={inputCls} />
               </div>
             </div>
             <div>
-              <Label>Company</Label>
-              <input type="text" value={form.company} onChange={set('company')} placeholder="Acme Inc." className={inputCls} />
+              <Label>{t.contact.company}</Label>
+              <input type="text" value={form.company} onChange={set('company')} placeholder={t.contact.companyPlaceholder} className={inputCls} />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -301,7 +302,7 @@ export default function ContactSlideOverPanel({ contact, onClose, onSuccess }: C
                 value={form.notes}
                 onChange={set('notes')}
                 rows={2}
-                placeholder="Internal notes…"
+                placeholder={t.contact.notesPlaceholder}
                 className={inputCls}
               />
             </div>
@@ -312,7 +313,7 @@ export default function ContactSlideOverPanel({ contact, onClose, onSuccess }: C
               </p>
               <div className="space-y-3">
                 <div>
-                  <Label>Marketing type</Label>
+                  <Label>Vermarktungsart</Label>
                   <select value={form.marketingType} onChange={set('marketingType')} className={selectCls(!!form.marketingType)}>
                     <option value="">—</option>
                     {MARKETING_TYPES.map((m) => (
@@ -366,7 +367,7 @@ export default function ContactSlideOverPanel({ contact, onClose, onSuccess }: C
                               type="button"
                               onClick={() => handleUnlinkProperty(pid)}
                               disabled={unlinkingId === pid}
-                              aria-label="Unlink from contact"
+                              aria-label={t.contact.unlink}
                               className="p-1.5 rounded-md text-gray-500 dark:text-zinc-400 hover:bg-red-500/10 hover:text-red-500 transition-colors disabled:opacity-50"
                             >
                               {unlinkingId === pid ? <Loader2 size={14} className="animate-spin" aria-hidden="true" /> : <Unlink size={14} aria-hidden="true" />}
@@ -382,7 +383,7 @@ export default function ContactSlideOverPanel({ contact, onClose, onSuccess }: C
                       onChange={(e) => { sfx.menuSelect(); setAssignPropertyId(e.target.value); }}
                       className={(assignPropertyId ? ' text-accent border-accent ' : ' ') + inputCls + ' flex-1'}
                     >
-                      <option value="">Assign to property…</option>
+                      <option value="">{t.contact.assignToProperty}</option>
                       {allProperties
                         .filter((p) => !linkedPropertyIds.includes(p.id))
                         .map((p) => (
@@ -396,7 +397,7 @@ export default function ContactSlideOverPanel({ contact, onClose, onSuccess }: C
                       className="px-4 py-2.5 font-semibold rounded-lg text-sm btn-outline-accent disabled:opacity-50 flex items-center gap-1.5 [&_svg]:text-current"
                     >
                       {linking ? <Loader2 size={16} className="animate-spin" /> : <Building2 size={16} />}
-                      Add
+                      {t.contact.add}
                     </button>
                   </div>
                 </div>
@@ -416,7 +417,7 @@ export default function ContactSlideOverPanel({ contact, onClose, onSuccess }: C
                 className="w-full py-3 bg-accent text-white dark:text-black font-bold rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2"
               >
                 {saving ? <Loader2 size={18} className="animate-spin" /> : null}
-                {isEditing ? 'Save changes' : 'Create contact'}
+                {isEditing ? t.common.saveChanges : t.contact.createContact}
               </button>
               {isEditing && (
                 <button
@@ -424,7 +425,7 @@ export default function ContactSlideOverPanel({ contact, onClose, onSuccess }: C
                   onClick={() => { sfx.menuSelect(); setShowDeleteConfirm(true); }}
                   className="w-full py-2.5 border border-red-500/50 text-red-500 dark:text-red-400 rounded-xl hover:bg-red-500/10 transition-colors text-sm font-medium"
                 >
-                  Delete contact
+                  {t.contact.deleteContact}
                 </button>
               )}
             </div>
@@ -447,9 +448,9 @@ export default function ContactSlideOverPanel({ contact, onClose, onSuccess }: C
               exit={{ scale: 0.95 }}
               className="bg-app-light dark:bg-app-dark border border-gray-200 dark:border-zinc-800 rounded-2xl p-6 max-w-sm w-full shadow-2xl"
             >
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Delete contact?</h3>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">{t.contact.deleteContactConfirmTitle}</h3>
               <p className="text-sm text-gray-600 dark:text-zinc-400 mb-4">
-                This will permanently remove {contact?.name} and any property links. This cannot be undone.
+                {t.contact.deleteContactConfirmDesc}
               </p>
               <div className="flex gap-3">
                 <button
@@ -458,7 +459,7 @@ export default function ContactSlideOverPanel({ contact, onClose, onSuccess }: C
                   disabled={deleting}
                   className="flex-1 py-2.5 bg-gray-200 dark:bg-zinc-800 text-gray-900 dark:text-white rounded-xl font-medium text-sm"
                 >
-                  Cancel
+                  {t.common.cancel}
                 </button>
                 <button
                   type="button"
@@ -467,7 +468,7 @@ export default function ContactSlideOverPanel({ contact, onClose, onSuccess }: C
                   className="flex-1 py-2.5 bg-red-500 text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   {deleting ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
-                  Delete
+                  {t.common.delete}
                 </button>
               </div>
             </motion.div>

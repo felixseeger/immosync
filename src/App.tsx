@@ -3,7 +3,7 @@ import {
   LayoutDashboard, 
   Building2, 
   Users, 
-  Briefcase, 
+  CheckSquare, 
   Calendar, 
   MessageSquare, 
   Search, 
@@ -45,6 +45,7 @@ import { sfx } from './utils/sfx';
 import AnimatedLink from './components/AnimatedLink';
 import LiquidGradientBackground from './components/LiquidGradientBackground';
 import Footer from './components/layout/Footer';
+import { t } from './i18n/de';
 
 const SidebarItem = ({ icon: Icon, label, active = false, onClick, collapsed = false }: { icon: React.ComponentType<{ size?: number }>, label: string, active?: boolean, onClick: () => void; collapsed?: boolean }) => (
   <div className={`relative ${collapsed ? 'px-0 flex justify-center md:justify-center' : 'px-4'}`}>
@@ -142,7 +143,7 @@ export default function App() {
           <div className="w-12 h-12 bg-accent rounded-lg flex items-center justify-center animate-pulse">
             <div className="w-6 h-6 border-2 border-black rotate-45" />
           </div>
-          <p className="text-gray-500 dark:text-zinc-500 technical-label animate-pulse">Initializing SiteSync...</p>
+          <p className="text-gray-500 dark:text-zinc-500 technical-label animate-pulse">{t.app.initializing}</p>
         </div>
       </div>
     );
@@ -207,23 +208,17 @@ export default function App() {
           {(sidebarCollapsed && isMdOrLarger) ? (
             <motion.span
               className="shrink-0 hidden md:inline-flex"
-              initial={{ rotate: 0 }}
-              animate={{ rotate: [0, 5, 360] }}
-              transition={{ duration: 0.6, ease: 'easeInOut' }}
+              initial={{ scale: 0.9 }}
+              animate={{ scale: [0.9, 1, 0.95] }}
+              transition={{ duration: 0.4, ease: 'easeInOut' }}
               aria-hidden
             >
-              <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect width="32" height="32" rx="8" fill="#D9FF00"/>
-                <text x="16" y="21" textAnchor="middle" fontWeight="800" fontSize="12" fill="black" fontFamily="system-ui, sans-serif">IM</text>
-              </svg>
+              <img src="/img/logo-icon.webp" alt="IMMOSYNC" className="w-8 h-8" />
             </motion.span>
           ) : (
             <>
-              <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0" aria-hidden>
-                <rect width="32" height="32" rx="8" fill="#D9FF00"/>
-                <text x="16" y="21" textAnchor="middle" fontWeight="800" fontSize="12" fill="black" fontFamily="system-ui, sans-serif">IM</text>
-              </svg>
-              <h1 className="text-xl font-bold tracking-tighter text-gray-900 dark:text-white truncate">IMMOSYNC</h1>
+              <img src="/img/logo-icon.webp" alt="IMMOSYNC" className="w-8 h-8 shrink-0" />
+              <img src="/img/logo-type.webp" alt="IMMOSYNC" className="h-6 hidden sm:block" />
             </>
           )}
           {/* Mobile: close button */}
@@ -231,7 +226,7 @@ export default function App() {
             type="button"
             onClick={closeSidebar}
             className="md:hidden ml-auto p-2 rounded-lg border-2 border-transparent text-gray-500 dark:text-zinc-400 hover:border-gray-400 dark:hover:border-zinc-500 transition-colors"
-            aria-label="Close menu"
+            aria-label={t.app.closeMenu}
           >
             <X size={20} />
           </button>
@@ -241,7 +236,7 @@ export default function App() {
               type="button"
               onClick={() => setSidebarCollapsed(true)}
               className="hidden md:flex ml-auto p-2 rounded-lg border-2 border-transparent text-gray-500 dark:text-zinc-400 hover:border-gray-400 dark:hover:border-zinc-500 transition-colors"
-              aria-label="Collapse sidebar"
+              aria-label={t.app.collapseSidebar}
             >
               <ChevronLeft size={20} />
             </button>
@@ -249,28 +244,28 @@ export default function App() {
         </div>
 
         <nav className="flex-1 mt-4 pt-[5px] overflow-y-auto custom-scrollbar">
-          <SidebarItem icon={LayoutDashboard} label="Dashboard" active={activeTab === 'Dashboard'} onClick={() => goTo('Dashboard')} collapsed={sidebarCollapsed && isMdOrLarger} />
-          <SidebarItem icon={Building2} label="Properties" active={activeTab === 'Properties'} onClick={() => goTo('Properties')} collapsed={sidebarCollapsed && isMdOrLarger} />
-          <SidebarItem icon={Users} label="Contacts" active={activeTab === 'Contacts'} onClick={() => goTo('Contacts')} collapsed={sidebarCollapsed && isMdOrLarger} />
-          <SidebarItem icon={Briefcase} label="Deals" active={activeTab === 'Deals'} onClick={() => goTo('Deals')} collapsed={sidebarCollapsed && isMdOrLarger} />
-          <SidebarItem icon={Calendar} label="Calendar" active={activeTab === 'Calendar'} onClick={() => goTo('Calendar')} collapsed={sidebarCollapsed && isMdOrLarger} />
-          <SidebarItem icon={MessageSquare} label="Messages" active={activeTab === 'Messages'} onClick={() => goTo('Messages')} collapsed={sidebarCollapsed && isMdOrLarger} />
+          <SidebarItem icon={LayoutDashboard} label={t.nav.dashboard} active={activeTab === 'Dashboard'} onClick={() => goTo('Dashboard')} collapsed={sidebarCollapsed && isMdOrLarger} />
+          <SidebarItem icon={Building2} label={t.nav.properties} active={activeTab === 'Properties'} onClick={() => goTo('Properties')} collapsed={sidebarCollapsed && isMdOrLarger} />
+          <SidebarItem icon={Users} label={t.nav.contacts} active={activeTab === 'Contacts'} onClick={() => goTo('Contacts')} collapsed={sidebarCollapsed && isMdOrLarger} />
+          <SidebarItem icon={CheckSquare} label={t.nav.deals} active={activeTab === 'Deals'} onClick={() => goTo('Deals')} collapsed={sidebarCollapsed && isMdOrLarger} />
+          <SidebarItem icon={Calendar} label={t.nav.calendar} active={activeTab === 'Calendar'} onClick={() => goTo('Calendar')} collapsed={sidebarCollapsed && isMdOrLarger} />
+          <SidebarItem icon={MessageSquare} label={t.nav.messages} active={activeTab === 'Messages'} onClick={() => goTo('Messages')} collapsed={sidebarCollapsed && isMdOrLarger} />
         </nav>
 
         <div className={`p-4 border-t border-gray-200 dark:border-border-dark space-y-2 ${sidebarCollapsed ? 'md:px-2' : ''}`}>
           {/* Theme toggle - hide labels when collapsed */}
           <div className={`flex items-center justify-between px-2 py-1 ${sidebarCollapsed ? 'md:justify-center md:flex-col md:gap-1' : ''}`}>
-            {!sidebarCollapsed && <span className="text-xs text-gray-600 dark:text-zinc-600 uppercase tracking-wider font-medium">Theme</span>}
+            {!sidebarCollapsed && <span className="text-xs text-gray-600 dark:text-zinc-600 uppercase tracking-wider font-medium">{t.app.theme}</span>}
             <div className="flex items-center gap-2">
               {!sidebarCollapsed && (
                 <span className="text-xs px-2 py-1 rounded bg-gray-100 dark:bg-zinc-900 text-gray-600 dark:text-zinc-400">
-                  {isDarkMode ? 'DARK' : 'LIGHT'}
+                  {isDarkMode ? t.app.dark : t.app.light}
                 </span>
               )}
               <button
                 onClick={() => setIsDarkMode(d => !d)}
                 className="p-1.5 hover:bg-gray-200 dark:hover:bg-zinc-800 rounded-lg transition-colors text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
-                title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+                title={isDarkMode ? t.app.switchToLight : t.app.switchToDark}
               >
                 {isDarkMode ? <Sun size={16} className="text-accent" /> : <Moon size={16} />}
               </button>
@@ -283,11 +278,11 @@ export default function App() {
               className={`flex items-center gap-3 p-2 rounded-xl hover:bg-gray-200 dark:hover:bg-zinc-800 transition-colors w-full text-left ${sidebarCollapsed ? 'md:justify-center md:px-0' : ''}`}
             >
               <div className="w-10 h-10 rounded-full bg-gray-300 dark:bg-zinc-800 border border-gray-300 dark:border-border-dark overflow-hidden shrink-0">
-                <img src={user.photoURL || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.displayName || user.email || 'U')}`} alt="Avatar" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
+                <img src={user.photoURL || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.displayName || user.email || 'U')}`} alt={t.app.avatar} referrerPolicy="no-referrer" className="w-full h-full object-cover" />
               </div>
               {!sidebarCollapsed && (
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate text-gray-900 dark:text-white">{user.displayName || 'User'}</p>
+                  <p className="text-sm font-medium truncate text-gray-900 dark:text-white">{user.displayName || t.app.user}</p>
                   <p className="text-xs text-gray-600 dark:text-zinc-500 truncate">{user.email}</p>
                 </div>
               )}
@@ -311,27 +306,24 @@ export default function App() {
             type="button"
             onClick={openSidebar}
             className="md:hidden p-2 -ml-2 rounded-lg border-2 border-transparent text-gray-600 dark:text-zinc-400 hover:border-gray-400 dark:hover:border-zinc-500 hover:text-gray-900 dark:hover:text-white transition-colors"
-            aria-label="Open menu"
+            aria-label={t.app.openMenu}
           >
             <Menu size={24} />
           </button>
           {/* Mobile: logo between burger and search */}
           <div className="md:hidden flex items-center gap-2 shrink-0">
-            <svg width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0" aria-hidden>
-              <rect width="32" height="32" rx="8" fill="#D9FF00"/>
-              <text x="16" y="21" textAnchor="middle" fontWeight="800" fontSize="12" fill="black" fontFamily="system-ui, sans-serif">IM</text>
-            </svg>
-            <h1 className="text-lg font-bold tracking-tighter text-gray-900 dark:text-white truncate">IMMOSYNC</h1>
+            <img src="/img/logo-icon.webp" alt="IMMOSYNC" className="w-7 h-7 shrink-0" />
+            <img src="/img/logo-type.webp" alt="IMMOSYNC" className="h-5" />
           </div>
           {/* When aside collapsed (desktop): logo text + expand toggle in header */}
           {sidebarCollapsed && (
             <div className="hidden md:flex items-center gap-2 shrink-0">
-              <h1 className="text-lg font-bold tracking-tighter text-gray-900 dark:text-white truncate">IMMOSYNC</h1>
+              <img src="/img/logo-type.webp" alt="IMMOSYNC" className="h-6" />
               <button
                 type="button"
                 onClick={() => setSidebarCollapsed(false)}
                 className="p-2 rounded-lg border-2 border-transparent text-gray-500 dark:text-zinc-400 hover:border-gray-400 dark:hover:border-zinc-500 hover:text-gray-900 dark:hover:text-white transition-colors"
-                aria-label="Expand sidebar"
+                aria-label={t.app.expandSidebar}
               >
                 <ChevronRight size={20} />
               </button>
@@ -339,7 +331,7 @@ export default function App() {
           )}
           <GlobalSearchBar
             className="ml-auto"
-            placeholder=""
+            placeholder={t.search.placeholder}
             onSelectProperty={(id) => { setActiveTab('Properties'); setInitialSelectedPropertyId(id); }}
             onSelectContact={(id) => { setActiveTab('Contacts'); setInitialSelectedContactId(id); }}
             onSelectDeal={(id) => { setActiveTab('Deals'); setInitialSelectedDealId(id); }}

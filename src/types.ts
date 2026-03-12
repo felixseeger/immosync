@@ -76,7 +76,15 @@ export interface Property {
   additionalCosts?: number;
   commission?: number;
   // Status
-  status: 'Active' | 'Pending' | 'Sold';
+  status: 'Active' | 'Pending' | 'Sold' | 'Rented';
+  /** When status is Rented: move-in date (ISO date string). */
+  moveInDate?: string;
+  /** When status is Rented: move-out date (ISO date string). */
+  moveOutDate?: string;
+  /** When status is Sold: purchase date (ISO date string). */
+  purchaseDate?: string;
+  /** When status is Sold: sale date (ISO date string). */
+  saleDate?: string;
   type: 'Residential' | 'Commercial' | 'Land';
   // Physical dimensions
   livingSpace?: number;
@@ -114,6 +122,7 @@ export type DealStageId =
   | 'viewing'
   | 'credit_check'
   | 'negotiation'
+  | 'maintenance'
   | 'notary_contract'
   | 'closed';
 
@@ -158,11 +167,11 @@ export interface DealDocument {
 export type ViewingEventType = 'signing' | 'viewing' | 'payment' | 'negotiation' | 'notar';
 
 export const VIEWING_EVENT_TYPE_LABELS: Record<ViewingEventType, string> = {
-  signing: 'Signing',
-  viewing: 'Viewing',
-  payment: 'Payment',
-  negotiation: 'Negotiation',
-  notar: 'Notar',
+  signing: 'Notar / Vertrag',
+  viewing: 'Besichtigung',
+  payment: 'Zahlung',
+  negotiation: 'Verhandlungen',
+  notar: 'Notar / Vertrag',
 };
 
 /** Scheduled event (viewing, signing, etc.) for a property with a contact */

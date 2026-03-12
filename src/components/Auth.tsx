@@ -7,6 +7,7 @@ import {
 import { auth } from '../firebase';
 import { motion } from 'motion/react';
 import { Mail, Lock, User, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
+import { t } from '../i18n/de';
 
 interface AuthProps {
   onSuccess: () => void;
@@ -49,7 +50,7 @@ export default function Auth({ onSuccess, onForgotPassword }: AuthProps) {
       onSuccess();
     } catch (err: any) {
       console.error(err);
-      setError(err.message || 'An error occurred during authentication');
+      setError(err.message || t.auth.authError);
     } finally {
       setLoading(false);
     }
@@ -78,16 +79,16 @@ export default function Auth({ onSuccess, onForgotPassword }: AuthProps) {
 
         <div className="bg-app-light dark:bg-app-dark border border-gray-200 dark:border-zinc-800 rounded-2xl p-8 shadow-2xl backdrop-blur-sm">
           <h2 className="text-2xl font-bold mb-2">
-            {isLogin ? 'Welcome Back' : 'Create Account'}
+            {isLogin ? t.auth.welcomeBack : t.auth.createAccount}
           </h2>
           <p className="text-zinc-500 text-sm mb-8">
-            {isLogin ? 'Enter your credentials to access your portfolio' : 'Join SiteSync to manage your real estate assets'}
+            {isLogin ? t.auth.loginSubtitle : t.auth.signupSubtitle}
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {!isLogin && (
               <div className="space-y-1.5">
-                <label htmlFor="auth-name" className="technical-label text-zinc-400 ml-1">Full Name</label>
+                <label htmlFor="auth-name" className="technical-label text-zinc-400 ml-1">{t.auth.fullName}</label>
                 <div className="relative group">
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-accent transition-colors" size={18} aria-hidden="true" />
                   <input
@@ -98,7 +99,7 @@ export default function Auth({ onSuccess, onForgotPassword }: AuthProps) {
                     required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="John Doe"
+                    placeholder={t.auth.fullNamePlaceholder}
                     className="w-full bg-app-dark border border-border-dark rounded-lg py-2.5 pl-10 pr-4 text-sm focus:outline-none focus:border-accent/50 transition-all"
                   />
                 </div>
@@ -106,7 +107,7 @@ export default function Auth({ onSuccess, onForgotPassword }: AuthProps) {
             )}
 
             <div className="space-y-1.5">
-              <label htmlFor="auth-email" className="technical-label text-zinc-400 ml-1">Email Address</label>
+              <label htmlFor="auth-email" className="technical-label text-zinc-400 ml-1">{t.auth.emailAddress}</label>
               <div className="relative group">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-accent transition-colors" size={18} aria-hidden="true" />
                 <input
@@ -117,7 +118,7 @@ export default function Auth({ onSuccess, onForgotPassword }: AuthProps) {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="name@example.com"
+                  placeholder={t.auth.emailPlaceholder}
                   className="w-full bg-app-dark border border-border-dark rounded-lg py-2.5 pl-10 pr-4 text-sm focus:outline-none focus:border-accent/50 transition-all"
                 />
               </div>
@@ -125,14 +126,14 @@ export default function Auth({ onSuccess, onForgotPassword }: AuthProps) {
 
             <div className="space-y-1.5">
               <div className="flex items-center justify-between ml-1">
-                <label htmlFor="auth-password" className="technical-label text-zinc-400">Password</label>
+                <label htmlFor="auth-password" className="technical-label text-zinc-400">{t.auth.password}</label>
                 {onForgotPassword && (
                   <button
                     type="button"
                     onClick={onForgotPassword}
                     className="technical-label text-accent hover:underline"
                   >
-                    Forgot password?
+                    {t.auth.forgotPassword}
                   </button>
                 )}
               </div>
@@ -173,11 +174,11 @@ export default function Auth({ onSuccess, onForgotPassword }: AuthProps) {
               {loading ? (
                 <>
                   <Loader2 className="animate-spin" size={20} aria-hidden="true" />
-                  <span>Loading…</span>
+                  <span>{t.auth.loading}</span>
                 </>
               ) : (
                 <>
-                  <span className="uppercase tracking-tight">{isLogin ? 'Sign In' : 'Create Account'}</span>
+                  <span className="uppercase tracking-tight">{isLogin ? t.auth.signIn : t.auth.createAccountButton}</span>
                   <ArrowRight size={18} aria-hidden="true" />
                 </>
               )}
@@ -186,12 +187,12 @@ export default function Auth({ onSuccess, onForgotPassword }: AuthProps) {
 
           <div className="mt-8 pt-6 border-t border-border-dark text-center">
             <p className="text-zinc-500 text-sm">
-              {isLogin ? "Don't have an account?" : "Already have an account?"}
+              {isLogin ? t.auth.noAccount : t.auth.hasAccount}
               <button 
                 onClick={() => setIsLogin(!isLogin)}
                 className="ml-2 text-accent font-bold hover:underline"
               >
-                {isLogin ? 'Register Now' : 'Sign In'}
+                {isLogin ? t.auth.registerNow : t.auth.signIn}
               </button>
             </p>
           </div>

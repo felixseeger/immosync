@@ -4,6 +4,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import { MapPin, Building2, LayoutGrid, Bath, Car, ExternalLink, PanelLeftClose, PanelRightOpen } from 'lucide-react';
 import type { Property } from '../types';
 import { geocodeAddresses } from '../utils/geocode';
+import { t } from '../i18n/de';
 import { sfx } from '../utils/sfx';
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
@@ -41,8 +42,9 @@ interface PlacedProperty {
 
 function markerColor(property: Property): string {
   switch (property.status) {
-    case 'Active': return '#9372c9'; // accent purple (light); map has no theme, use purple
+    case 'Active': return '#9372c9'; // accent purple
     case 'Pending': return '#3B82F6'; // blue-500
+    case 'Rented': return '#10B981';  // emerald-500
     case 'Sold': return '#71717A';   // zinc-500
     default: return '#71717A';
   }
@@ -115,7 +117,7 @@ export default function PropertyMap({ properties, isDarkMode = true, onSelectPro
   const [tilesLoading, setTilesLoading] = useState(true);
   const [popupProperty, setPopupProperty] = useState<PlacedProperty | null>(null);
   const [viewState, setViewState] = useState(DEFAULT_VIEW);
-  const [portfolioFilter, setPortfolioFilter] = useState<'All' | 'Active' | 'Pending' | 'Sold'>('All');
+  const [portfolioFilter, setPortfolioFilter] = useState<'All' | 'Active' | 'Pending' | 'Sold' | 'Rented'>('All');
   const [showTraffic, setShowTraffic] = useState(false);
   const [simulateTraffic, setSimulateTraffic] = useState(false);
   const [livePortfolioOpen, setLivePortfolioOpen] = useState(true);
@@ -383,7 +385,7 @@ export default function PropertyMap({ properties, isDarkMode = true, onSelectPro
         </div>
         <h3 className="text-lg font-bold text-white mb-2">Mapbox Token Required</h3>
         <p className="text-zinc-400 text-sm max-w-md mb-4">
-          Add <code className="text-accent">VITE_MAPBOX_TOKEN</code> to .env to view the map.
+          {t.property.addMapboxToken}
         </p>
       </div>
     );
@@ -467,7 +469,7 @@ export default function PropertyMap({ properties, isDarkMode = true, onSelectPro
                   boxShadow: `0 0 0 4px rgba(0,255,136,0.35), 0 0 20px ${markerColor(property)}, 0 2px 8px rgba(0,0,0,0.4)`,
                 }}
               >
-                <Building2 size={16} style={{ color: property.status === 'Active' ? '#000' : '#fff' }} />
+                <Building2 size={16} style={{ color: property.status === 'Active' || property.status === 'Rented' ? '#000' : '#fff' }} />
               </div>
             </div>
           </Marker>
@@ -508,7 +510,7 @@ export default function PropertyMap({ properties, isDarkMode = true, onSelectPro
                     className="mt-3 w-full py-2 bg-accent text-white dark:text-black font-bold rounded-lg text-xs flex items-center justify-center gap-1.5 hover:opacity-90 transition-colors border-2 border-accent focus:outline-none focus:ring-2 focus:ring-accent/50"
                   >
                     <ExternalLink size={14} />
-                    View property
+                    {t.property.viewDetails}
                   </button>
                 )}
               </div>
@@ -536,7 +538,7 @@ export default function PropertyMap({ properties, isDarkMode = true, onSelectPro
           </div>
           <h4 className="text-base font-bold text-gray-900 dark:text-white mb-0.5">Global Asset View</h4>
           <p className="text-xs text-gray-500 dark:text-zinc-400 mb-3">
-            {placed.length} {placed.length === 1 ? 'Property' : 'Properties'} Tracked
+            {placed.length} {placed.length === 1 ? t.property.propertyTracked : t.property.propertiesTracked}
           </p>
           <div className="flex flex-wrap gap-1.5 mb-2">
             <button
@@ -561,9 +563,10 @@ export default function PropertyMap({ properties, isDarkMode = true, onSelectPro
             </button>
           </div>
           <div className="flex flex-wrap gap-1.5 mb-3">
-            {(['All', 'Active', 'Pending', 'Sold'] as const).map((status) => {
+            {(['All', 'Active', 'Pending', 'Sold', 'Rented'] as const).map((status) => {
               const count = status === 'All' ? placed.length : placed.filter(({ property }) => property.status === status).length;
               const isActive = portfolioFilter === status;
+              const label = status === 'All' ? t.propertyFilter.all : status === 'Active' ? t.propertyStatus.active : status === 'Pending' ? t.propertyStatus.pending : status === 'Rented' ? t.propertyStatus.rented : t.propertyStatus.sold;
               return (
                 <button
                   key={status}
@@ -575,7 +578,7 @@ export default function PropertyMap({ properties, isDarkMode = true, onSelectPro
                       : 'bg-gray-200 dark:bg-zinc-700 text-gray-700 dark:text-zinc-300 hover:bg-gray-300 dark:hover:bg-zinc-600'
                   }`}
                 >
-                  {status} ({count})
+                  {label} ({count})
                 </button>
               );
             })}

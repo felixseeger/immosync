@@ -19,6 +19,7 @@ import { createProperty, updatePropertyImages, updatePropertyVideos, updatePrope
 import { sfx } from '../utils/sfx';
 import { uploadPropertyImage, uploadPropertyVideo } from '../services/storageService';
 import { auth } from '../firebase';
+import { t } from '../i18n/de';
 import type { MarketingType, HeatingType, Property } from '../types';
 
 /* ─── Constants ────────────────────────────────────────────────────────────── */
@@ -45,7 +46,7 @@ const HEATING_TYPES: HeatingType[] = [
   'Solar',
 ];
 
-const STEPS = ['Basics', 'Address', 'Details', 'Media'];
+const STEPS = [t.addProperty.basics, t.addProperty.address, t.addProperty.details, t.addProperty.media];
 
 /* ─── Types ────────────────────────────────────────────────────────────────── */
 
@@ -55,7 +56,11 @@ interface FormState {
   description: string;
   marketingType: 'Sale' | 'Rent';
   propertyType: string;
-  status: 'Active' | 'Pending' | 'Sold';
+  status: 'Active' | 'Pending' | 'Sold' | 'Rented';
+  moveInDate: string;
+  moveOutDate: string;
+  purchaseDate: string;
+  saleDate: string;
   // Step 2
   street: string;
   houseNumber: string;
@@ -89,6 +94,10 @@ const DEFAULTS: FormState = {
   marketingType: 'Sale',
   propertyType: 'Apartment',
   status: 'Active',
+  moveInDate: '',
+  moveOutDate: '',
+  purchaseDate: '',
+  saleDate: '',
   street: '',
   houseNumber: '',
   zip: '',
@@ -152,7 +161,7 @@ function Step1({
   return (
     <div className="space-y-5">
       <div>
-        <Label required>Internal Title</Label>
+        <Label required>Immobilienname</Label>
         <input
           type="text"
           value={form.title}
@@ -164,7 +173,7 @@ function Step1({
       </div>
 
       <div>
-        <Label>Marketing Type</Label>
+        <Label>Vermarktungsart</Label>
         <div className="flex bg-white dark:bg-zinc-800 rounded-lg p-1 border border-gray-300 dark:border-zinc-700 gap-1">
           {(['Sale', 'Rent'] as const).map((t) => (
             <button
@@ -180,14 +189,14 @@ function Step1({
                   : 'border-transparent text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
-              For {t}
+              {t === 'Sale' ? 'Zum Verkauf' : 'Zur Miete'}
             </button>
           ))}
         </div>
       </div>
 
       <div>
-        <Label>Property Type</Label>
+        <Label>Immobilienart</Label>
         <div className="grid grid-cols-4 gap-2">
           {PROPERTY_TYPES.map((t) => (
             <button
@@ -211,8 +220,8 @@ function Step1({
 
       <div>
         <Label>Status</Label>
-        <div className="flex bg-white dark:bg-zinc-800 rounded-lg p-1 border border-gray-300 dark:border-zinc-700 gap-1">
-          {(['Active', 'Pending', 'Sold'] as const).map((s) => (
+        <div className="flex flex-wrap bg-white dark:bg-zinc-800 rounded-lg p-1 border border-gray-300 dark:border-zinc-700 gap-1">
+          {(['Active', 'Pending', 'Sold', 'Rented'] as const).map((s) => (
             <button
               key={s}
               type="button"
@@ -220,24 +229,72 @@ function Step1({
                 onSelect?.();
                 setForm((f) => ({ ...f, status: s }));
               }}
-              className={`flex-1 py-2 rounded-md text-xs font-bold transition-all ring-2 ${
+              className={`flex-1 min-w-0 py-2 rounded-md text-xs font-bold transition-all ring-2 ${
                 form.status === s
                   ? s === 'Active'
                     ? 'ring-accent bg-accent/15 text-accent'
                     : s === 'Pending'
                     ? 'ring-accent bg-blue-500/90 text-white'
+                    : s === 'Rented'
+                    ? 'ring-accent bg-emerald-500/90 text-white dark:bg-emerald-600'
                     : 'ring-accent bg-gray-400 dark:bg-zinc-500 text-white'
                   : 'ring-transparent text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
-              {s}
+              {s === 'Active' ? t.propertyStatus.active : s === 'Pending' ? t.propertyStatus.pending : s === 'Rented' ? t.propertyStatus.rented : t.propertyStatus.sold}
             </button>
           ))}
         </div>
       </div>
 
+      {form.status === 'Rented' && (
+        <div className="grid grid-cols-2 gap-3 p-3 rounded-xl bg-emerald-500/10 dark:bg-emerald-500/15 border border-emerald-500/30">
+          <div>
+            <Label>{t.propertyRental.moveInDate}</Label>
+            <input
+              type="date"
+              value={form.moveInDate}
+              onChange={set('moveInDate')}
+              className={inputCls}
+            />
+          </div>
+          <div>
+            <Label>{t.propertyRental.moveOutDate}</Label>
+            <input
+              type="date"
+              value={form.moveOutDate}
+              onChange={set('moveOutDate')}
+              className={inputCls}
+            />
+          </div>
+        </div>
+      )}
+
+      {form.status === 'Sold' && (
+        <div className="grid grid-cols-2 gap-3 p-3 rounded-xl bg-gray-500/10 dark:bg-zinc-500/15 border border-gray-500/30 dark:border-zinc-500/30">
+          <div>
+            <Label>{t.propertySale.purchaseDate}</Label>
+            <input
+              type="date"
+              value={form.purchaseDate}
+              onChange={set('purchaseDate')}
+              className={inputCls}
+            />
+          </div>
+          <div>
+            <Label>{t.propertySale.saleDate}</Label>
+            <input
+              type="date"
+              value={form.saleDate}
+              onChange={set('saleDate')}
+              className={inputCls}
+            />
+          </div>
+        </div>
+      )}
+
       <div>
-        <Label>Short Description</Label>
+        <Label>Kurzbeschreibung</Label>
         <textarea
           value={form.description}
           onChange={set('description')}
@@ -263,7 +320,7 @@ function Step2({
     <div className="space-y-5">
       <div className="grid grid-cols-3 gap-3">
         <div className="col-span-2">
-          <Label>Street</Label>
+          <Label>Straße</Label>
           <input
             type="text"
             value={form.street}
@@ -273,7 +330,7 @@ function Step2({
           />
         </div>
         <div>
-          <Label>No.</Label>
+          <Label>Nr.</Label>
           <input
             type="text"
             value={form.houseNumber}
@@ -286,7 +343,7 @@ function Step2({
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <Label>ZIP Code</Label>
+          <Label>PLZ</Label>
           <input
             type="text"
             value={form.zip}
@@ -296,7 +353,7 @@ function Step2({
           />
         </div>
         <div>
-          <Label required>City</Label>
+          <Label required>Stadt</Label>
           <input
             type="text"
             value={form.city}
@@ -308,7 +365,7 @@ function Step2({
       </div>
 
       <div>
-        <Label>State / Province</Label>
+        <Label>Bundesland / Region</Label>
         <input
           type="text"
           value={form.state}
@@ -319,7 +376,7 @@ function Step2({
       </div>
 
       <div>
-        <Label>Country</Label>
+        <Label>Land</Label>
         <input
           type="text"
           value={form.country}
@@ -333,7 +390,7 @@ function Step2({
       <div className="bg-gray-200 dark:bg-zinc-800/40 border border-gray-300 dark:border-zinc-700/50 border-dashed rounded-xl h-28 flex items-center justify-center">
         <div className="text-center">
           <MapPin size={20} className="mx-auto mb-1 text-gray-500 dark:text-zinc-600" />
-          <p className="text-xs text-gray-600 dark:text-zinc-600">Map preview available after creation</p>
+          <p className="text-xs text-gray-600 dark:text-zinc-600">Kartenansicht nach dem Speichern verfügbar</p>
         </div>
       </div>
     </div>
@@ -354,55 +411,55 @@ function Step3({
       {/* Object Description, Features, Location */}
       <div>
         <p className="text-[11px] font-bold text-gray-600 dark:text-zinc-500 uppercase tracking-widest mb-3 flex items-center gap-2 before:flex-1 before:h-px before:bg-gray-300 dark:before:bg-zinc-800 after:flex-1 after:h-px after:bg-gray-300 dark:after:bg-zinc-800">
-          <span>Content</span>
+          <span>Inhalt</span>
         </p>
         <div className="space-y-3">
           <div>
-            <Label>Object Description</Label>
+            <Label>Objektbeschreibung</Label>
             <textarea
               value={form.objectDescription}
               onChange={set('objectDescription')}
-              placeholder="Detailed description of the property, condition, highlights..."
+              placeholder="Detaillierte Beschreibung der Immobilie, Zustand, Highlights…"
               className={`${inputCls} resize-none`}
               rows={4}
             />
           </div>
           <div>
-            <Label>Features</Label>
+            <Label>Ausstattung</Label>
             <input
               type="text"
               value={form.featuresInput}
               onChange={set('featuresInput')}
-              placeholder="e.g. Elevator, Garden, Parking, Balcony (comma-separated)"
+              placeholder="z. B. Aufzug, Garten, Stellplatz, Balkon (durch Komma getrennt)"
               className={inputCls}
             />
           </div>
           <div>
-            <Label>Features (2)</Label>
+            <Label>Ausstattung (2)</Label>
             <input
               type="text"
               value={form.featuresInput2}
               onChange={set('featuresInput2')}
-              placeholder="e.g. Terrace, Storage, Bike room (comma-separated)"
+              placeholder="z. B. Terrasse, Abstellraum, Fahrradraum (durch Komma getrennt)"
               className={inputCls}
             />
           </div>
           <div>
-            <Label>Features (3)</Label>
+            <Label>Ausstattung (3)</Label>
             <input
               type="text"
               value={form.featuresInput3}
               onChange={set('featuresInput3')}
-              placeholder="e.g. Pet-friendly, Barrier-free (comma-separated)"
+              placeholder="z. B. Haustierfreundlich, Barrierefrei (durch Komma getrennt)"
               className={inputCls}
             />
           </div>
           <div>
-            <Label>Location</Label>
+            <Label>Lagebeschreibung</Label>
             <textarea
               value={form.locationDescription}
               onChange={set('locationDescription')}
-              placeholder="e.g. Central Munich, near English Garden"
+              placeholder="z. B. zentrale Lage in München, Nähe Englischer Garten"
               className={`${inputCls} resize-none`}
               rows={4}
             />
@@ -413,11 +470,11 @@ function Step3({
       {/* Physical */}
       <div>
         <p className="text-[11px] font-bold text-gray-600 dark:text-zinc-500 uppercase tracking-widest mb-3 flex items-center gap-2 before:flex-1 before:h-px before:bg-gray-300 dark:before:bg-zinc-800 after:flex-1 after:h-px after:bg-gray-300 dark:after:bg-zinc-800">
-          <span>Physical Properties</span>
+          <span>Flächen &amp; Räume</span>
         </p>
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <Label>Living Space (m²)</Label>
+            <Label>Wohnfläche (m²)</Label>
             <input
               type="number"
               value={form.livingSpace}
@@ -428,7 +485,7 @@ function Step3({
             />
           </div>
           <div>
-            <Label>Total Rooms</Label>
+            <Label>Zimmer gesamt</Label>
             <input
               type="number"
               value={form.rooms}
@@ -440,7 +497,7 @@ function Step3({
             />
           </div>
           <div>
-            <Label>Bathrooms</Label>
+            <Label>Bäder</Label>
             <input
               type="number"
               value={form.bathrooms}
@@ -452,7 +509,7 @@ function Step3({
             />
           </div>
           <div>
-            <Label>Balconies</Label>
+            <Label>Balkone</Label>
             <input
               type="number"
               value={form.balconies}
@@ -463,7 +520,7 @@ function Step3({
             />
           </div>
           <div>
-            <Label>Bathtubs</Label>
+            <Label>Badewannen</Label>
             <input
               type="number"
               value={form.bathtubs}
@@ -474,7 +531,7 @@ function Step3({
             />
           </div>
           <div>
-            <Label>Kitchens</Label>
+            <Label>Küchen</Label>
             <input
               type="number"
               value={form.kitchens}
@@ -485,7 +542,7 @@ function Step3({
             />
           </div>
           <div>
-            <Label>Garage</Label>
+            <Label>Garagen / Stellplätze</Label>
             <input
               type="number"
               value={form.garage}
@@ -501,12 +558,12 @@ function Step3({
       {/* Pricing */}
       <div>
         <p className="text-[11px] font-bold text-gray-600 dark:text-zinc-500 uppercase tracking-widest mb-3 flex items-center gap-2 before:flex-1 before:h-px before:bg-gray-300 dark:before:bg-zinc-800 after:flex-1 after:h-px after:bg-gray-300 dark:after:bg-zinc-800">
-          <span>Pricing</span>
+          <span>Preisangaben</span>
         </p>
         <div className="space-y-3">
           <div>
             <Label required>
-              {form.marketingType === 'Rent' ? 'Monthly Rent (€)' : 'Purchase Price (€)'}
+              {form.marketingType === 'Rent' ? 'Monatsmiete (€)' : 'Kaufpreis (€)'}
             </Label>
             <input
               type="number"
@@ -519,7 +576,7 @@ function Step3({
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label>Additional Costs (€)</Label>
+            <Label>Nebenkosten (€)</Label>
               <input
                 type="number"
                 value={form.additionalCosts}
@@ -530,7 +587,7 @@ function Step3({
               />
             </div>
             <div>
-              <Label>Commission (%)</Label>
+            <Label>Provision (%)</Label>
               <input
                 type="number"
                 value={form.commission}
@@ -548,11 +605,11 @@ function Step3({
       {/* Energy & Legal */}
       <div>
         <p className="text-[11px] font-bold text-gray-600 dark:text-zinc-500 uppercase tracking-widest mb-3 flex items-center gap-2 before:flex-1 before:h-px before:bg-gray-300 dark:before:bg-zinc-800 after:flex-1 after:h-px after:bg-gray-300 dark:after:bg-zinc-800">
-          <span>Energy &amp; Legal</span>
+          <span>Energie &amp; Rechtliches</span>
         </p>
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <Label>Energy Certificate (kWh/m²a)</Label>
+            <Label>Energiekennwert (kWh/m²a)</Label>
             <input
               type="number"
               value={form.energyCertificate}
@@ -563,7 +620,7 @@ function Step3({
             />
           </div>
           <div>
-            <Label>Heating Type</Label>
+            <Label>Heizungsart</Label>
             <select value={form.heatingType} onChange={set('heatingType')} className={inputCls}>
               {HEATING_TYPES.map((h) => (
                 <option key={h} value={h}>
@@ -624,9 +681,9 @@ function Step4({
   return (
     <div className="space-y-5">
       <p className="text-sm text-zinc-400 leading-relaxed">
-        Upload property photos to Firebase Storage. The{' '}
-        <span className="text-accent font-semibold">first image</span> becomes the cover photo
-        on the dashboard grid. You can also add optional videos (MP4, WebM).
+        Lade Immobilienfotos in Firebase Storage hoch. Das{' '}
+        <span className="text-accent font-semibold">erste Bild</span> wird als Titelbild
+        im Dashboard verwendet. Optional können auch Videos (MP4, WebM) hinzugefügt werden.
       </p>
 
       {/* Existing images section (edit mode) */}
@@ -697,9 +754,9 @@ function Step4({
           />
         </div>
         <p className="text-sm font-semibold text-gray-900 dark:text-white mb-1">
-          {isDragActive ? 'Release to upload' : 'Drag & drop images here'}
+          {isDragActive ? 'Loslassen zum Hochladen' : 'Bilder hierher ziehen &amp; ablegen'}
         </p>
-          <p className="text-xs text-gray-600 dark:text-zinc-500">or click to browse · JPG, PNG, WebP · max 20 MB</p>
+          <p className="text-xs text-gray-600 dark:text-zinc-500">oder klicken, um auszuwählen · JPG, PNG, WebP · max. 20 MB</p>
         </div>
 
         {/* Preview grid */}
@@ -707,9 +764,9 @@ function Step4({
           <div>
             <div className="flex items-center justify-between mb-3">
               <p className="text-xs font-semibold text-gray-600 dark:text-zinc-400 uppercase tracking-wider">
-                {stagedFiles.length} image{stagedFiles.length !== 1 ? 's' : ''} staged
+                {stagedFiles.length} Bild{stagedFiles.length !== 1 ? 'er' : ''} vorbereitet
               </p>
-              <p className="text-[11px] text-gray-600 dark:text-zinc-600">First image = cover</p>
+              <p className="text-[11px] text-gray-600 dark:text-zinc-600">Erstes Bild = Titelbild</p>
             </div>
             <div className="grid grid-cols-3 gap-3">
               {stagedFiles.map((sf, i) => (
@@ -749,10 +806,10 @@ function Step4({
 
       {/* Videos section */}
       <div className="pt-6 border-t border-gray-300 dark:border-zinc-800">
-        <p className="text-xs font-semibold text-gray-600 dark:text-zinc-400 uppercase tracking-wider mb-3">Videos (optional)</p>
+            <p className="text-xs font-semibold text-gray-600 dark:text-zinc-400 uppercase tracking-wider mb-3">Videos (optional)</p>
         {isEditing && propertyVideos.length > 0 && (
           <div className="mb-4">
-            <p className="text-[11px] text-gray-600 dark:text-zinc-600 mb-2">Existing videos — click to delete</p>
+            <p className="text-[11px] text-gray-600 dark:text-zinc-600 mb-2">Vorhandene Videos — zum Löschen anklicken</p>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {propertyVideos.map((videoUrl) => (
                 <div key={videoUrl} className="relative group aspect-video rounded-xl overflow-hidden bg-gray-300 dark:bg-zinc-800 ring-1 ring-gray-300 dark:ring-zinc-700">
@@ -778,7 +835,7 @@ function Step4({
         >
           <input {...getVideoInputProps()} />
           <Video className="text-gray-500 dark:text-zinc-500 mb-2" size={22} />
-          <p className="text-xs text-gray-600 dark:text-zinc-500">Drop videos here or click · MP4, WebM · max 5 MB</p>
+          <p className="text-xs text-gray-600 dark:text-zinc-500">Videos hier ablegen oder klicken · MP4, WebM · max. 5 MB</p>
         </div>
         {stagedVideoFiles.length > 0 && (
           <div className="mt-3 flex flex-wrap gap-2">
@@ -819,7 +876,11 @@ export default function AddPropertyPanel({ onClose, onSuccess, property, initial
         objectDescription: property.objectDescription ?? '',
         marketingType: (property.marketingType as 'Sale' | 'Rent') ?? 'Sale',
         propertyType: property.propertyType ?? 'Apartment',
-        status: property.status ?? 'Active',
+        status: (property.status ?? 'Active') as FormState['status'],
+        moveInDate: property.moveInDate ?? '',
+        moveOutDate: property.moveOutDate ?? '',
+        purchaseDate: property.purchaseDate ?? '',
+        saleDate: property.saleDate ?? '',
         street: property.street ?? '',
         houseNumber: property.houseNumber ?? '',
         zip: property.zip ?? '',
@@ -1031,6 +1092,10 @@ export default function AddPropertyPanel({ onClose, onSuccess, property, initial
         marketingType: form.marketingType as MarketingType,
         propertyType: form.propertyType,
         status: form.status,
+        moveInDate: form.status === 'Rented' && form.moveInDate ? form.moveInDate : undefined,
+        moveOutDate: form.status === 'Rented' && form.moveOutDate ? form.moveOutDate : undefined,
+        purchaseDate: form.status === 'Sold' && form.purchaseDate ? form.purchaseDate : undefined,
+        saleDate: form.status === 'Sold' && form.saleDate ? form.saleDate : undefined,
         type: legacyTypeMap[form.propertyType] ?? 'Residential',
         price: parseFloat(form.price) || 0,
         additionalCosts: parseFloat(form.additionalCosts) || 0,
@@ -1171,9 +1236,9 @@ export default function AddPropertyPanel({ onClose, onSuccess, property, initial
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-gray-300 dark:border-zinc-800 shrink-0">
           <div>
-            <h2 className="text-lg font-bold text-gray-900 dark:text-white tracking-tight">{isEditing ? 'Edit Property' : 'Add Property'}</h2>
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white tracking-tight">{isEditing ? t.addProperty.editProperty : t.addProperty.addProperty}</h2>
             <p className="text-[11px] text-gray-600 dark:text-zinc-500 mt-0.5 font-mono uppercase tracking-wider">
-              Step {step + 1} / {STEPS.length} — {STEPS[step]}
+              {t.addProperty.stepOf.replace('{current}', String(step + 1)).replace('{total}', String(STEPS.length)).replace('{step}', STEPS[step])}
             </p>
           </div>
           <button
@@ -1301,7 +1366,7 @@ export default function AddPropertyPanel({ onClose, onSuccess, property, initial
               className="flex items-center gap-2 px-4 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 shrink-0"
             >
               <ChevronLeft size={16} />
-              {step === 0 ? 'Cancel' : 'Back'}
+              {step === 0 ? t.addProperty.cancel : t.addProperty.back}
             </button>
 
             <div className="flex-1" />
@@ -1316,7 +1381,7 @@ export default function AddPropertyPanel({ onClose, onSuccess, property, initial
                 disabled={!canAdvance()}
                 className="flex items-center gap-2 px-5 py-2.5 bg-accent text-white dark:text-black text-sm font-bold rounded-lg hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
               >
-                Continue
+                {t.addProperty.continue}
                 <ChevronRight size={16} />
               </button>
             ) : (
@@ -1330,13 +1395,13 @@ export default function AddPropertyPanel({ onClose, onSuccess, property, initial
                   <>
                     <Loader2 className="animate-spin" size={15} />
                     {uploadStatus
-                      ? `Uploading ${uploadStatus.current}/${uploadStatus.total}`
-                      : isEditing ? 'Saving…' : 'Creating…'}
+                      ? t.addProperty.uploadingCount.replace('{current}', String(uploadStatus.current)).replace('{total}', String(uploadStatus.total))
+                      : isEditing ? t.addProperty.saving : t.addProperty.creating}
                   </>
                 ) : (
                   <>
                     <Zap size={15} />
-                    Save Property
+                    {t.addProperty.saveProperty}
                   </>
                 )}
               </button>

@@ -25,10 +25,11 @@ const DEAL_DOCUMENTS_COLLECTION = 'deal_documents';
 
 export const DEAL_STAGES: { id: DealStageId; label: string }[] = [
   { id: 'lead', label: 'Lead' },
-  { id: 'viewing', label: 'Viewing' },
-  { id: 'credit_check', label: 'Credit Check' },
-  { id: 'negotiation', label: 'Negotiation' },
-  { id: 'notary_contract', label: 'Notary/Contract' },
+  { id: 'viewing', label: 'Besichtigungen' },
+  { id: 'credit_check', label: 'Kreditabfrage' },
+  { id: 'negotiation', label: 'Verhandlungen' },
+  { id: 'maintenance', label: 'Wartungen' },
+  { id: 'notary_contract', label: 'Notar / Vertrag' },
   { id: 'closed', label: 'Closed' },
 ];
 

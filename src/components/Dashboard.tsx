@@ -61,31 +61,29 @@ const StatCard = ({
 );
 
 function formatCurrency(n: number): string {
-  if (n >= 1_000_000) return `€${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000) return `€${(n / 1_000).toFixed(0)}K`;
-  return `€${n.toLocaleString()}`;
+  return `€${n.toLocaleString('de-DE')}`;
 }
 
 function getGreeting(): string {
   const h = new Date().getHours();
-  if (h < 12) return 'Good morning';
-  if (h < 18) return 'Good afternoon';
-  return 'Good evening';
+  if (h < 12) return 'Guten Morgen';
+  if (h < 18) return 'Guten Tag';
+  return 'Guten Abend';
 }
 
 function getFirstName(user: FirebaseUser | null | undefined): string {
-  if (!user) return 'there';
+  if (!user) return 'da';
   const name = user.displayName?.trim();
   if (name) {
     const first = name.split(/\s+/)[0];
-    return first || 'there';
+    return first || 'da';
   }
   const email = user.email?.trim();
   if (email) {
     const local = email.split('@')[0];
-    return local ? local.charAt(0).toUpperCase() + local.slice(1).toLowerCase() : 'there';
+    return local ? local.charAt(0).toUpperCase() + local.slice(1).toLowerCase() : 'da';
   }
-  return 'there';
+  return 'da';
 }
 
 function getViewingDate(v: Viewing): Date | null {
@@ -170,7 +168,7 @@ export default function Dashboard({ user, onAddProperty, onSelectProperty, onOpe
   const ytdRevenue = portfolioValue;
 
   // Monthly data for revenue line chart (Oct–Mar)
-  const revenueChartMonths = ['Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar'];
+  const revenueChartMonths = ['Okt', 'Nov', 'Dez', 'Jan', 'Feb', 'Mär'];
   const revenueChartData = (() => {
     const max = Math.max(ytdRevenue, 1);
     return revenueChartMonths.map((_, i) => {
@@ -217,7 +215,7 @@ export default function Dashboard({ user, onAddProperty, onSelectProperty, onOpe
 
   const greeting = getGreeting();
   const firstName = getFirstName(user);
-  const todayFormatted = format(new Date(), 'EEEE, MMMM do, yyyy');
+  const todayFormatted = format(new Date(), 'EEEE, d. MMMM yyyy', { locale: undefined });
 
   return (
     <div className="h-full flex flex-col p-6 overflow-y-auto custom-scrollbar">
@@ -228,7 +226,7 @@ export default function Dashboard({ user, onAddProperty, onSelectProperty, onOpe
             onClick={handleExportReport}
             className="px-4 py-2 rounded-lg text-sm font-medium border-2 border-blue-500 bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-500/20 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500/50"
           >
-            Export Report
+            Report exportieren
           </button>
           <button
             type="button"
@@ -236,7 +234,7 @@ export default function Dashboard({ user, onAddProperty, onSelectProperty, onOpe
             className="px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 btn-outline-accent [&_svg]:text-current"
           >
             <Building2 size={18} />
-            Add Property
+            Immobilie hinzufügen
           </button>
         </div>
       </div>
@@ -248,8 +246,8 @@ export default function Dashboard({ user, onAddProperty, onSelectProperty, onOpe
           <span className="text-accent font-bold">{firstName}</span>
         </h3>
         <p className="text-gray-600 dark:text-zinc-400 text-sm">
-          You have <strong>{todayViewings.length}</strong> viewings scheduled for today and{' '}
-          <strong>{newLeadsCount}</strong> new leads waiting for review.
+          Du hast heute <strong>{todayViewings.length}</strong> Besichtigungen geplant und{' '}
+          <strong>{newLeadsCount}</strong> neue Leads zur Prüfung.
         </p>
       </div>
 
@@ -259,15 +257,15 @@ export default function Dashboard({ user, onAddProperty, onSelectProperty, onOpe
         <div className="lg:col-span-2 flex flex-col gap-6">
           {/* Revenue Overview with graph */}
           <div className="glass rounded-xl p-6">
-            <h3 className="font-bold text-gray-900 dark:text-white mb-2">Revenue Overview</h3>
+            <h3 className="font-bold text-gray-900 dark:text-white mb-2">Umsatzübersicht</h3>
             {statsLoading ? (
               <div className="flex items-center gap-2 text-gray-500 dark:text-zinc-400">
                 <Loader2 size={20} className="animate-spin" />
-                <span>Loading...</span>
+                <span>Lade Daten…</span>
               </div>
             ) : (
               <>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white mb-4">{formatCurrency(ytdRevenue)} YTD</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white mb-4">{formatCurrency(ytdRevenue)} Jahr bisher</p>
                 <div className="flex gap-4">
                   <div className="text-[10px] text-gray-500 dark:text-zinc-500 flex flex-col justify-between py-1">
                     <span>{formatCurrency(chartMax)}</span>
@@ -305,20 +303,20 @@ export default function Dashboard({ user, onAddProperty, onSelectProperty, onOpe
 
           {/* Active Deals + New Leads - cleaned up two cards */}
           <div className="grid grid-cols-2 gap-4">
-            <StatCard title="Active Deals" value={String(activeDealsCount)} icon={TrendingUp} />
-            <StatCard title="New Leads" value={String(newLeadsCount)} icon={Users} />
+            <StatCard title="Aktive Aufgaben" value={String(activeDealsCount)} icon={TrendingUp} />
+            <StatCard title="Neue Leads" value={String(newLeadsCount)} icon={Users} />
           </div>
         </div>
 
         {/* Right: Next Scheduled Events - single column only */}
         <div className="lg:col-span-1">
           <div className="glass rounded-xl p-5 flex flex-col h-full min-h-[280px]">
-            <h3 className="font-bold text-gray-900 dark:text-white mb-1">Next Scheduled Events</h3>
+            <h3 className="font-bold text-gray-900 dark:text-white mb-1">Bevorstehende Termine</h3>
             <p className="text-sm text-gray-500 dark:text-zinc-500 mb-4">{todayFormatted}</p>
             {nextScheduledViewings.length === 0 ? (
               <div className="flex-1 flex flex-col items-center justify-center py-6 text-center">
                 <CalendarIcon className="text-blue-600 dark:text-blue-400 mb-2" size={28} />
-                <p className="text-sm text-gray-600 dark:text-zinc-400">No upcoming events scheduled.</p>
+                <p className="text-sm text-gray-600 dark:text-zinc-400">Keine anstehenden Termine geplant.</p>
               </div>
             ) : (
               <ul className="space-y-2 flex-1 list-none p-0 m-0">
@@ -329,7 +327,7 @@ export default function Dashboard({ user, onAddProperty, onSelectProperty, onOpe
                   return (
                     <li key={v.id} className="text-sm text-gray-700 dark:text-zinc-300 flex items-baseline gap-2 py-1 border-b border-gray-200/60 dark:border-zinc-700/60 last:border-0">
                       <span className="font-medium text-gray-900 dark:text-zinc-200 shrink-0">
-                        {d ? (isToday(d) ? format(d, 'HH:mm') : format(d, 'MMM d, HH:mm')) : '—'}
+                        {d ? (isToday(d) ? format(d, 'HH:mm') : format(d, 'd. MMM, HH:mm')) : '—'}
                       </span>
                       <span>{label}</span>
                     </li>
@@ -343,7 +341,7 @@ export default function Dashboard({ user, onAddProperty, onSelectProperty, onOpe
                 onClick={onOpenCalendar}
                 className="mt-4 flex items-center gap-1 text-sm font-medium text-blue-600 dark:text-blue-400 hover:opacity-90 transition-colors [&_svg]:text-current"
               >
-                View Full Calendar
+                Gesamten Kalender anzeigen
                 <ChevronRight size={16} />
               </button>
             )}
@@ -367,9 +365,9 @@ export default function Dashboard({ user, onAddProperty, onSelectProperty, onOpe
           </>
         ) : (
           <>
-            <StatCard title="Active Listings" value={String(activeListings)} icon={TrendingUp} />
-            <StatCard title="Contacts" value={String(contactsCount)} icon={Users} />
-            <StatCard title="Portfolio Value (Active)" value={formatCurrency(portfolioValue)} icon={DollarSign} />
+            <StatCard title="Aktive Inserate" value={String(activeListings)} icon={TrendingUp} />
+            <StatCard title="Kontakte" value={String(contactsCount)} icon={Users} />
+            <StatCard title="Portfoliowert (aktiv)" value={formatCurrency(portfolioValue)} icon={DollarSign} />
           </>
         )}
       </div>
@@ -378,7 +376,7 @@ export default function Dashboard({ user, onAddProperty, onSelectProperty, onOpe
       <div className="flex-1 min-h-0 flex flex-col">
         <div className="glass rounded-xl flex flex-col h-[400px] lg:h-[500px] overflow-hidden flex-1">
           <div className="p-4 border-b border-gray-200 dark:border-zinc-800">
-            <h3 className="font-bold text-gray-900 dark:text-white">Recent Activity</h3>
+            <h3 className="font-bold text-gray-900 dark:text-white">Aktivität</h3>
           </div>
           <div className="flex-1 p-4 overflow-hidden">
             <ActivityStream />

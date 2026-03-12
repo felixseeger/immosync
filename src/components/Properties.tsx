@@ -8,6 +8,7 @@ import PropertyDetail from './PropertyDetail';
 import { Loader2, Plus, Filter, Database, LayoutGrid, List, Map as MapIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import AddPropertyPanel from './AddPropertyPanel';
+import { t } from '../i18n/de';
 
 interface PropertiesProps {
   showAddPanel?: boolean;
@@ -89,11 +90,11 @@ export default function Properties({
       {/* Toolbar */}
       <div className="p-6 border-b border-gray-200 dark:border-zinc-800 flex items-center justify-between gap-4 bg-app-light/90 dark:bg-app-dark/50 backdrop-blur-md sticky top-0 z-10">
         <div className="flex-1 flex items-center min-w-0">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">Properties</h2>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">{t.property.properties}</h2>
         </div>
 
         <div className="hidden lg:flex items-center gap-2 bg-gray-100 dark:bg-zinc-900 rounded-lg p-1 border border-gray-300 dark:border-zinc-800 shrink-0">
-          {['All', 'Active', 'Pending', 'Sold'].map((status) => (
+          {['All', 'Active', 'Pending', 'Sold', 'Rented'].map((status) => (
             <button
               key={status}
               onClick={() => setFilter(status)}
@@ -103,7 +104,7 @@ export default function Properties({
                   : 'text-gray-600 dark:text-zinc-500 hover:text-gray-800 dark:hover:text-zinc-300'
               }`}
             >
-              {status}
+              {status === 'All' ? t.propertyFilter.all : status === 'Active' ? t.propertyStatus.active : status === 'Pending' ? t.propertyStatus.pending : status === 'Rented' ? t.propertyStatus.rented : t.propertyStatus.sold}
             </button>
           ))}
         </div>
@@ -135,11 +136,11 @@ export default function Properties({
           </div>
           <button
             onClick={() => setShowAddPanel(true)}
-            title="Add Property"
+            title={t.property.addPropertyButton}
             className="px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 btn-outline-accent max-[320px]:px-2 max-[320px]:py-2 [&_svg]:text-current"
           >
             <Plus size={16} />
-            <span className="max-[320px]:hidden">Add Property</span>
+            <span className="max-[320px]:hidden">{t.property.addPropertyButton}</span>
           </button>
         </div>
       </div>
@@ -151,9 +152,9 @@ export default function Properties({
             <div className="w-16 h-16 bg-gray-200 dark:bg-zinc-900 rounded-full flex items-center justify-center mb-4">
               <Database className="text-gray-400 dark:text-zinc-600" size={32} />
             </div>
-            <p className="text-lg font-medium text-gray-900 dark:text-white mb-2">No properties found</p>
+            <p className="text-lg font-medium text-gray-900 dark:text-white mb-2">{t.property.noPropertiesFound}</p>
             <p className="text-sm text-gray-600 dark:text-zinc-500 mb-6 max-w-xs text-center">
-              Your portfolio is currently empty. Add a new property or load demo data to get started.
+              {t.property.portfolioEmptyHint}
             </p>
             <div className="flex gap-4">
               <button 
@@ -162,15 +163,15 @@ export default function Properties({
                 className="px-4 py-2 bg-gray-300 dark:bg-zinc-800 hover:bg-gray-400 dark:hover:bg-zinc-700 text-gray-900 dark:text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
               >
                 {seeding ? <Loader2 className="animate-spin" size={16} /> : <Database size={16} />}
-                Load Demo Data
+                {t.property.loadDemoData}
               </button>
               <button
                 onClick={() => setShowAddPanel(true)}
-                title="Add Property"
+                title={t.property.addPropertyButton}
                 className="px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 btn-outline-accent max-[320px]:px-2 max-[320px]:py-2 [&_svg]:text-current"
               >
                 <Plus size={16} />
-                <span className="max-[320px]:hidden">Add Property</span>
+                <span className="max-[320px]:hidden">{t.property.addPropertyButton}</span>
               </button>
             </div>
           </div>

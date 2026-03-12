@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { DragDropContext, Droppable, DropResult } from '@hello-pangea/dnd';
-import { Briefcase, Loader2, Plus, Activity } from 'lucide-react';
+import { CheckSquare, Loader2, Plus, Activity } from 'lucide-react';
 import { getProperties } from '../services/propertyService';
 import {
   subscribeToDealsSimple,
@@ -18,9 +18,9 @@ import ActivityStream from './ActivityStream';
 import { sfx } from '../utils/sfx';
 
 const TRACK_OPTIONS: { value: 'all' | DealType; label: string }[] = [
-  { value: 'all', label: 'All' },
-  { value: 'sale', label: 'Sales' },
-  { value: 'rental', label: 'Rentals' },
+  { value: 'all', label: 'Alle' },
+  { value: 'sale', label: 'Verkauf' },
+  { value: 'rental', label: 'Miete' },
 ];
 
 const STAGE_COLORS: Record<string, { borderLeft: string; headerBg: string; headerText: string; columnBg: string }> = {
@@ -28,6 +28,7 @@ const STAGE_COLORS: Record<string, { borderLeft: string; headerBg: string; heade
   viewing: { borderLeft: 'border-l-4 border-l-violet-500', headerBg: 'bg-violet-500/25 dark:bg-violet-500/30', headerText: 'text-violet-800 dark:text-violet-200 font-bold', columnBg: 'bg-violet-500/5 dark:bg-violet-500/10' },
   credit_check: { borderLeft: 'border-l-4 border-l-amber-500', headerBg: 'bg-amber-500/25 dark:bg-amber-500/30', headerText: 'text-amber-800 dark:text-amber-200 font-bold', columnBg: 'bg-amber-500/5 dark:bg-amber-500/10' },
   negotiation: { borderLeft: 'border-l-4 border-l-orange-500', headerBg: 'bg-orange-500/25 dark:bg-orange-500/30', headerText: 'text-orange-800 dark:text-orange-200 font-bold', columnBg: 'bg-orange-500/5 dark:bg-orange-500/10' },
+  maintenance: { borderLeft: 'border-l-4 border-l-yellow-500', headerBg: 'bg-yellow-500/25 dark:bg-yellow-500/30', headerText: 'text-yellow-800 dark:text-yellow-200 font-bold', columnBg: 'bg-yellow-500/5 dark:bg-yellow-500/10' },
   notary_contract: { borderLeft: 'border-l-4 border-l-teal-500', headerBg: 'bg-teal-500/25 dark:bg-teal-500/30', headerText: 'text-teal-800 dark:text-teal-200 font-bold', columnBg: 'bg-teal-500/5 dark:bg-teal-500/10' },
   closed: { borderLeft: 'border-l-4 border-l-emerald-500', headerBg: 'bg-emerald-500/25 dark:bg-emerald-500/30', headerText: 'text-emerald-800 dark:text-emerald-200 font-bold', columnBg: 'bg-emerald-500/5 dark:bg-emerald-500/10' },
 };
@@ -125,8 +126,8 @@ export default function Deals({
       <div className="p-6 border-b border-gray-200 dark:border-zinc-800 grid grid-cols-3 items-center bg-app-light/90 dark:bg-app-dark/50 backdrop-blur-md sticky top-0 z-10">
         <div className="flex items-center gap-4">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight flex items-center gap-2">
-            <Briefcase size={28} className="text-accent" />
-            Deals
+            <CheckSquare size={28} className="text-accent" />
+            Zu erledigen
           </h2>
         </div>
         <div className="flex items-center justify-center">
@@ -153,7 +154,7 @@ export default function Deals({
           className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold btn-outline-accent [&_svg]:text-current"
         >
           <Plus size={16} />
-          Create Deal
+          Aufgabe hinzufügen
         </button>
         </div>
       </div>
