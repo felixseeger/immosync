@@ -54,6 +54,8 @@ async function sendResetEmail(to: string, resetLink: string): Promise<{ ok: bool
     "",
     "Der Link ist nur begrenzt gültig. Wenn Sie die Anfrage nicht gestellt haben, ignorieren Sie diese E-Mail.",
     "",
+    "Nach dem Setzen des neuen Passworts: In der App abmelden (falls eingeloggt), dann mit dem neuen Passwort anmelden.",
+    "",
     "Ihr IMMOSYNC-Team",
   ].join("\n");
   const html = `
@@ -65,6 +67,7 @@ async function sendResetEmail(to: string, resetLink: string): Promise<{ ok: bool
   <p>Sie haben angefordert, Ihr Passwort zurückzusetzen. Klicken Sie auf den folgenden Link, um ein neues Passwort zu setzen:</p>
   <p><a href="${escapeHtml(resetLink)}" style="color: #0f766e;">Passwort zurücksetzen</a></p>
   <p style="color: #666; font-size: 14px;">Der Link ist nur begrenzt gültig. Wenn Sie die Anfrage nicht gestellt haben, ignorieren Sie diese E-Mail.</p>
+  <p style="color: #666; font-size: 14px;">Nach dem Setzen des neuen Passworts: Melden Sie sich in der App ab (falls Sie eingeloggt sind), dann mit dem neuen Passwort an.</p>
   <p>Ihr IMMOSYNC-Team</p>
 </body>
 </html>`.trim();

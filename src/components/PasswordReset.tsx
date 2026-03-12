@@ -101,10 +101,13 @@ export default function PasswordReset({ onBack }: PasswordResetProps) {
                 <CheckCircle size={24} className="shrink-0" />
                 <div className="text-sm space-y-1">
                   <p>
-                    If an account exists for <strong className="text-white">{email}</strong>, youâ€™ll receive a password reset link.
+                    Falls ein Konto für <strong className="text-white">{email}</strong> existiert, erhalten Sie in Kürze einen Link zum Zurücksetzen des Passworts.
                   </p>
                   <p className="text-zinc-400 text-xs">
-                    Check spam/junk and the email you use to sign in. If you still donâ€™t see it, the account may not exist for this addressâ€”try signing up or use another sign-in method.
+                    Prüfen Sie Spam/Junk und die E-Mail-Adresse, mit der Sie sich anmelden. Wenn nichts ankommt, existiert möglicherweise kein Konto für diese Adresse – registrieren Sie sich oder nutzen Sie eine andere Anmeldemethode.
+                  </p>
+                  <p className="text-zinc-400 text-xs mt-2">
+                    Nach dem Zurücksetzen: Melden Sie sich in der App ab (falls eingeloggt), dann mit dem <strong className="text-white">neuen</strong> Passwort an.
                   </p>
                 </div>
               </div>
@@ -114,7 +117,7 @@ export default function PasswordReset({ onBack }: PasswordResetProps) {
                 className="w-full flex items-center justify-center gap-2 bg-accent text-white dark:text-black font-bold py-3 rounded-lg hover:bg-accent/90 transition-all active:scale-[0.98]"
               >
                 <ArrowLeft size={18} />
-                <span className="uppercase tracking-tight">Back to sign in</span>
+                <span className="uppercase tracking-tight">Zurück zur Anmeldung</span>
               </button>
             </motion.div>
           ) : (
