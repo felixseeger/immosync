@@ -25,24 +25,35 @@ import {
   isToday,
   addDays,
 } from 'date-fns';
-import { subscribeToViewings, updateViewing } from '../services/viewingsService';
+import { de } from 'date-fns/locale';
+import { subscribeToViewings, updateViewing, deleteViewing } from '../services/viewingsService';
 import { getProperties } from '../services/propertyService';
 import { subscribeToContacts } from '../services/contactsService';
 import { logActivity } from '../services/activityService';
 import AddViewingModal from './AddViewingModal';
 import { sfx } from '../utils/sfx';
 import type { Viewing, Property, Contact, ViewingEventType } from '../types';
-import { VIEWING_EVENT_TYPE_LABELS } from '../types';
+import { t } from '../i18n/de';
 
 function getViewingDate(v: Viewing): Date | null {
   if (!v?.scheduledAt) return null;
-  const t = v.scheduledAt?.toDate?.() ?? v.scheduledAt;
-  return t instanceof Date ? t : new Date(t);
+  const d = v.scheduledAt?.toDate?.() ?? v.scheduledAt;
+  return d instanceof Date ? d : new Date(d);
 }
 
 function getEventTypeLabel(v: Viewing): string {
   const type = (v.eventType ?? 'viewing') as ViewingEventType;
-  return VIEWING_EVENT_TYPE_LABELS[type] ?? 'Viewing';
+  return t.viewing[type] ?? t.viewing.viewing;
+}
+
+function getStatusLabel(status: Viewing['status']): string {
+  switch (status) {
+    case 'scheduled': return t.viewing.viewingScheduled;
+    case 'completed': return t.viewing.viewingCompleted;
+    case 'cancelled': return t.viewing.viewingCancelled;
+    case 'no_show': return t.viewing.viewingNoShow;
+    default: return status ?? '';
+  }
 }
 
 export default function CalendarView() {
@@ -129,16 +140,16 @@ export default function CalendarView() {
         .join(' · ');
       const action =
         status === 'completed'
-          ? 'Viewing marked completed'
+          ? t.viewing.activityMarkedCompleted
           : status === 'cancelled'
-            ? 'Viewing cancelled'
+            ? t.viewing.activityCancelled
             : status === 'no_show'
-              ? 'Viewing marked no-show'
-              : 'Viewing updated';
+              ? t.viewing.activityNoShow
+              : t.viewing.activityUpdated;
       await logActivity({
         type: 'task',
         action,
-        details: detail || 'Viewing',
+        details: detail || t.viewing.viewing,
       });
       setDetailViewing(null);
     } catch {
@@ -149,7 +160,7 @@ export default function CalendarView() {
   return (
     <div className="h-full flex flex-col bg-app-light dark:bg-app-dark">
       <div className="p-6 border-b border-gray-200 dark:border-zinc-800 flex items-center justify-between bg-app-light/90 dark:bg-app-dark/50 backdrop-blur-md sticky top-0 z-10">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">Calendar</h2>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">{t.viewing.calendarTitle}</h2>
         <div className="flex items-center gap-2">
           <button
             type="button"
@@ -157,7 +168,7 @@ export default function CalendarView() {
             className="flex items-center gap-2 px-5 py-2.5 font-bold rounded-lg text-sm btn-outline-accent [&_svg]:text-current"
           >
             <Plus size={18} />
-            New event
+            {t.viewing.newEvent}
           </button>
         </div>
       </div>
@@ -167,7 +178,7 @@ export default function CalendarView() {
         <div className="flex flex-col min-w-0 flex-1">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-              {format(currentMonth, 'MMMM yyyy')}
+              {format(currentMonth, 'MMMM yyyy', { locale: de })}
             </h3>
             <div className="flex items-center gap-2">
               <button
@@ -175,13 +186,13 @@ export default function CalendarView() {
                 onClick={handleToday}
                 className="px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
               >
-                Today
+                {t.viewing.today}
               </button>
               <button
                 type="button"
                 onClick={handlePrevMonth}
                 className="p-2 rounded-lg text-gray-500 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 hover:text-gray-900 dark:hover:text-white transition-colors"
-                aria-label="Previous month"
+                aria-label={t.viewing.prevMonth}
               >
                 <ChevronLeft size={20} />
               </button>
@@ -189,7 +200,7 @@ export default function CalendarView() {
                 type="button"
                 onClick={handleNextMonth}
                 className="p-2 rounded-lg text-gray-500 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 hover:text-gray-900 dark:hover:text-white transition-colors"
-                aria-label="Next month"
+                aria-label={t.viewing.nextMonth}
               >
                 <ChevronRight size={20} />
               </button>
@@ -200,7 +211,7 @@ export default function CalendarView() {
             <table className="w-full border-collapse table-fixed" style={{ minHeight: 320 }}>
               <thead>
                 <tr>
-                  {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((wd) => (
+                  {t.viewing.weekdays.map((wd) => (
                     <th
                       key={wd}
                       className="border-b border-gray-200 dark:border-zinc-800 py-2 text-xs font-semibold text-gray-500 dark:text-zinc-500 uppercase tracking-wider"
@@ -261,13 +272,13 @@ export default function CalendarView() {
                                     }}
                                     className="w-full text-left px-1.5 py-0.5 rounded text-[11px] md:text-xs bg-accent/20 dark:bg-accent/10 text-gray-800 dark:text-zinc-200 truncate hover:bg-accent/30 dark:hover:bg-accent/20 border border-transparent hover:border-accent/40"
                                   >
-                                    {vd ? format(vd, 'HH:mm') : ''} {propertyMap[v.propertyId] ?? 'Property'}
+                                    {vd ? format(vd, 'HH:mm') : ''} {propertyMap[v.propertyId] ?? t.property.property}
                                   </button>
                                 );
                               })}
                               {dayItems.length > 3 && (
                                 <span className="block px-1.5 text-[10px] text-gray-500 dark:text-zinc-500">
-                                  +{dayItems.length - 3} more
+                                  {t.viewing.moreCount.replace('{n}', String(dayItems.length - 3))}
                                 </span>
                               )}
                             </div>
@@ -288,20 +299,20 @@ export default function CalendarView() {
             <>
               <div className="p-4 border-b border-gray-200 dark:border-zinc-800 flex items-center justify-between">
                 <h3 className="font-semibold text-gray-900 dark:text-white">
-                  {format(selectedDay, 'EEEE, MMM d')}
+                  {format(selectedDay, 'EEEE, MMM d', { locale: de })}
                 </h3>
                 <button
                   type="button"
                   onClick={() => openAddModal(selectedDay)}
                   className="text-sm font-medium text-accent hover:text-accent/90"
                 >
-                  Add
+                  {t.viewing.add}
                 </button>
               </div>
               <div className="flex-1 overflow-y-auto p-3 space-y-2 custom-scrollbar">
                 {dayViewings.length === 0 ? (
                   <p className="text-sm text-gray-500 dark:text-zinc-500 py-4 text-center">
-                    No viewings this day.
+                    {t.viewing.noViewingsThisDay}
                   </p>
                 ) : (
                   dayViewings.map((v) => {
@@ -328,7 +339,7 @@ export default function CalendarView() {
                         </div>
                         {v.status !== 'scheduled' && (
                           <span className="inline-block mt-1 text-[10px] px-1.5 py-0.5 rounded bg-gray-200 dark:bg-zinc-700 text-gray-600 dark:text-zinc-400">
-                            {v.status}
+                            {getStatusLabel(v.status)}
                           </span>
                         )}
                       </button>
@@ -341,7 +352,7 @@ export default function CalendarView() {
             <div className="flex-1 flex items-center justify-center p-6 text-center">
               <div>
                 <CalendarIcon className="mx-auto text-gray-300 dark:text-zinc-600 mb-2" size={32} />
-                <p className="text-sm text-gray-500 dark:text-zinc-500">Click a day to see viewings</p>
+                <p className="text-sm text-gray-500 dark:text-zinc-500">{t.viewing.clickDayToSeeViewings}</p>
               </div>
             </div>
           )}
@@ -370,7 +381,7 @@ export default function CalendarView() {
                   <span className="p-2 rounded-lg bg-accent/20 border border-accent/40" aria-hidden>
                     <CalendarIcon size={18} className="text-accent" />
                   </span>
-                  <h3 className="font-semibold text-gray-900 dark:text-white">{detailViewing ? getEventTypeLabel(detailViewing) : 'Event'}</h3>
+                  <h3 className="font-semibold text-gray-900 dark:text-white">{detailViewing ? getEventTypeLabel(detailViewing) : t.viewing.event}</h3>
                 </div>
                 <div className="flex items-center gap-1">
                   <button
@@ -381,7 +392,7 @@ export default function CalendarView() {
                       setDetailViewing(null);
                     }}
                     className="p-2 rounded-lg text-blue-500 hover:bg-blue-500/10 dark:hover:bg-blue-500/20 hover:text-blue-600 dark:hover:text-blue-400"
-                    aria-label="Edit viewing"
+                    aria-label={t.viewing.editViewing}
                   >
                     <Pencil size={18} />
                   </button>
@@ -399,7 +410,7 @@ export default function CalendarView() {
                 <div className="flex items-center gap-2 text-sm">
                   <Clock size={16} className="text-gray-500" />
                   {getViewingDate(detailViewing)
-                    ? format(getViewingDate(detailViewing)!, 'EEEE, MMM d · HH:mm')
+                    ? format(getViewingDate(detailViewing)!, 'EEEE, MMM d · HH:mm', { locale: de })
                     : '—'}
                 </div>
                 <div className="flex items-center gap-2 text-sm">
@@ -421,14 +432,14 @@ export default function CalendarView() {
                         onClick={() => handleStatusChange(detailViewing.id, 'completed')}
                         className="px-3 py-1.5 text-xs font-medium rounded-lg bg-green-500/20 text-green-600 dark:text-green-400 hover:bg-green-500/30"
                       >
-                        Mark completed
+                        {t.viewing.markCompleted}
                       </button>
                       <button
                         type="button"
                         onClick={() => handleStatusChange(detailViewing.id, 'cancelled')}
                         className="px-3 py-1.5 text-xs font-medium rounded-lg bg-red-500/20 text-red-600 dark:text-red-400 hover:bg-red-500/30"
                       >
-                        Cancel
+                        {t.viewing.cancelViewing}
                       </button>
                     </>
                   )}
@@ -446,10 +457,10 @@ export default function CalendarView() {
                       }
                     }}
                     className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium bg-red-500/20 text-red-600 dark:text-red-400 hover:bg-red-500/30 border border-red-500/30"
-                    aria-label="Delete viewing"
+                    aria-label={t.viewing.deleteViewing}
                   >
                     <Trash2 size={16} />
-                    Delete
+                    {t.common.delete}
                   </button>
                 </div>
               </div>

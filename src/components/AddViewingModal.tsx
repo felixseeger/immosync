@@ -5,14 +5,9 @@ import { createViewing, updateViewing } from '../services/viewingsService';
 import { subscribeToContacts } from '../services/contactsService';
 import { getProperties } from '../services/propertyService';
 import type { Property, Contact, Viewing, ViewingEventType } from '../types';
+import { t } from '../i18n/de';
 
-const EVENT_TYPES: { value: ViewingEventType; label: string }[] = [
-  { value: 'viewing', label: 'Viewing' },
-  { value: 'signing', label: 'Signing' },
-  { value: 'payment', label: 'Payment' },
-  { value: 'negotiation', label: 'Negotiation' },
-  { value: 'notar', label: 'Notar' },
-];
+const EVENT_TYPES: ViewingEventType[] = ['viewing', 'signing', 'payment', 'negotiation', 'notar'];
 import { Timestamp } from 'firebase/firestore';
 import { format, setHours, setMinutes } from 'date-fns';
 import { sfx } from '../utils/sfx';
@@ -86,7 +81,7 @@ export default function AddViewingModal({ initialDate, viewing, onClose, onSucce
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!propertyId.trim() || !contactId.trim() || !date.trim() || !time.trim()) {
-      setError('Please select a property, contact, date, and time.');
+      setError(t.viewing.selectPropertyContactDateTime);
       return;
     }
     setError(null);
@@ -96,7 +91,7 @@ export default function AddViewingModal({ initialDate, viewing, onClose, onSucce
       const d = new Date(date);
       const scheduled = setMinutes(setHours(d, hours), minutes ?? 0);
       if (isNaN(scheduled.getTime())) {
-        setError('Invalid date or time.');
+        setError(t.viewing.invalidDateTime);
         setSaving(false);
         return;
       }
@@ -123,7 +118,7 @@ export default function AddViewingModal({ initialDate, viewing, onClose, onSucce
       onSuccess?.();
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : (isEdit ? 'Failed to update viewing' : 'Failed to schedule viewing'));
+      setError(err instanceof Error ? err.message : (isEdit ? t.viewing.updateFailed : t.viewing.scheduleFailed));
     } finally {
       setSaving(false);
     }
@@ -157,12 +152,12 @@ export default function AddViewingModal({ initialDate, viewing, onClose, onSucce
             <span className="p-2 rounded-lg bg-[#D9FF00]/15 border-2 border-[#D9FF00]/40">
               <Calendar size={18} className="text-accent" />
             </span>
-            New viewing
+            {t.viewing.newViewing}
           </h3>
           <button
             type="button"
             onClick={handleClose}
-            aria-label="Close"
+            aria-label={t.common.close}
             className="p-2 rounded-lg text-gray-500 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 hover:text-gray-900 dark:hover:text-white focus:outline-none focus:ring-2 focus:ring-accent/50"
           >
             <X size={20} aria-hidden="true" />
@@ -172,7 +167,7 @@ export default function AddViewingModal({ initialDate, viewing, onClose, onSucce
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
             <label className="block text-[11px] font-semibold text-gray-600 dark:text-zinc-400 uppercase tracking-wider mb-1.5">
-              Property
+              {t.property.property}
             </label>
             <div className="relative">
               <Building2
@@ -188,7 +183,7 @@ export default function AddViewingModal({ initialDate, viewing, onClose, onSucce
                 className={selectCls(!!propertyId) + ' pl-9'}
                 required
               >
-                <option value="">— Select property —</option>
+                <option value="">{t.viewing.selectProperty}</option>
                 {properties.map((p) => (
                   <option key={p.id} value={p.id}>
                     {p.title}
@@ -200,7 +195,7 @@ export default function AddViewingModal({ initialDate, viewing, onClose, onSucce
 
           <div>
             <label className="block text-[11px] font-semibold text-gray-600 dark:text-zinc-400 uppercase tracking-wider mb-1.5">
-              Contact
+              {t.contact.label}
             </label>
             <div className="relative">
               <User
@@ -216,7 +211,7 @@ export default function AddViewingModal({ initialDate, viewing, onClose, onSucce
                 className={selectCls(!!contactId) + ' pl-9'}
                 required
               >
-                <option value="">— Select contact —</option>
+                <option value="">{t.viewing.selectContact}</option>
                 {contacts.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name}
@@ -229,15 +224,15 @@ export default function AddViewingModal({ initialDate, viewing, onClose, onSucce
 
           <div>
             <label className="block text-[11px] font-semibold text-gray-600 dark:text-zinc-400 uppercase tracking-wider mb-1.5">
-              Type of event
+              {t.viewing.typeOfEvent}
             </label>
             <select
               value={eventType}
               onChange={(e) => { sfx.menuSelect(); setEventType(e.target.value as ViewingEventType); }}
               className={selectCls(true)}
             >
-              {EVENT_TYPES.map(({ value, label }) => (
-                <option key={value} value={value}>{label}</option>
+              {EVENT_TYPES.map((value) => (
+                <option key={value} value={value}>{t.viewing[value]}</option>
               ))}
             </select>
           </div>
@@ -245,7 +240,7 @@ export default function AddViewingModal({ initialDate, viewing, onClose, onSucce
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-[11px] font-semibold text-gray-600 dark:text-zinc-400 uppercase tracking-wider mb-1.5">
-                Date
+                {t.viewing.date}
               </label>
               <input
                 type="date"
@@ -258,7 +253,7 @@ export default function AddViewingModal({ initialDate, viewing, onClose, onSucce
             </div>
             <div>
               <label className="block text-[11px] font-semibold text-gray-600 dark:text-zinc-400 uppercase tracking-wider mb-1.5">
-                Time
+                {t.viewing.time}
               </label>
               <select
                 value={time}
@@ -276,13 +271,13 @@ export default function AddViewingModal({ initialDate, viewing, onClose, onSucce
 
           <div>
             <label className="block text-[11px] font-semibold text-gray-600 dark:text-zinc-400 uppercase tracking-wider mb-1.5">
-              Note (optional)
+              {t.viewing.noteOptional}
             </label>
             <textarea
               value={note}
               onChange={(e) => setNote(e.target.value)}
               rows={2}
-              placeholder="e.g. First viewing, bring keys"
+              placeholder={t.viewing.notePlaceholder}
               className={inputCls}
             />
           </div>
@@ -299,7 +294,7 @@ export default function AddViewingModal({ initialDate, viewing, onClose, onSucce
               onClick={handleClose}
               className="flex-1 py-2.5 bg-gray-200 dark:bg-zinc-800 text-gray-900 dark:text-white rounded-xl font-medium text-sm hover:border-accent/50 focus:outline-none focus:ring-2 focus:ring-accent/50 transition-colors"
             >
-              Cancel
+              {t.common.cancel}
             </button>
             <button
               type="submit"
@@ -308,7 +303,7 @@ export default function AddViewingModal({ initialDate, viewing, onClose, onSucce
               className="flex-1 py-2.5 bg-accent text-white dark:text-black font-bold rounded-xl text-sm flex items-center justify-center gap-2 disabled:opacity-50 hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2"
             >
               {saving ? <Loader2 size={18} className="animate-spin" /> : <Calendar size={18} />}
-              {saving ? 'Saving…' : isEdit ? 'Update' : 'Schedule'}
+              {saving ? t.viewing.saving : isEdit ? t.viewing.update : t.viewing.schedule}
             </button>
           </div>
         </form>

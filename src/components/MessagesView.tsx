@@ -9,11 +9,13 @@ import {
   X,
 } from 'lucide-react';
 import { format } from 'date-fns';
+import { de } from 'date-fns/locale';
 import { subscribeToConversations, subscribeToMessages, createMessage, getOrCreateConversation } from '../services/messagesService';
 import { subscribeToUsers } from '../services/usersService';
 import type { Conversation, Message, UserProfile } from '../types';
 import type { User as FirebaseUser } from 'firebase/auth';
 import { sfx } from '../utils/sfx';
+import { t } from '../i18n/de';
 
 function getMessageDate(m: Message): Date | null {
   const raw = m.createdAt;
@@ -91,7 +93,7 @@ export default function MessagesView({ currentUser }: MessagesViewProps) {
   }, [selectedConversation, currentUser.uid, userMap]);
 
   const selectedParticipantName =
-    selectedOtherParticipant?.displayName ?? selectedOtherParticipant?.email ?? 'Unknown';
+    selectedOtherParticipant?.displayName ?? selectedOtherParticipant?.email ?? t.messages.unknownUser;
 
   const handleSend = async () => {
     const text = composeText.trim();
@@ -130,14 +132,14 @@ export default function MessagesView({ currentUser }: MessagesViewProps) {
   return (
     <div className="h-full flex flex-col bg-app-light dark:bg-app-dark">
       <div className="p-4 md:p-6 border-b border-gray-200 dark:border-zinc-800 flex items-center justify-between bg-app-light/90 dark:bg-app-dark/50 backdrop-blur-md sticky top-0 z-10 shrink-0">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">Messages</h2>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">{t.messages.title}</h2>
         <button
           type="button"
           onClick={() => { sfx.menuSelect(); setShowNewModal(true); }}
           className="flex items-center gap-2 px-5 py-2.5 font-bold rounded-lg text-sm btn-outline-accent [&_svg]:text-current"
         >
           <Plus size={18} />
-          <span>New conversation</span>
+          <span>{t.messages.newConversation}</span>
         </button>
       </div>
 
@@ -148,7 +150,7 @@ export default function MessagesView({ currentUser }: MessagesViewProps) {
             {conversations.length === 0 ? (
               <div className="p-6 flex flex-col items-center justify-center gap-4 text-center">
                 <p className="text-sm text-gray-500 dark:text-zinc-500">
-                  No conversations yet.
+                  {t.messages.noConversationsYet}
                 </p>
                 <button
                   type="button"
@@ -156,7 +158,7 @@ export default function MessagesView({ currentUser }: MessagesViewProps) {
                   className="flex items-center gap-2 px-4 py-2.5 font-bold rounded-lg text-sm btn-outline-accent [&_svg]:text-current"
                 >
                   <Plus size={18} />
-                  <span>Start conversation</span>
+                  <span>{t.messages.startConversation}</span>
                 </button>
               </div>
             ) : (
@@ -164,7 +166,7 @@ export default function MessagesView({ currentUser }: MessagesViewProps) {
                 {conversations.map((c) => {
                   const otherId = c.participantIds.find((id) => id !== currentUser.uid);
                   const otherUser = otherId ? userMap[otherId] : undefined;
-                  const name = otherUser?.displayName ?? otherUser?.email ?? 'Unknown';
+                  const name = otherUser?.displayName ?? otherUser?.email ?? t.messages.unknownUser;
                   const updated = getConversationDate(c);
                   const isSelected = c.id === selectedId;
                   return (
@@ -184,7 +186,7 @@ export default function MessagesView({ currentUser }: MessagesViewProps) {
                         <div className="min-w-0 flex-1">
                           <p className="font-medium text-gray-900 dark:text-white truncate">{name}</p>
                           <p className="text-xs text-gray-500 dark:text-zinc-500">
-                            {updated ? format(updated, 'MMM d, HH:mm') : '—'}
+                            {updated ? format(updated, 'MMM d, HH:mm', { locale: de }) : '—'}
                           </p>
                         </div>
                       </button>
@@ -227,7 +229,7 @@ export default function MessagesView({ currentUser }: MessagesViewProps) {
                         <p className={`text-sm whitespace-pre-wrap wrap-break-word ${isOut ? 'text-white' : ''}`}>{m.body ?? ''}</p>
                         {d && (
                           <p className={`text-[10px] mt-1 ${isOut ? 'text-white/80' : 'text-gray-500 dark:text-zinc-400'}`}>
-                            {format(d, 'MMM d, HH:mm')}
+                            {format(d, 'MMM d, HH:mm', { locale: de })}
                           </p>
                         )}
                       </div>
@@ -248,7 +250,7 @@ export default function MessagesView({ currentUser }: MessagesViewProps) {
                     type="text"
                     value={composeText}
                     onChange={(e) => setComposeText(e.target.value)}
-                    placeholder="Type a message…"
+                    placeholder={t.messages.typeMessagePlaceholder}
                     className="flex-1 min-w-0 bg-gray-100 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl px-4 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-zinc-500 focus:outline-none focus:border-accent"
                     disabled={sending}
                   />
@@ -267,7 +269,7 @@ export default function MessagesView({ currentUser }: MessagesViewProps) {
             <div className="flex-1 flex items-center justify-center text-gray-500 dark:text-zinc-500">
               <div className="text-center">
                 <MessageSquare className="mx-auto text-gray-300 dark:text-zinc-600 mb-3" size={48} />
-                <p className="text-sm">Select a conversation or start a new one.</p>
+                <p className="text-sm">{t.messages.selectOrStart}</p>
               </div>
             </div>
           )}
@@ -297,7 +299,7 @@ export default function MessagesView({ currentUser }: MessagesViewProps) {
                     <MessageSquare size={18} className="text-accent" />
                   </span>
                   <h3 className="text-lg font-bold text-gray-900 dark:text-white transition-colors duration-200">
-                    New conversation
+                    {t.messages.newConversation}
                   </h3>
                 </div>
                 <button
@@ -321,7 +323,7 @@ export default function MessagesView({ currentUser }: MessagesViewProps) {
                       (newContactId ? 'text-accent border-accent' : 'text-gray-900 dark:text-white')
                     }
                   >
-                    <option value="">— Select user —</option>
+                    <option value="">{t.messages.selectUser}</option>
                     {selectableUsers.map((u) => (
                       <option key={u.id} value={u.id}>
                         {u.displayName ?? u.email ?? u.id}
@@ -335,7 +337,7 @@ export default function MessagesView({ currentUser }: MessagesViewProps) {
                     onClick={() => { sfx.menuClose(); setShowNewModal(false); }}
                     className="flex-1 py-2.5 bg-gray-200 dark:bg-zinc-800 text-gray-900 dark:text-white rounded-xl font-medium text-sm transition-colors duration-200 border border-transparent dark:border-zinc-700 hover:bg-gray-300 dark:hover:bg-zinc-700 hover:border-accent/50 focus:outline-none focus:ring-2 focus:ring-accent/50"
                   >
-                    Cancel
+                    {t.common.cancel}
                   </button>
                   <button
                     type="button"
@@ -344,7 +346,7 @@ export default function MessagesView({ currentUser }: MessagesViewProps) {
                     className="flex-1 py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 disabled:opacity-50 btn-outline-accent [&_svg]:text-current"
                   >
                     {starting ? <Loader2 size={18} className="animate-spin text-accent" /> : null}
-                    Start
+                    {t.messages.start}
                   </button>
                 </div>
               </div>

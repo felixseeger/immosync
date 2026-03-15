@@ -213,12 +213,12 @@ export default function App() {
               transition={{ duration: 0.4, ease: 'easeInOut' }}
               aria-hidden
             >
-              <img src="/img/logo-icon.webp" alt="IMMOSYNC" className="w-8 h-8" />
+              <img src="/img/logo-icon.svg" alt="IMMOSYNC" className="w-8 h-8" />
             </motion.span>
           ) : (
             <>
-              <img src="/img/logo-icon.webp" alt="IMMOSYNC" className="w-8 h-8 shrink-0" />
-              <img src="/img/logo-type.webp" alt="IMMOSYNC" className="h-6 hidden sm:block" />
+              <img src="/img/logo-icon.svg" alt="IMMOSYNC" className="w-8 h-8 shrink-0" />
+              <img src="/img/logo-type.svg" alt="IMMOSYNC" className="h-[20px] shrink-0 hidden sm:block" />
             </>
           )}
           {/* Mobile: close button */}
@@ -312,13 +312,13 @@ export default function App() {
           </button>
           {/* Mobile: logo between burger and search */}
           <div className="md:hidden flex items-center gap-2 shrink-0">
-            <img src="/img/logo-icon.webp" alt="IMMOSYNC" className="w-7 h-7 shrink-0" />
-            <img src="/img/logo-type.webp" alt="IMMOSYNC" className="h-5" />
+            <img src="/img/logo-icon.svg" alt="IMMOSYNC" className="w-7 h-7 shrink-0" />
+            <img src="/img/logo-type.svg" alt="IMMOSYNC" className="h-[16px] shrink-0" />
           </div>
           {/* When aside collapsed (desktop): logo text + expand toggle in header */}
           {sidebarCollapsed && (
             <div className="hidden md:flex items-center gap-2 shrink-0">
-              <img src="/img/logo-type.webp" alt="IMMOSYNC" className="h-6" />
+              <img src="/img/logo-type.svg" alt="IMMOSYNC" className="h-[20px] shrink-0" />
               <button
                 type="button"
                 onClick={() => setSidebarCollapsed(false)}

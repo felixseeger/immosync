@@ -8,6 +8,7 @@ import { auth } from '../firebase';
 import { motion } from 'motion/react';
 import { Mail, Lock, User, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
 import { t } from '../i18n/de';
+import LiquidGradientBackground from './LiquidGradientBackground';
 
 interface AuthProps {
   onSuccess: () => void;
@@ -57,27 +58,25 @@ export default function Auth({ onSuccess, onForgotPassword }: AuthProps) {
   };
 
   return (
-    <div className="min-h-screen bg-app-dark flex items-center justify-center p-6">
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-accent/5 rounded-full blur-[120px]" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-accent/5 rounded-full blur-[120px]" />
-      </div>
+    <div className="min-h-screen bg-app-dark flex items-center justify-center p-6 relative overflow-hidden">
+      <LiquidGradientBackground
+        variant="dark"
+        className="absolute inset-0 z-0 pointer-events-none opacity-50"
+      />
 
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md relative"
+        className="w-full max-w-md relative z-10"
       >
         <div className="flex justify-center mb-8">
-          <div className="flex flex-col items-center gap-3">
-            <div className="w-10 h-10 bg-accent rounded-lg flex items-center justify-center">
-              <div className="w-5 h-5 border-2 border-black rotate-45" />
-            </div>
-            <h1 className="text-2xl font-bold tracking-tighter text-center">SITESYNC</h1>
+          <div className="flex items-center gap-3">
+            <img src="/img/logo-icon.svg" alt="IMMOSYNC" className="w-10 h-10" />
+            <img src="/img/logo-type-white.svg" alt="IMMOSYNC" className="h-6" />
           </div>
         </div>
 
-        <div className="bg-app-light dark:bg-app-dark border border-gray-200 dark:border-zinc-800 rounded-2xl p-8 shadow-2xl backdrop-blur-sm">
+        <div className="bg-white/10 dark:bg-white/5 border border-white/20 dark:border-white/10 rounded-2xl p-8 shadow-[0_20px_60px_rgba(0,0,0,0.35)] backdrop-blur-xl">
           <h2 className="text-2xl font-bold mb-2">
             {isLogin ? t.auth.welcomeBack : t.auth.createAccount}
           </h2>
