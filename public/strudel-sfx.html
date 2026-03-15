@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SiteSync SFX Lab (Strudel.js)</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #0b1020;
+        --card: #11182b;
+        --text: #eaf0ff;
+        --muted: #9fb0d4;
+        --accent: #d9ff00;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+        background: radial-gradient(1200px 600px at 20% -20%, #1a2445 0%, var(--bg) 60%);
+        color: var(--text);
+        padding: 24px;
+      }
+      .wrap {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: grid;
+        gap: 16px;
+      }
+      .card {
+        background: linear-gradient(180deg, #121b31, var(--card));
+        border: 1px solid #263354;
+        border-radius: 16px;
+        padding: 16px;
+      }
+      h1 { margin: 0 0 8px; font-size: 26px; }
+      h2 { margin: 0 0 8px; font-size: 18px; }
+      p, li { color: var(--muted); line-height: 1.4; }
+      code { color: var(--accent); }
+      .grid {
+        display: grid;
+        gap: 16px;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      }
+      .hint {
+        border-left: 3px solid var(--accent);
+        padding-left: 10px;
+        margin-top: 8px;
+        font-size: 14px;
+      }
+    </style>
+    <script src="https://unpkg.com/@strudel/embed@1.1.2"></script>
+  </head>
+  <body>
+    <div class="wrap">
+      <section class="card">
+        <h1>SiteSync Button SFX Lab (Strudel.js)</h1>
+        <p>
+          Ziel: 3 kurze One-Shots erzeugen und als <code>menu-open.mp3</code>,
+          <code>menu-close.mp3</code>, <code>menu-select.mp3</code> nach <code>public/sfx</code> exportieren.
+        </p>
+        <div class="hint">
+          Empfehlung: jeweils ca. 80–180ms, Peak bei max. -1 dB, keine langen Reverb-Tails.
+        </div>
+      </section>
+
+      <section class="grid">
+        <article class="card">
+          <h2>menu-open</h2>
+          <p>Aufsteigender, leichter Impuls.</p>
+          <strudel-repl>
+            <!--
+setcps(8)
+stack(
+  note("c5 g5").s("sawtooth").gain(0.18).attack(0.002).release(0.08),
+  note("c3").s("sine").gain(0.05).attack(0.002).release(0.06)
+).lpf(2200)
+            -->
+          </strudel-repl>
+        </article>
+
+        <article class="card">
+          <h2>menu-close</h2>
+          <p>Absteigend und etwas kürzer.</p>
+          <strudel-repl>
+            <!--
+setcps(8)
+stack(
+  note("g5 d5").s("triangle").gain(0.16).attack(0.002).release(0.06),
+  note("g3").s("sine").gain(0.045).attack(0.002).release(0.05)
+).lpf(1800)
+            -->
+          </strudel-repl>
+        </article>
+
+        <article class="card">
+          <h2>menu-select</h2>
+          <p>Präziser Klick mit wenig Low-End.</p>
+          <strudel-repl>
+            <!--
+setcps(10)
+stack(
+  note("e6").s("square").gain(0.12).attack(0.001).release(0.04),
+  noise().gain(0.03).attack(0.001).release(0.02)
+).hpf(700).lpf(3500)
+            -->
+          </strudel-repl>
+        </article>
+      </section>
+
+      <section class="card">
+        <h2>Export-Workflow</h2>
+        <ol>
+          <li>Im jeweiligen REPL Sound tweaken und abspielen.</li>
+          <li>System-Audio aufnehmen (z. B. Audacity/WASAPI Loopback oder OBS).</li>
+          <li>One-Shot trimmen und als MP3 exportieren.</li>
+          <li>Dateien ersetzen: <code>public/sfx/menu-open.mp3</code>, <code>menu-close.mp3</code>, <code>menu-select.mp3</code>.</li>
+          <li>Dann: <code>npm run build</code> und kurz im UI prüfen.</li>
+        </ol>
+      </section>
+    </div>
+  </body>
+</html>
