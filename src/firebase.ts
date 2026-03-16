@@ -7,12 +7,12 @@ import { getStorage } from "firebase/storage";
 // Add it to Firebase Console → Authentication → Settings → Authorized domains,
 // otherwise login and password reset will fail on that domain.
 const firebaseConfig = {
-  apiKey: "REDACTED_FIREBASE_API_KEY",
-  authDomain: "sitesync-c3f9a.firebaseapp.com",
-  projectId: "sitesync-c3f9a",
-  storageBucket: "sitesync-c3f9a.firebasestorage.app",
-  messagingSenderId: "30282954627",
-  appId: "1:30282954627:web:50a2c7704a1449a70ea8b6"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
 const app = initializeApp(firebaseConfig);

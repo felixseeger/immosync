@@ -1,5 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
-
+@import "flag-icons/css/flag-icons.min.css";
 @import "tailwindcss";
 
 /* Tailwind v4: class-based dark mode (toggle) instead of system preference */
