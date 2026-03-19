@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Property } from '../types';
 import { getProperties, seedProperties } from '../services/propertyService';
 import PropertyGrid from './PropertyGrid';
@@ -8,7 +9,7 @@ import PropertyDetail from './PropertyDetail';
 import { Loader2, Plus, Filter, Database, LayoutGrid, List, Map as MapIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import AddPropertyPanel from './AddPropertyPanel';
-import { t } from '../i18n/de';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface PropertiesProps {
   showAddPanel?: boolean;
@@ -25,6 +26,7 @@ export default function Properties({
   onClearInitialSelection,
   isDarkMode = true,
 }: PropertiesProps = {}) {
+  const { t } = useLanguage();
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [seeding, setSeeding] = useState(false);
@@ -115,21 +117,21 @@ export default function Properties({
             <button
               onClick={() => setViewMode('grid')}
               className={`p-2 rounded-md transition-colors ${viewMode === 'grid' ? 'bg-white dark:bg-zinc-800 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-zinc-500 hover:text-gray-700 dark:hover:text-zinc-300'}`}
-              title="Grid view"
+              title={t.propertyUi.gridView}
             >
               <LayoutGrid size={18} />
             </button>
             <button
               onClick={() => setViewMode('list')}
               className={`p-2 rounded-md transition-colors ${viewMode === 'list' ? 'bg-white dark:bg-zinc-800 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-zinc-500 hover:text-gray-700 dark:hover:text-zinc-300'}`}
-              title="List view"
+              title={t.propertyUi.listView}
             >
               <List size={18} />
             </button>
             <button
               onClick={() => setViewMode('map')}
               className={`p-2 rounded-md transition-colors ${viewMode === 'map' ? 'bg-white dark:bg-zinc-800 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-zinc-500 hover:text-gray-700 dark:hover:text-zinc-300'}`}
-              title="Map view"
+              title={t.propertyUi.mapView}
             >
               <MapIcon size={18} />
             </button>
@@ -200,21 +202,24 @@ export default function Properties({
         )}
       </div>
 
-      {/* Detail Modal */}
-      <AnimatePresence>
-        {selectedProperty && (
-          <PropertyDetail 
-            property={selectedProperty} 
-            onClose={() => setSelectedProperty(null)}
-            onPropertyUpdated={async () => {
-              const data = await getProperties();
-              setProperties(data);
-              const updated = data.find((p) => p.id === selectedProperty?.id);
-              if (updated) setSelectedProperty(updated);
-            }}
-          />
-        )}
-      </AnimatePresence>
+      {/* Detail Modal - portaled to body so it overlays Aside and Topbar */}
+      {createPortal(
+        <AnimatePresence>
+          {selectedProperty && (
+            <PropertyDetail
+              property={selectedProperty}
+              onClose={() => setSelectedProperty(null)}
+              onPropertyUpdated={async () => {
+                const data = await getProperties();
+                setProperties(data);
+                const updated = data.find((p) => p.id === selectedProperty?.id);
+                if (updated) setSelectedProperty(updated);
+              }}
+            />
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
 
       <AnimatePresence>
         {showAddPanel && (

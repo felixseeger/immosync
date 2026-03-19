@@ -7,6 +7,7 @@ import { sfx } from '../utils/sfx';
 import type { DealType, DealStageId } from '../types';
 import type { Contact } from '../types';
 import type { Property } from '../types';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const inputCls =
   'w-full bg-white dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 text-gray-900 dark:text-white rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-colors placeholder:text-gray-500 dark:placeholder:text-zinc-600';
@@ -21,6 +22,7 @@ interface AddDealPanelProps {
 }
 
 export default function AddDealPanel({ onClose, onSuccess, contacts, properties }: AddDealPanelProps) {
+  const { t } = useLanguage();
   const [contactId, setContactId] = useState('');
   const [propertyId, setPropertyId] = useState('');
   const [dealType, setDealType] = useState<DealType>('sale');
@@ -41,7 +43,7 @@ export default function AddDealPanel({ onClose, onSuccess, contacts, properties 
   const handleSubmit = async () => {
     const value = Number(financialValue);
     if (!contactId || !propertyId || Number.isNaN(value) || value < 0) {
-      setError('Please select contact, property, and enter a valid value.');
+      setError(t.addDeal.pleaseSelectContactPropertyValue);
       return;
     }
     setError(null);
@@ -55,10 +57,10 @@ export default function AddDealPanel({ onClose, onSuccess, contacts, properties 
         financialValue: value,
         order: 0,
       });
-      await addDealActivity(id, 'note', 'Deal created.');
+      await addDealActivity(id, 'note', t.addDeal.dealCreatedActivity);
       onSuccess();
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to create deal');
+      setError(e instanceof Error ? e.message : t.addDeal.createFailed);
     } finally {
       setSaving(false);
     }
@@ -88,49 +90,49 @@ export default function AddDealPanel({ onClose, onSuccess, contacts, properties 
             <div className="p-2 rounded-lg bg-accent/15 border-2 border-accent/40">
               <Briefcase size={18} className="text-[#D9FF00]" />
             </div>
-            <h2 className="text-lg font-bold text-gray-900 dark:text-white">New deal</h2>
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white">{t.addDeal.addDeal}</h2>
           </div>
-          <button type="button" onClick={handleClose} aria-label="Close" className="p-2 rounded-lg text-gray-500 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-accent/50">
+          <button type="button" onClick={handleClose} aria-label={t.common.close} className="p-2 rounded-lg text-gray-500 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-accent/50">
             <X size={20} aria-hidden="true" />
           </button>
         </div>
         <div className="p-4 overflow-y-auto space-y-4">
           <div>
-            <label className="block text-[11px] font-semibold text-gray-600 dark:text-zinc-400 uppercase tracking-wider mb-1.5">Contact</label>
+            <label className="block text-[11px] font-semibold text-gray-600 dark:text-zinc-400 uppercase tracking-wider mb-1.5">{t.contact.label}</label>
             <select value={contactId} onChange={(e) => { sfx.menuSelect(); setContactId(e.target.value); }} className={selectCls(!!contactId)} required>
-              <option value="">— Select —</option>
+              <option value="">{t.addDeal.selectContact}</option>
               {contacts.map((c) => (
                 <option key={c.id} value={c.id}>{c.name}</option>
               ))}
             </select>
           </div>
           <div>
-            <label className="block text-[11px] font-semibold text-gray-600 dark:text-zinc-400 uppercase tracking-wider mb-1.5">Property</label>
+            <label className="block text-[11px] font-semibold text-gray-600 dark:text-zinc-400 uppercase tracking-wider mb-1.5">{t.property.property}</label>
             <select value={propertyId} onChange={(e) => { sfx.menuSelect(); setPropertyId(e.target.value); }} className={selectCls(!!propertyId)} required>
-              <option value="">— Select —</option>
+              <option value="">{t.addDeal.selectProperty}</option>
               {properties.map((p) => (
                 <option key={p.id} value={p.id}>{p.title}</option>
               ))}
             </select>
           </div>
           <div>
-            <label className="block text-[11px] font-semibold text-gray-600 dark:text-zinc-400 uppercase tracking-wider mb-1.5">Type</label>
+            <label className="block text-[11px] font-semibold text-gray-600 dark:text-zinc-400 uppercase tracking-wider mb-1.5">{t.addDeal.dealType}</label>
             <select value={dealType} onChange={(e) => { sfx.menuSelect(); setDealType(e.target.value as DealType); }} className={selectCls(!!dealType)}>
-              <option value="sale">Sale</option>
-              <option value="rental">Rental</option>
+              <option value="sale">{t.marketing.sale}</option>
+              <option value="rental">{t.marketing.rent}</option>
             </select>
           </div>
           <div>
-            <label className="block text-[11px] font-semibold text-gray-600 dark:text-zinc-400 uppercase tracking-wider mb-1.5">Stage</label>
+            <label className="block text-[11px] font-semibold text-gray-600 dark:text-zinc-400 uppercase tracking-wider mb-1.5">{t.addDeal.stage}</label>
             <select value={stageId} onChange={(e) => { sfx.menuSelect(); setStageId(e.target.value as DealStageId); }} className={selectCls(!!stageId)}>
               {DEAL_STAGES.map((s) => (
-                <option key={s.id} value={s.id}>{s.label}</option>
+                <option key={s.id} value={s.id}>{t.dealStage?.[s.id] ?? s.label}</option>
               ))}
             </select>
           </div>
           <div>
             <label className="block text-[11px] font-semibold text-gray-600 dark:text-zinc-400 uppercase tracking-wider mb-1.5">
-              {dealType === 'sale' ? 'Expected commission' : 'Rent (monthly)'}
+              {dealType === 'sale' ? t.deal.expectedCommission : t.deal.rent}
             </label>
             <input
               type="number"
@@ -149,7 +151,7 @@ export default function AddDealPanel({ onClose, onSuccess, contacts, properties 
           )}
           <div className="flex gap-2 pt-2">
             <button type="button" onClick={handleClose} className="flex-1 py-2.5 bg-gray-200 dark:bg-zinc-800 text-gray-900 dark:text-white rounded-xl font-medium text-sm hover:border-accent/50 focus:outline-none focus:ring-2 focus:ring-accent/50 transition-colors">
-              Cancel
+              {t.common.cancel}
             </button>
             <button
               type="button"
@@ -158,7 +160,7 @@ export default function AddDealPanel({ onClose, onSuccess, contacts, properties 
               className="flex-1 py-2.5 bg-accent text-white dark:text-black font-bold rounded-xl text-sm flex items-center justify-center gap-2 disabled:opacity-50 hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2"
             >
               {saving ? <Loader2 size={18} className="animate-spin" /> : null}
-              Create deal
+              {t.addDeal.addDeal}
             </button>
           </div>
         </div>

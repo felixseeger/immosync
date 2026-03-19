@@ -16,12 +16,7 @@ import DealDetailSlideOver from './DealDetailSlideOver';
 import AddDealPanel from './AddDealPanel';
 import ActivityStream from './ActivityStream';
 import { sfx } from '../utils/sfx';
-
-const TRACK_OPTIONS: { value: 'all' | DealType; label: string }[] = [
-  { value: 'all', label: 'Alle' },
-  { value: 'sale', label: 'Verkauf' },
-  { value: 'rental', label: 'Miete' },
-];
+import { useLanguage } from '../contexts/LanguageContext';
 
 const STAGE_COLORS: Record<string, { borderLeft: string; headerBg: string; headerText: string; columnBg: string }> = {
   lead: { borderLeft: 'border-l-4 border-l-blue-500', headerBg: 'bg-blue-500/25 dark:bg-blue-500/30', headerText: 'text-blue-800 dark:text-blue-200 font-bold', columnBg: 'bg-blue-500/5 dark:bg-blue-500/10' },
@@ -46,6 +41,13 @@ export default function Deals({
   initialSelectedDealId,
   onClearInitialDealSelection,
 }: DealsProps = {}) {
+  const { t } = useLanguage();
+  const TRACK_OPTIONS: { value: 'all' | DealType; label: string }[] = [
+    { value: 'all', label: t.propertyFilter.all },
+    { value: 'sale', label: t.marketing.sale },
+    { value: 'rental', label: t.marketing.rent },
+  ];
+
   const [deals, setDeals] = useState<Deal[]>([]);
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [properties, setProperties] = useState<Property[]>([]);
@@ -127,7 +129,7 @@ export default function Deals({
         <div className="flex items-center gap-4">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight flex items-center gap-2">
             <CheckSquare size={28} className="text-accent" />
-            Zu erledigen
+            {t.nav.deals}
           </h2>
         </div>
         <div className="flex items-center justify-center">
@@ -154,7 +156,7 @@ export default function Deals({
           className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold btn-outline-accent [&_svg]:text-current"
         >
           <Plus size={16} />
-          Aufgabe hinzufügen
+          {t.dealsPage.addTask}
         </button>
         </div>
       </div>
@@ -171,7 +173,7 @@ export default function Deals({
                     className={`w-72 shrink-0 flex flex-col rounded-xl border-2 border-gray-200 dark:border-zinc-700 overflow-hidden ${colors.borderLeft} ${colors.columnBg || 'bg-gray-50/50 dark:bg-zinc-900/50'}`}
                   >
                     <div className={`p-3 border-b-2 border-gray-200 dark:border-zinc-700 flex items-center justify-between ${colors.headerBg}`}>
-                      <h3 className={`text-sm ${colors.headerText}`}>{stage.label}</h3>
+                      <h3 className={`text-sm ${colors.headerText}`}>{t.dealStage?.[stage.id] ?? stage.label}</h3>
                       <span className="text-xs font-medium text-gray-600 dark:text-zinc-400 bg-white/60 dark:bg-app-dark/30 px-2.5 py-1 rounded-full">
                         {(dealsByStage[stage.id] ?? []).length}
                       </span>
@@ -211,7 +213,7 @@ export default function Deals({
         <div className="shrink-0 border-t border-gray-200/50 dark:border-white/10 glass">
           <div className="px-6 py-3 border-b border-gray-200 dark:border-zinc-800 flex items-center gap-2">
             <Activity size={18} className="text-accent" />
-            <h3 className="font-bold text-gray-900 dark:text-white text-sm">Recent Activity</h3>
+            <h3 className="font-bold text-gray-900 dark:text-white text-sm">{t.dealsPage.recentActivity}</h3>
           </div>
           <div className="min-h-0 overflow-hidden px-6 py-3">
             <ActivityStream limit={1} />

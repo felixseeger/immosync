@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { Mail, ArrowLeft, Loader2, AlertCircle, CheckCircle } from 'lucide-react';
-import { t } from '../i18n/de';
+import { useLanguage } from '../contexts/LanguageContext';
 import LiquidGradientBackground from './LiquidGradientBackground';
 
 interface PasswordResetProps {
@@ -9,6 +9,7 @@ interface PasswordResetProps {
 }
 
 export default function PasswordReset({ onBack }: PasswordResetProps) {
+  const { t } = useLanguage();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

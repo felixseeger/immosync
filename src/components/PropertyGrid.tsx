@@ -1,6 +1,6 @@
 import React from 'react';
 import { Property } from '../types';
-import { t } from '../i18n/de';
+import { useLanguage } from '../contexts/LanguageContext';
 import { motion } from 'motion/react';
 import { MapPin, LayoutGrid, Bath, Box, Droplets, UtensilsCrossed, Car, ArrowRight } from 'lucide-react';
 
@@ -10,6 +10,21 @@ interface PropertyGridProps {
 }
 
 export default function PropertyGrid({ properties, onSelectProperty }: PropertyGridProps) {
+  const { t } = useLanguage();
+  const translateStatus = (status: Property['status']) => {
+    switch (status) {
+      case 'Active':
+        return t.propertyStatus.active;
+      case 'Pending':
+        return t.propertyStatus.pending;
+      case 'Rented':
+        return t.propertyStatus.rented;
+      case 'Sold':
+        return t.propertyStatus.sold;
+      default:
+        return status;
+    }
+  };
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
       {properties.map((property) => (
@@ -31,7 +46,7 @@ export default function PropertyGrid({ properties, onSelectProperty }: PropertyG
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-40 transition-opacity" />
             
             <div className="absolute top-4 right-4 px-3 py-1 bg-black/60 backdrop-blur-md rounded-full border border-white/10 text-xs font-medium text-white">
-              {property.status}
+              {translateStatus(property.status)}
             </div>
             
             <div className="absolute bottom-4 left-4 right-4">
@@ -63,32 +78,32 @@ export default function PropertyGrid({ properties, onSelectProperty }: PropertyG
               <div className="flex flex-col items-center text-center">
                 <LayoutGrid size={28} className="text-gray-600 dark:text-zinc-400 mb-1" />
                 <span className="text-xl font-medium text-gray-900 dark:text-white">{property.rooms ?? '—'}</span>
-                <span className="text-sm text-gray-500 dark:text-zinc-600 uppercase">Rooms</span>
+                <span className="text-sm text-white uppercase">{t.propertyDetail.rooms}</span>
               </div>
               <div className="flex flex-col items-center text-center border-l border-gray-300 dark:border-zinc-800">
                 <Bath size={28} className="text-gray-600 dark:text-zinc-400 mb-1" />
                 <span className="text-xl font-medium text-gray-900 dark:text-white">{property.bathrooms ?? '—'}</span>
-                <span className="text-sm text-gray-500 dark:text-zinc-600 uppercase">Baths</span>
+                <span className="text-sm text-white uppercase">{t.propertyDetail.baths}</span>
               </div>
               <div className="flex flex-col items-center text-center border-l border-gray-300 dark:border-zinc-800">
                 <Box size={28} className="text-gray-600 dark:text-zinc-400 mb-1" />
                 <span className="text-xl font-medium text-gray-900 dark:text-white">{property.balconies ?? '—'}</span>
-                <span className="text-sm text-gray-500 dark:text-zinc-600 uppercase">Balc.</span>
+                <span className="text-sm text-white uppercase">{t.propertyDetail.balconies}</span>
               </div>
               <div className="flex flex-col items-center text-center">
                 <Droplets size={28} className="text-gray-600 dark:text-zinc-400 mb-1" />
                 <span className="text-xl font-medium text-gray-900 dark:text-white">{property.bathtubs ?? '—'}</span>
-                <span className="text-sm text-gray-500 dark:text-zinc-600 uppercase">Tubs</span>
+                <span className="text-sm text-white uppercase">{t.propertyDetail.bathtubs}</span>
               </div>
               <div className="flex flex-col items-center text-center border-l border-gray-300 dark:border-zinc-800">
                 <UtensilsCrossed size={28} className="text-gray-600 dark:text-zinc-400 mb-1" />
                 <span className="text-xl font-medium text-gray-900 dark:text-white">{property.kitchens ?? '—'}</span>
-                <span className="text-sm text-gray-500 dark:text-zinc-600 uppercase">Kit.</span>
+                <span className="text-sm text-white uppercase">{t.propertyDetail.kitchens}</span>
               </div>
               <div className="flex flex-col items-center text-center border-l border-gray-300 dark:border-zinc-800">
                 <Car size={28} className="text-gray-600 dark:text-zinc-400 mb-1" />
                 <span className="text-xl font-medium text-gray-900 dark:text-white">{property.garage ?? '—'}</span>
-                <span className="text-sm text-gray-500 dark:text-zinc-600 uppercase">Garage</span>
+                <span className="text-sm text-white uppercase">{t.propertyDetail.garage}</span>
               </div>
             </div>
 

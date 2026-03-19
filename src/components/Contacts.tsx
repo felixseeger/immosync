@@ -16,23 +16,7 @@ import { getPropertyTitles } from '../services/propertyService';
 import type { Contact, ContactCategory, LeadStatus } from '../types';
 import ContactSlideOverPanel from './ContactSlideOverPanel';
 import AnimatedLink from './AnimatedLink';
-
-const CATEGORY_LABELS: Record<ContactCategory, string> = {
-  buyer: 'Buyer',
-  tenant: 'Tenant',
-  owner: 'Owner',
-  investor: 'Investor',
-};
-
-const STATUS_LABELS: Record<LeadStatus, string> = {
-  new: 'New',
-  contacted: 'Contacted',
-  qualified: 'Qualified',
-  viewing: 'Viewing',
-  negotiation: 'Negotiation',
-  won: 'Won',
-  lost: 'Lost',
-};
+import { useLanguage } from '../contexts/LanguageContext';
 
 function formatBudget(sp: Contact['searchProfile']): string {
   if (!sp) return '—';
@@ -57,6 +41,24 @@ export default function Contacts({
   onClearInitialContactSelection,
   onSelectProperty,
 }: ContactsProps = {}) {
+  const { t } = useLanguage();
+  const CATEGORY_LABELS: Record<ContactCategory, string> = {
+    buyer: t.contactRole.buyer,
+    tenant: t.contactRole.tenant,
+    owner: t.contactRole.owner,
+    investor: t.contactRole.investor,
+  };
+
+  const STATUS_LABELS: Record<LeadStatus, string> = {
+    new: t.contactStage.new,
+    contacted: t.contactStage.contacted,
+    qualified: t.contactStage.qualified,
+    viewing: t.contactStage.viewing,
+    negotiation: t.contactStage.negotiation,
+    won: t.contactStage.won,
+    lost: t.contactStage.lost,
+  };
+
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -130,7 +132,7 @@ export default function Contacts({
       <div className="p-6 border-b border-gray-200 dark:border-zinc-800 flex items-center justify-between gap-4 bg-app-light/90 dark:bg-app-dark/50 backdrop-blur-md sticky top-0 z-10">
         <div className="flex-1 min-w-0">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight truncate">
-            Contacts
+            {t.nav.contacts}
           </h2>
         </div>
         <div className="flex items-center justify-center gap-2 bg-gray-100 dark:bg-zinc-900 rounded-lg p-1 border border-gray-300 dark:border-zinc-800 shrink-0">
@@ -142,7 +144,7 @@ export default function Contacts({
                 : 'text-gray-600 dark:text-zinc-500 hover:text-gray-900 dark:hover:text-white border border-transparent'
             }`}
           >
-            All
+            {t.propertyFilter.all}
           </button>
           {(Object.keys(CATEGORY_LABELS) as ContactCategory[]).map((cat) => (
             <button
@@ -164,7 +166,7 @@ export default function Contacts({
             className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold btn-outline-accent [&_svg]:text-current"
           >
             <Plus size={16} />
-            Add contact
+            {t.contact.newContact}
           </button>
         </div>
       </div>
@@ -179,9 +181,9 @@ export default function Contacts({
             <div className="w-16 h-16 rounded-full bg-gray-200 dark:bg-zinc-900 flex items-center justify-center mb-4">
               <User size={28} className="text-gray-500 dark:text-zinc-500" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">No contacts yet</h3>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">{t.contact.noContactsYet}</h3>
             <p className="text-sm text-gray-600 dark:text-zinc-500 mb-4 max-w-sm">
-              {search || categoryFilter ? 'No contacts match your filters.' : 'Add your first contact to start managing leads and matching them to properties.'}
+              {search || categoryFilter ? t.contact.noContacts : t.contact.noContactsHint}
             </p>
             {!search && !categoryFilter && (
               <button
@@ -189,7 +191,7 @@ export default function Contacts({
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold btn-outline-accent [&_svg]:text-current"
               >
                 <Plus size={16} />
-                Add contact
+                {t.contact.newContact}
               </button>
             )}
           </div>
@@ -199,14 +201,14 @@ export default function Contacts({
               <table className="w-full text-left text-sm">
                 <thead>
                   <tr className="border-b border-gray-200 dark:border-zinc-800 bg-gray-50 dark:bg-zinc-900/80">
-                    <th className="px-4 py-3 font-semibold text-gray-700 dark:text-zinc-300">Name</th>
-                    <th className="px-4 py-3 font-semibold text-gray-700 dark:text-zinc-300">Contact</th>
-                    <th className="px-4 py-3 font-semibold text-gray-700 dark:text-zinc-300">Category</th>
-                    <th className="px-4 py-3 font-semibold text-gray-700 dark:text-zinc-300">Status</th>
-                    <th className="px-4 py-3 font-semibold text-gray-700 dark:text-zinc-300">Budget</th>
-                    <th className="px-4 py-3 font-semibold text-gray-700 dark:text-zinc-300">Min rooms</th>
-                    <th className="px-4 py-3 font-semibold text-gray-700 dark:text-zinc-300">Properties</th>
-                    <th className="px-4 py-3 font-semibold text-gray-700 dark:text-zinc-300 w-24">Actions</th>
+                    <th className="px-4 py-3 font-semibold text-gray-700 dark:text-zinc-300">{t.contact.tableName}</th>
+                    <th className="px-4 py-3 font-semibold text-gray-700 dark:text-zinc-300">{t.contact.tableContact}</th>
+                    <th className="px-4 py-3 font-semibold text-gray-700 dark:text-zinc-300">{t.contact.tableCategory}</th>
+                    <th className="px-4 py-3 font-semibold text-gray-700 dark:text-zinc-300">{t.contact.tableStatus}</th>
+                    <th className="px-4 py-3 font-semibold text-gray-700 dark:text-zinc-300">{t.contact.tableBudget}</th>
+                    <th className="px-4 py-3 font-semibold text-gray-700 dark:text-zinc-300">{t.contact.tableMinRooms}</th>
+                    <th className="px-4 py-3 font-semibold text-gray-700 dark:text-zinc-300">{t.contact.tableProperties}</th>
+                    <th className="px-4 py-3 font-semibold text-gray-700 dark:text-zinc-300 w-24">{t.contact.tableActions}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -284,14 +286,14 @@ export default function Contacts({
                         <div className="flex items-center gap-1">
                           <button
                             onClick={() => setPanelContact(c)}
-                            aria-label="Edit contact"
+                            aria-label={t.contact.editAria}
                             className="p-2 rounded-lg text-blue-600 dark:text-blue-400 hover:bg-blue-500/15 dark:hover:bg-blue-500/15 border border-transparent hover:border-blue-500/40 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500/50"
                           >
                             <Pencil size={14} aria-hidden="true" />
                           </button>
                           <button
                             onClick={() => setDeleteConfirm(c)}
-                            aria-label="Delete contact"
+                            aria-label={t.contact.deleteAria}
                             className="p-2 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-500/15 dark:hover:bg-red-500/15 border border-transparent hover:border-red-500/40 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500/50"
                           >
                             <Trash2 size={14} aria-hidden="true" />
@@ -331,9 +333,9 @@ export default function Contacts({
               exit={{ scale: 0.95 }}
               className="bg-app-light dark:bg-app-dark border border-gray-200 dark:border-zinc-800 rounded-2xl p-6 max-w-sm w-full shadow-2xl"
             >
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Delete contact?</h3>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">{t.contact.deleteContactConfirmTitle}</h3>
               <p className="text-sm text-gray-600 dark:text-zinc-400 mb-4">
-                Permanently remove <strong>{deleteConfirm.name}</strong>? Property links will also be removed.
+                {t.contact.deleteContactConfirmDesc}
               </p>
               <div className="flex gap-3">
                 <button
@@ -342,7 +344,7 @@ export default function Contacts({
                   disabled={deleting}
                   className="flex-1 py-2.5 bg-gray-200 dark:bg-zinc-800 text-gray-900 dark:text-white rounded-xl font-medium text-sm"
                 >
-                  Cancel
+                  {t.common.cancel}
                 </button>
                 <button
                   type="button"
@@ -351,7 +353,7 @@ export default function Contacts({
                   className="flex-1 py-2.5 bg-red-500 text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   {deleting ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
-                  Delete
+                  {t.common.delete}
                 </button>
               </div>
             </motion.div>

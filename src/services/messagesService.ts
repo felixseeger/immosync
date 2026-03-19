@@ -91,22 +91,56 @@ export async function createMessage(data: MessageCreateInput): Promise<string> {
   return ref.id;
 }
 
+function toMessageTime(v: unknown): number {
+  if (!v) return 0;
+  if (typeof (v as { toDate?: () => Date }).toDate === 'function') return (v as { toDate: () => Date }).toDate().getTime();
+  const d = new Date(v as string | number | Date);
+  return isNaN(d.getTime()) ? 0 : d.getTime();
+}
+
+function toMessage(id: string, data: Record<string, unknown>, conversationIdFallback?: string): Message {
+  return {
+    id,
+    conversationId: (data.conversationId as string) ?? conversationIdFallback ?? '',
+    senderId: (data.senderId as string) ?? '',
+    body: (data.body as string) ?? '',
+    createdAt: data.createdAt,
+    userId: data.userId as string | undefined,
+  } as Message;
+}
+
 export function subscribeToMessages(conversationId: string, callback: (messages: Message[]) => void): () => void {
-  const q = query(
+  // Query 1: top-level messages collection (conversationId field)
+  const topLevelQuery = query(
     collection(db, MESSAGES_COLLECTION),
     where('conversationId', '==', conversationId)
   );
-  return onSnapshot(q, (snapshot) => {
-    const list = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as Message));
-    list.sort((a, b) => {
-      const toTime = (v: unknown): number => {
-        if (!v) return 0;
-        if (typeof (v as { toDate?: () => Date }).toDate === 'function') return (v as { toDate: () => Date }).toDate().getTime();
-        const d = new Date(v as string | number | Date);
-        return isNaN(d.getTime()) ? 0 : d.getTime();
-      };
-      return toTime(a.createdAt) - toTime(b.createdAt);
-    });
-    callback(list);
+  // Query 2: subcollection conversations/{id}/messages (for legacy or alternate storage)
+  const subColRef = collection(db, CONVERSATIONS_COLLECTION, conversationId, MESSAGES_COLLECTION);
+
+  const mergeAndEmit = (topLevel: Message[], subCol: Message[]) => {
+    const byId = new Map<string, Message>();
+    [...topLevel, ...subCol].forEach((m) => byId.set(m.id, m));
+    const merged = Array.from(byId.values());
+    merged.sort((a, b) => toMessageTime(a.createdAt) - toMessageTime(b.createdAt));
+    callback(merged);
+  };
+
+  let topLevelList: Message[] = [];
+  let subColList: Message[] = [];
+
+  const unsubTop = onSnapshot(topLevelQuery, (snapshot) => {
+    topLevelList = snapshot.docs.map((d) => toMessage(d.id, d.data() ?? {}));
+    mergeAndEmit(topLevelList, subColList);
   });
+
+  const unsubSub = onSnapshot(subColRef, (snapshot) => {
+    subColList = snapshot.docs.map((d) => toMessage(d.id, d.data() ?? {}, conversationId));
+    mergeAndEmit(topLevelList, subColList);
+  });
+
+  return () => {
+    unsubTop();
+    unsubSub();
+  };
 }

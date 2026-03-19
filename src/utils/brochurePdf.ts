@@ -1,5 +1,5 @@
 import { jsPDF } from 'jspdf';
-import { ref, getBlob } from 'firebase/storage';
+import { ref, getBlob, getDownloadURL } from 'firebase/storage';
 import { storage } from '../firebase';
 import type { Property } from '../types';
 
@@ -54,49 +54,157 @@ function getStoragePathFromDownloadUrl(url: string): string | null {
   }
 }
 
-/** Load image via Firebase Storage SDK (avoids CORS). Returns data URL or null. */
+/** Convert a Blob to a data URL. Returns null on failure. */
+function blobToDataUrl(blob: Blob): Promise<string | null> {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const result = reader.result as string;
+      resolve(result && result.startsWith('data:') ? result : null);
+    };
+    reader.onerror = () => resolve(null);
+    reader.readAsDataURL(blob);
+  });
+}
+
+/** Fetch a URL and return as data URL. Returns null on failure. */
+async function fetchAsDataUrl(url: string): Promise<string | null> {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) {
+      console.warn('[PDF] fetch failed:', res.status, url.slice(0, 120));
+      return null;
+    }
+    return blobToDataUrl(await res.blob());
+  } catch (e) {
+    console.warn('[PDF] fetch error:', url.slice(0, 120), e);
+    return null;
+  }
+}
+
+/** Load image via Firebase Storage SDK (getDownloadURL → fetch, then getBlob fallback). */
 async function loadImageViaFirebaseStorage(url: string): Promise<string | null> {
   const path = getStoragePathFromDownloadUrl(url);
   if (!path) return null;
+
   try {
     const fileRef = ref(storage, path);
-    const blob = await getBlob(fileRef);
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result as string);
-      reader.onerror = () => resolve(null);
-      reader.readAsDataURL(blob);
-    });
-  } catch {
-    return null;
+
+    // Strategy A: get fresh download URL (handles expired tokens)
+    try {
+      const freshUrl = await getDownloadURL(fileRef);
+      const result = await fetchAsDataUrl(freshUrl);
+      if (result) return result;
+    } catch (e) {
+      console.warn('[PDF] getDownloadURL failed for', path, e);
+    }
+
+    // Strategy B: getBlob via Firebase SDK
+    try {
+      const blob = await getBlob(fileRef);
+      const result = await blobToDataUrl(blob);
+      if (result) return result;
+    } catch (e) {
+      console.warn('[PDF] getBlob failed for', path, e);
+    }
+  } catch (e) {
+    console.warn('[PDF] Firebase ref error:', path, e);
   }
+
+  return null;
 }
 
-/** Fetch image URL and return as base64 data URL. Tries Firebase Storage first (no CORS), then fetch. */
-export async function imageUrlToBase64(url: string): Promise<string | null> {
+/** Downscale a data URL to JPEG via canvas. */
+function downscaleToJpeg(dataUrl: string, maxWidth: number): Promise<string | null> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      try {
+        let w = img.width;
+        let h = img.height;
+        if (w > maxWidth) {
+          h = (maxWidth / w) * h;
+          w = maxWidth;
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.max(1, Math.round(w));
+        canvas.height = Math.max(1, Math.round(h));
+        const ctx = canvas.getContext('2d');
+        if (!ctx) { resolve(dataUrl); return; }
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        const result = canvas.toDataURL('image/jpeg', 0.8);
+        resolve(result && result.length > 6 ? result : null);
+      } catch (e) {
+        console.warn('[PDF] canvas error:', e);
+        resolve(dataUrl); // tainted canvas – return original
+      }
+    };
+    img.onerror = () => {
+      console.warn('[PDF] Image decode failed (len=' + dataUrl.length + ')');
+      resolve(null);
+    };
+    img.src = dataUrl;
+  });
+}
+
+/** Fetch image URL and return as base64 data URL with downscaling and timeout. */
+export async function imageUrlToBase64(url: string, maxWidth = 800): Promise<string | null> {
   if (!url || typeof url !== 'string') return null;
-  if (url.startsWith('data:image/')) return url;
 
-  const viaStorage = await loadImageViaFirebaseStorage(url);
-  if (viaStorage) return viaStorage;
+  const timeout = (ms: number) => new Promise<null>((resolve) => setTimeout(() => resolve(null), ms));
 
-  try {
-    const res = await fetch(url, { mode: 'cors' });
-    if (!res.ok) return null;
-    const blob = await res.blob();
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result as string);
-      reader.onerror = () => resolve(null);
-      reader.readAsDataURL(blob);
-    });
-  } catch {
-    return null;
-  }
+  const fetchImage = async (): Promise<string | null> => {
+    // Already a data URL
+    if (url.startsWith('data:image/')) {
+      return downscaleToJpeg(url, maxWidth);
+    }
+
+    let sourceDataUrl: string | null = null;
+
+    // 1) Direct fetch (cheapest – Firebase download URLs support CORS)
+    sourceDataUrl = await fetchAsDataUrl(url);
+
+    // 2) Firebase SDK (fresh URL / getBlob)
+    if (!sourceDataUrl) {
+      sourceDataUrl = await loadImageViaFirebaseStorage(url);
+    }
+
+    // 3) Direct Image load fallback (works for some CORS-enabled CDNs if fetch is picky)
+    if (!sourceDataUrl) {
+      sourceDataUrl = await new Promise<string | null>((resolve) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) { resolve(null); return; }
+          try {
+            ctx.drawImage(img, 0, 0);
+            resolve(canvas.toDataURL('image/jpeg', 0.9));
+          } catch {
+            resolve(null);
+          }
+        };
+        img.onerror = () => resolve(null);
+        img.src = url;
+      });
+    }
+
+    if (!sourceDataUrl) {
+      console.warn('[PDF] All strategies failed:', url.slice(0, 120));
+      return null;
+    }
+
+    return downscaleToJpeg(sourceDataUrl, maxWidth);
+  };
+
+  return Promise.race([fetchImage(), timeout(10000)]);
 }
 
 /** Return jsPDF image format from a data URL. */
-function getFormatFromDataUrl(dataUrl: string): 'JPEG' | 'PNG' {
+export function getFormatFromDataUrl(dataUrl: string): 'JPEG' | 'PNG' {
   return dataUrl.startsWith('data:image/png') ? 'PNG' : 'JPEG';
 }
 

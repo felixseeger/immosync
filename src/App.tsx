@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   LayoutDashboard, 
   Building2, 
@@ -21,6 +21,7 @@ import {
   Settings,
   ChevronUp,
   Menu,
+  Languages,
   X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -45,7 +46,8 @@ import { sfx } from './utils/sfx';
 import AnimatedLink from './components/AnimatedLink';
 import LiquidGradientBackground from './components/LiquidGradientBackground';
 import Footer from './components/layout/Footer';
-import { t } from './i18n/de';
+import { useLanguage } from './contexts/LanguageContext';
+import type { Language } from './i18n';
 
 const SidebarItem = ({ icon: Icon, label, active = false, onClick, collapsed = false }: { icon: React.ComponentType<{ size?: number }>, label: string, active?: boolean, onClick: () => void; collapsed?: boolean }) => (
   <div className={`relative ${collapsed ? 'px-0 flex justify-center md:justify-center' : 'px-4'}`}>
@@ -70,7 +72,16 @@ const SidebarItem = ({ icon: Icon, label, active = false, onClick, collapsed = f
   </div>
 );
 
+const LANGUAGE_OPTIONS: Array<{ code: Language; flagClass: string; labelKey: 'german' | 'english' | 'french' | 'chinese' | 'japanese' }> = [
+  { code: 'de', flagClass: 'fi fi-de', labelKey: 'german' },
+  { code: 'en', flagClass: 'fi fi-gb', labelKey: 'english' },
+  { code: 'fr', flagClass: 'fi fi-fr', labelKey: 'french' },
+  { code: 'zh', flagClass: 'fi fi-cn', labelKey: 'chinese' },
+  { code: 'ja', flagClass: 'fi fi-jp', labelKey: 'japanese' },
+];
+
 export default function App() {
+  const { t, language, setLanguage } = useLanguage();
   const [activeTab, setActiveTab] = useState('Dashboard');
   const [showPropertiesAddPanel, setShowPropertiesAddPanel] = useState(false);
   const [initialSelectedPropertyId, setInitialSelectedPropertyId] = useState<string | null>(null);
@@ -89,7 +100,10 @@ export default function App() {
   const [showPasswordReset, setShowPasswordReset] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [showLanguagePopover, setShowLanguagePopover] = useState(false);
   const [isMdOrLarger, setIsMdOrLarger] = useState(() => typeof window !== 'undefined' && window.matchMedia('(min-width: 768px)').matches);
+  const [isSidebarExpandable, setIsSidebarExpandable] = useState(() => typeof window !== 'undefined' && window.matchMedia('(min-width: 1796px)').matches);
+  const languagePopoverRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const mq = window.matchMedia('(min-width: 768px)');
@@ -97,6 +111,24 @@ export default function App() {
     mq.addEventListener('change', handler);
     return () => mq.removeEventListener('change', handler);
   }, []);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 1796px)');
+    const handler = () => setIsSidebarExpandable(mq.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+
+  useEffect(() => {
+    if (!showLanguagePopover) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (languagePopoverRef.current && !languagePopoverRef.current.contains(e.target as Node)) {
+        setShowLanguagePopover(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showLanguagePopover]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -164,6 +196,8 @@ export default function App() {
     );
   }
 
+  const effectiveCollapsed = !isSidebarExpandable || sidebarCollapsed;
+
   const closeSidebar = () => {
     sfx.menuClose();
     setSidebarOpen(false);
@@ -200,12 +234,12 @@ export default function App() {
         className={`fixed md:relative inset-y-0 left-0 z-30 flex flex-col bg-app-light dark:bg-app-dark border-r border-gray-200 dark:border-border-dark ease-out
           w-64 md:transition-[width] md:duration-200
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
-          ${sidebarCollapsed ? 'md:w-[72px]' : 'md:w-64'}
+          ${effectiveCollapsed ? 'md:w-[72px]' : 'md:w-64'}
           transition-transform duration-200 md:transform-none
         `}
       >
-        <div className={`relative flex items-center gap-2 shrink-0 border-b border-gray-200 dark:border-border-dark ${(sidebarCollapsed && isMdOrLarger) ? 'p-3 md:justify-center md:flex-col md:gap-2 min-h-[72px]' : 'p-4 md:px-4 h-[72px]'} transition-all duration-200`}>
-          {(sidebarCollapsed && isMdOrLarger) ? (
+        <div className={`relative flex items-center gap-2 shrink-0 border-b border-gray-200 dark:border-border-dark ${(effectiveCollapsed && isMdOrLarger) ? 'p-3 md:justify-center md:flex-col md:gap-2 min-h-[72px]' : 'p-4 md:px-4 h-[72px]'} transition-all duration-200`}>
+          {(effectiveCollapsed && isMdOrLarger) ? (
             <motion.span
               className="shrink-0 hidden md:inline-flex"
               initial={{ scale: 0.9 }}
@@ -218,7 +252,8 @@ export default function App() {
           ) : (
             <>
               <img src="/img/logo-icon.svg" alt="IMMOSYNC" className="w-8 h-8 shrink-0" />
-              <img src="/img/logo-type.svg" alt="IMMOSYNC" className="h-[20px] shrink-0 hidden sm:block" />
+              <img src="/img/logo-type.svg" alt="IMMOSYNC" className="h-[20px] shrink-0 hidden sm:block dark:sm:hidden" />
+              <img src="/img/logo-type-white.svg" alt="IMMOSYNC" className="h-[20px] shrink-0 hidden dark:sm:block" />
             </>
           )}
           {/* Mobile: close button */}
@@ -230,8 +265,8 @@ export default function App() {
           >
             <X size={20} />
           </button>
-          {/* Desktop: collapse toggle (only when expanded; when collapsed, toggle is in header) */}
-          {!sidebarCollapsed && (
+          {/* Desktop: collapse toggle (only when expanded and viewport >= 1796px) */}
+          {!effectiveCollapsed && isSidebarExpandable && (
             <button
               type="button"
               onClick={() => setSidebarCollapsed(true)}
@@ -244,20 +279,101 @@ export default function App() {
         </div>
 
         <nav className="flex-1 mt-4 pt-[5px] overflow-y-auto custom-scrollbar">
-          <SidebarItem icon={LayoutDashboard} label={t.nav.dashboard} active={activeTab === 'Dashboard'} onClick={() => goTo('Dashboard')} collapsed={sidebarCollapsed && isMdOrLarger} />
-          <SidebarItem icon={Building2} label={t.nav.properties} active={activeTab === 'Properties'} onClick={() => goTo('Properties')} collapsed={sidebarCollapsed && isMdOrLarger} />
-          <SidebarItem icon={Users} label={t.nav.contacts} active={activeTab === 'Contacts'} onClick={() => goTo('Contacts')} collapsed={sidebarCollapsed && isMdOrLarger} />
-          <SidebarItem icon={CheckSquare} label={t.nav.deals} active={activeTab === 'Deals'} onClick={() => goTo('Deals')} collapsed={sidebarCollapsed && isMdOrLarger} />
-          <SidebarItem icon={Calendar} label={t.nav.calendar} active={activeTab === 'Calendar'} onClick={() => goTo('Calendar')} collapsed={sidebarCollapsed && isMdOrLarger} />
-          <SidebarItem icon={MessageSquare} label={t.nav.messages} active={activeTab === 'Messages'} onClick={() => goTo('Messages')} collapsed={sidebarCollapsed && isMdOrLarger} />
+          <SidebarItem icon={LayoutDashboard} label={t.nav.dashboard} active={activeTab === 'Dashboard'} onClick={() => goTo('Dashboard')} collapsed={effectiveCollapsed && isMdOrLarger} />
+          <SidebarItem icon={Building2} label={t.nav.properties} active={activeTab === 'Properties'} onClick={() => goTo('Properties')} collapsed={effectiveCollapsed && isMdOrLarger} />
+          <SidebarItem icon={Users} label={t.nav.contacts} active={activeTab === 'Contacts'} onClick={() => goTo('Contacts')} collapsed={effectiveCollapsed && isMdOrLarger} />
+          <SidebarItem icon={CheckSquare} label={t.nav.deals} active={activeTab === 'Deals'} onClick={() => goTo('Deals')} collapsed={effectiveCollapsed && isMdOrLarger} />
+          <SidebarItem icon={Calendar} label={t.nav.calendar} active={activeTab === 'Calendar'} onClick={() => goTo('Calendar')} collapsed={effectiveCollapsed && isMdOrLarger} />
+          <SidebarItem icon={MessageSquare} label={t.nav.messages} active={activeTab === 'Messages'} onClick={() => goTo('Messages')} collapsed={effectiveCollapsed && isMdOrLarger} />
         </nav>
 
-        <div className={`p-4 border-t border-gray-200 dark:border-border-dark space-y-2 ${sidebarCollapsed ? 'md:px-2' : ''}`}>
+        <div className={`p-4 border-t border-gray-200 dark:border-border-dark space-y-2 ${effectiveCollapsed ? 'md:px-2' : ''}`}>
+          {/* Language selector */}
+          <div className={`flex items-center justify-between px-2 py-1 ${effectiveCollapsed ? 'md:justify-center md:flex-col md:gap-1' : ''}`}>
+            {effectiveCollapsed && isMdOrLarger ? (
+              <div ref={languagePopoverRef} className="hidden md:block relative">
+                <button
+                  type="button"
+                  onClick={() => setShowLanguagePopover((v) => !v)}
+                  aria-label={t.app.language}
+                  aria-expanded={showLanguagePopover}
+                  aria-haspopup="true"
+                  title={t.app[LANGUAGE_OPTIONS.find((o) => o.code === language)?.labelKey ?? 'german']}
+                  className="flex justify-center w-full p-1 rounded-lg transition-colors"
+                >
+                  <span className={`${LANGUAGE_OPTIONS.find((o) => o.code === language)?.flagClass ?? 'fi fi-de'} block h-[20px] w-[28px] rounded-[2px]`} />
+                </button>
+                {showLanguagePopover && (
+                  <div
+                    className="absolute left-full top-1/2 -translate-y-1/2 ml-2 py-2 px-2 rounded-xl border border-gray-200 dark:border-zinc-700 bg-app-light dark:bg-app-dark shadow-xl z-50 flex flex-col gap-1 min-w-[56px]"
+                    role="menu"
+                    aria-label={t.app.language}
+                  >
+                    {LANGUAGE_OPTIONS.map((opt) => {
+                      const active = language === opt.code;
+                      return (
+                        <button
+                          key={opt.code}
+                          type="button"
+                          role="menuitemradio"
+                          aria-checked={active}
+                          aria-label={t.app[opt.labelKey]}
+                          title={t.app[opt.labelKey]}
+                          onClick={() => { setLanguage(opt.code); setShowLanguagePopover(false); }}
+                          className={`flex items-center justify-center p-2 rounded-lg transition-colors ${active ? 'bg-accent/20 border-2 border-accent/50' : 'hover:bg-gray-100 dark:hover:bg-zinc-800 border-2 border-transparent'}`}
+                        >
+                          <span className={`${opt.flagClass} block h-[18px] w-[26px] rounded-[2px]`} />
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <>
+                {!effectiveCollapsed && <span className="sr-only">{t.app.language}</span>}
+                <div className="flex items-center gap-2 min-w-0">
+                  {!effectiveCollapsed && <Languages size={14} className="text-gray-500 dark:text-zinc-400 shrink-0" />}
+                  <div
+                    className="relative flex items-center gap-1 rounded-lg border border-gray-300 dark:border-zinc-700 p-1"
+                    role="radiogroup"
+                    aria-label={t.app.language}
+                  >
+                    {LANGUAGE_OPTIONS.map((opt) => {
+                      const active = language === opt.code;
+                      return (
+                        <button
+                          key={opt.code}
+                          type="button"
+                          role="radio"
+                          aria-checked={active}
+                          aria-label={t.app[opt.labelKey]}
+                          title={t.app[opt.labelKey]}
+                          onClick={() => setLanguage(opt.code)}
+                          className={`relative z-10 h-7 w-7 rounded-md transition-colors duration-200 ${active ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-zinc-400 hover:text-gray-800 dark:hover:text-zinc-200'}`}
+                        >
+                          <span className={`${opt.flagClass} block h-[14px] w-[20px] mx-auto rounded-[2px]`} aria-hidden />
+                          {active && (
+                            <motion.span
+                              layoutId="active-language-flag"
+                              className="absolute inset-0 -z-10 rounded-md border border-accent/50 bg-white dark:bg-zinc-800"
+                              transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                            />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+
           {/* Theme toggle - hide labels when collapsed */}
-          <div className={`flex items-center justify-between px-2 py-1 ${sidebarCollapsed ? 'md:justify-center md:flex-col md:gap-1' : ''}`}>
-            {!sidebarCollapsed && <span className="text-xs text-gray-600 dark:text-zinc-600 uppercase tracking-wider font-medium">{t.app.theme}</span>}
+          <div className={`flex items-center justify-between px-2 py-1 ${effectiveCollapsed ? 'md:justify-center md:flex-col md:gap-1' : ''}`}>
+            {!effectiveCollapsed && <span className="text-xs text-gray-600 dark:text-zinc-600 uppercase tracking-wider font-medium">{t.app.theme}</span>}
             <div className="flex items-center gap-2">
-              {!sidebarCollapsed && (
+              {!effectiveCollapsed && (
                 <span className="text-xs px-2 py-1 rounded bg-gray-100 dark:bg-zinc-900 text-gray-600 dark:text-zinc-400">
                   {isDarkMode ? t.app.dark : t.app.light}
                 </span>
@@ -275,18 +391,18 @@ export default function App() {
           <div className="relative">
             <button
               onClick={() => { setShowUserMenu(false); setShowUserSettings(true); }}
-              className={`flex items-center gap-3 p-2 rounded-xl hover:bg-gray-200 dark:hover:bg-zinc-800 transition-colors w-full text-left ${sidebarCollapsed ? 'md:justify-center md:px-0' : ''}`}
+              className={`flex items-center gap-3 p-2 rounded-xl hover:bg-gray-200 dark:hover:bg-zinc-800 transition-colors w-full text-left ${effectiveCollapsed ? 'md:justify-center md:px-0' : ''}`}
             >
               <div className="w-10 h-10 rounded-full bg-gray-300 dark:bg-zinc-800 border border-gray-300 dark:border-border-dark overflow-hidden shrink-0">
-                <img src={user.photoURL || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.displayName || user.email || 'U')}`} alt={t.app.avatar} referrerPolicy="no-referrer" className="w-full h-full object-cover" />
+                <img src={user?.photoURL || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user?.displayName || user?.email || 'U')}`} alt={t.app.avatar} referrerPolicy="no-referrer" className="w-full h-full object-cover" />
               </div>
-              {!sidebarCollapsed && (
+              {!effectiveCollapsed && (
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate text-gray-900 dark:text-white">{user.displayName || t.app.user}</p>
-                  <p className="text-xs text-gray-600 dark:text-zinc-500 truncate">{user.email}</p>
+                  <p className="text-sm font-medium truncate text-gray-900 dark:text-white">{user?.displayName || t.app.user}</p>
+                  <p className="text-xs text-gray-600 dark:text-zinc-500 truncate">{user?.email}</p>
                 </div>
               )}
-              {!sidebarCollapsed && <ChevronUp size={14} className="text-gray-600 dark:text-zinc-500 shrink-0 rotate-180" />}
+              {!effectiveCollapsed && <ChevronUp size={14} className="text-gray-600 dark:text-zinc-500 shrink-0 rotate-180" />}
             </button>
           </div>
         </div>
@@ -313,12 +429,14 @@ export default function App() {
           {/* Mobile: logo between burger and search */}
           <div className="md:hidden flex items-center gap-2 shrink-0">
             <img src="/img/logo-icon.svg" alt="IMMOSYNC" className="w-7 h-7 shrink-0" />
-            <img src="/img/logo-type.svg" alt="IMMOSYNC" className="h-[16px] shrink-0" />
+            <img src="/img/logo-type.svg" alt="IMMOSYNC" className="h-[16px] shrink-0 dark:hidden" />
+            <img src="/img/logo-type-white.svg" alt="IMMOSYNC" className="h-[16px] shrink-0 hidden dark:block" />
           </div>
           {/* When aside collapsed (desktop): logo text + expand toggle in header */}
-          {sidebarCollapsed && (
+          {effectiveCollapsed && isSidebarExpandable && (
             <div className="hidden md:flex items-center gap-2 shrink-0">
-              <img src="/img/logo-type.svg" alt="IMMOSYNC" className="h-[20px] shrink-0" />
+              <img src="/img/logo-type.svg" alt="IMMOSYNC" className="h-[20px] shrink-0 dark:hidden" />
+              <img src="/img/logo-type-white.svg" alt="IMMOSYNC" className="h-[20px] shrink-0 hidden dark:block" />
               <button
                 type="button"
                 onClick={() => setSidebarCollapsed(false)}
@@ -342,7 +460,7 @@ export default function App() {
         <div className="relative z-10 flex-1 overflow-hidden min-h-0">
           {activeTab === 'Dashboard' && (
             <Dashboard
-              user={user}
+              user={user!}
               onAddProperty={() => { setActiveTab('Properties'); setShowPropertiesAddPanel(true); }}
               onSelectProperty={(id) => { setActiveTab('Properties'); setInitialSelectedPropertyId(id); }}
               onOpenCalendar={() => setActiveTab('Calendar')}

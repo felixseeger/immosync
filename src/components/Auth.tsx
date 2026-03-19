@@ -7,7 +7,7 @@ import {
 import { auth } from '../firebase';
 import { motion } from 'motion/react';
 import { Mail, Lock, User, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
-import { t } from '../i18n/de';
+import { useLanguage } from '../contexts/LanguageContext';
 import LiquidGradientBackground from './LiquidGradientBackground';
 
 interface AuthProps {
@@ -16,6 +16,7 @@ interface AuthProps {
 }
 
 export default function Auth({ onSuccess, onForgotPassword }: AuthProps) {
+  const { t } = useLanguage();
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

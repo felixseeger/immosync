@@ -2,6 +2,7 @@ import React from 'react';
 import { Draggable } from '@hello-pangea/dnd';
 import { DollarSign, User, Building2 } from 'lucide-react';
 import type { Deal } from '../types';
+import { useLanguage } from '../contexts/LanguageContext';
 
 function formatValue(value: number, dealType: 'sale' | 'rental'): string {
   if (value >= 1_000_000) return `€${(value / 1_000_000).toFixed(1)}M`;
@@ -20,7 +21,8 @@ interface DealCardProps {
 }
 
 export default function DealCard({ deal, contactName, propertyTitle, index, onClick, stageBorderClass }: DealCardProps) {
-  const valueLabel = deal.dealType === 'sale' ? 'Commission' : 'Rent';
+  const { t } = useLanguage();
+  const valueLabel = deal.dealType === 'sale' ? t.deal.commission : t.deal.rent;
   const valueStr = formatValue(deal.financialValue, deal.dealType);
 
   return (

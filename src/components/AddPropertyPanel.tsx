@@ -19,7 +19,7 @@ import { createProperty, updatePropertyImages, updatePropertyVideos, updatePrope
 import { sfx } from '../utils/sfx';
 import { uploadPropertyImage, uploadPropertyVideo } from '../services/storageService';
 import { auth } from '../firebase';
-import { t } from '../i18n/de';
+import { useLanguage } from '../contexts/LanguageContext';
 import type { MarketingType, HeatingType, Property } from '../types';
 
 /* ─── Constants ────────────────────────────────────────────────────────────── */
@@ -46,7 +46,7 @@ const HEATING_TYPES: HeatingType[] = [
   'Solar',
 ];
 
-const STEPS = [t.addProperty.basics, t.addProperty.address, t.addProperty.details, t.addProperty.media];
+
 
 /* ─── Types ────────────────────────────────────────────────────────────────── */
 
@@ -158,68 +158,69 @@ function Step1({
   setForm: React.Dispatch<React.SetStateAction<FormState>>;
   onSelect?: () => void;
 }) {
+  const { t } = useLanguage();
   return (
     <div className="space-y-5">
       <div>
-        <Label required>Immobilienname</Label>
+        <Label required>{t.addProperty.propertyName}</Label>
         <input
           type="text"
           value={form.title}
           onChange={set('title')}
-          placeholder="e.g. Penthouse München Schwabing"
+          placeholder={t.addProperty.propertyNamePlaceholder}
           className={inputCls}
           autoFocus
         />
       </div>
 
       <div>
-        <Label>Vermarktungsart</Label>
+        <Label>{t.addProperty.marketingType}</Label>
         <div className="flex bg-white dark:bg-zinc-800 rounded-lg p-1 border border-gray-300 dark:border-zinc-700 gap-1">
-          {(['Sale', 'Rent'] as const).map((t) => (
+          {(['Sale', 'Rent'] as const).map((mode) => (
             <button
-              key={t}
+              key={mode}
               type="button"
               onClick={() => {
                 onSelect?.();
-                setForm((f) => ({ ...f, marketingType: t }));
+                setForm((f) => ({ ...f, marketingType: mode }));
               }}
               className={`flex-1 py-2.5 rounded-md text-sm font-bold transition-all border-2 ${
-                form.marketingType === t
+                form.marketingType === mode
                   ? 'border-accent bg-accent/15 text-accent'
                   : 'border-transparent text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
-              {t === 'Sale' ? 'Zum Verkauf' : 'Zur Miete'}
+              {mode === 'Sale' ? t.addProperty.forSale : t.addProperty.forRent}
             </button>
           ))}
         </div>
       </div>
 
       <div>
-        <Label>Immobilienart</Label>
+        <Label>{t.addProperty.propertyType}</Label>
         <div className="grid grid-cols-4 gap-2">
-          {PROPERTY_TYPES.map((t) => (
+          {PROPERTY_TYPES.map((propType) => (
             <button
-              key={t}
+              key={propType}
               type="button"
               onClick={() => {
                 onSelect?.();
-                setForm((f) => ({ ...f, propertyType: t }));
+                setForm((f) => ({ ...f, propertyType: propType }));
               }}
               className={`py-2 px-1 rounded-lg text-xs font-medium transition-all border-2 ${
-                form.propertyType === t
+                form.propertyType === propType
                   ? 'border-accent bg-accent/10 text-accent'
                   : 'border-gray-200 dark:border-zinc-700 bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-400 hover:border-gray-300 dark:hover:border-zinc-500 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
-              {t}
+              {propType}
             </button>
           ))}
         </div>
       </div>
 
       <div>
-        <Label>Status</Label>
+        <Label>{t.addProperty.statusLabel}</Label>
         <div className="flex flex-wrap bg-white dark:bg-zinc-800 rounded-lg p-1 border border-gray-300 dark:border-zinc-700 gap-1">
           {(['Active', 'Pending', 'Sold', 'Rented'] as const).map((s) => (
             <button
@@ -294,11 +295,11 @@ function Step1({
       )}
 
       <div>
-        <Label>Kurzbeschreibung</Label>
+        <Label>{t.addProperty.shortDescription}</Label>
         <textarea
           value={form.description}
           onChange={set('description')}
-          placeholder="Describe this property for marketing materials..."
+          placeholder={t.addProperty.objectDescriptionPlaceholder}
           className={`${inputCls} resize-none`}
           rows={4}
         />
@@ -316,81 +317,77 @@ function Step2({
   form: FormState;
   set: (f: keyof FormState) => (e: React.ChangeEvent<any>) => void;
 }) {
-  return (
+  const { t } = useLanguage();
+  return ( 
     <div className="space-y-5">
       <div className="grid grid-cols-3 gap-3">
         <div className="col-span-2">
-          <Label>Straße</Label>
+          <Label>{t.addProperty.street}</Label>
           <input
             type="text"
             value={form.street}
             onChange={set('street')}
-            placeholder="Maximilianstraße"
+            placeholder={t.addProperty.streetPlaceholder}
             className={inputCls}
           />
         </div>
         <div>
-          <Label>Nr.</Label>
+          <Label>{t.addProperty.houseNumber}</Label>
           <input
             type="text"
             value={form.houseNumber}
             onChange={set('houseNumber')}
-            placeholder="12a"
+            placeholder={t.addProperty.houseNumberPlaceholder}
             className={inputCls}
           />
         </div>
       </div>
-
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <Label>PLZ</Label>
+          <Label>{t.addProperty.zip}</Label>
           <input
             type="text"
             value={form.zip}
             onChange={set('zip')}
-            placeholder="80539"
+            placeholder={t.addProperty.zipPlaceholder}
             className={inputCls}
           />
         </div>
         <div>
-          <Label required>Stadt</Label>
+          <Label required>{t.addProperty.city}</Label>
           <input
             type="text"
             value={form.city}
             onChange={set('city')}
-            placeholder="Munich"
+            placeholder={t.addProperty.cityPlaceholder}
             className={inputCls}
           />
         </div>
       </div>
-
       <div>
-        <Label>Bundesland / Region</Label>
+        <Label>{t.addProperty.state}</Label>
         <input
           type="text"
           value={form.state}
           onChange={set('state')}
-          placeholder="Bavaria"
+          placeholder={t.addProperty.statePlaceholder}
           className={inputCls}
         />
       </div>
-
       <div>
-        <Label>Land</Label>
+        <Label>{t.addProperty.country}</Label>
         <input
           type="text"
           value={form.country}
           onChange={set('country')}
-          placeholder="Germany"
+          placeholder={t.addProperty.countryPlaceholder}
           className={inputCls}
         />
       </div>
-
-      {/* Map preview placeholder */}
       <div className="bg-gray-200 dark:bg-zinc-800/40 border border-gray-300 dark:border-zinc-700/50 border-dashed rounded-xl h-28 flex items-center justify-center">
         <div className="text-center">
           <MapPin size={20} className="mx-auto mb-1 text-gray-500 dark:text-zinc-600" />
-          <p className="text-xs text-gray-600 dark:text-zinc-600">Kartenansicht nach dem Speichern verfügbar</p>
+          <p className="text-xs text-gray-600 dark:text-zinc-600">{t.addProperty.mapPreviewHint}</p>
         </div>
       </div>
     </div>
@@ -406,60 +403,61 @@ function Step3({
   form: FormState;
   set: (f: keyof FormState) => (e: React.ChangeEvent<any>) => void;
 }) {
+  const { t } = useLanguage();
   return (
     <div className="space-y-7">
       {/* Object Description, Features, Location */}
       <div>
         <p className="text-[11px] font-bold text-gray-600 dark:text-zinc-500 uppercase tracking-widest mb-3 flex items-center gap-2 before:flex-1 before:h-px before:bg-gray-300 dark:before:bg-zinc-800 after:flex-1 after:h-px after:bg-gray-300 dark:after:bg-zinc-800">
-          <span>Inhalt</span>
+          <span>{t.addProperty.sectionContent}</span>
         </p>
         <div className="space-y-3">
           <div>
-            <Label>Objektbeschreibung</Label>
+            <Label>{t.addProperty.objectDescription}</Label>
             <textarea
               value={form.objectDescription}
               onChange={set('objectDescription')}
-              placeholder="Detaillierte Beschreibung der Immobilie, Zustand, Highlights…"
+              placeholder={t.addProperty.objectDescriptionPlaceholder}
               className={`${inputCls} resize-none`}
               rows={4}
             />
           </div>
           <div>
-            <Label>Ausstattung</Label>
+            <Label>{t.addProperty.features}</Label>
             <input
               type="text"
               value={form.featuresInput}
               onChange={set('featuresInput')}
-              placeholder="z. B. Aufzug, Garten, Stellplatz, Balkon (durch Komma getrennt)"
+              placeholder={t.addProperty.featuresPlaceholder}
               className={inputCls}
             />
           </div>
           <div>
-            <Label>Ausstattung (2)</Label>
+            <Label>{t.addProperty.features2}</Label>
             <input
               type="text"
               value={form.featuresInput2}
               onChange={set('featuresInput2')}
-              placeholder="z. B. Terrasse, Abstellraum, Fahrradraum (durch Komma getrennt)"
+              placeholder={t.addProperty.features2Placeholder}
               className={inputCls}
             />
           </div>
           <div>
-            <Label>Ausstattung (3)</Label>
+            <Label>{t.addProperty.features3}</Label>
             <input
               type="text"
               value={form.featuresInput3}
               onChange={set('featuresInput3')}
-              placeholder="z. B. Haustierfreundlich, Barrierefrei (durch Komma getrennt)"
+              placeholder={t.addProperty.features3Placeholder}
               className={inputCls}
             />
           </div>
           <div>
-            <Label>Lagebeschreibung</Label>
+            <Label>{t.addProperty.locationDescription}</Label>
             <textarea
               value={form.locationDescription}
               onChange={set('locationDescription')}
-              placeholder="z. B. zentrale Lage in München, Nähe Englischer Garten"
+              placeholder={t.addProperty.locationDescriptionPlaceholder}
               className={`${inputCls} resize-none`}
               rows={4}
             />
@@ -470,11 +468,11 @@ function Step3({
       {/* Physical */}
       <div>
         <p className="text-[11px] font-bold text-gray-600 dark:text-zinc-500 uppercase tracking-widest mb-3 flex items-center gap-2 before:flex-1 before:h-px before:bg-gray-300 dark:before:bg-zinc-800 after:flex-1 after:h-px after:bg-gray-300 dark:after:bg-zinc-800">
-          <span>Flächen &amp; Räume</span>
+          <span>{t.addProperty.sectionRooms}</span>
         </p>
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <Label>Wohnfläche (m²)</Label>
+            <Label>{t.addProperty.livingSpace}</Label>
             <input
               type="number"
               value={form.livingSpace}
@@ -485,7 +483,7 @@ function Step3({
             />
           </div>
           <div>
-            <Label>Zimmer gesamt</Label>
+            <Label>{t.addProperty.rooms}</Label>
             <input
               type="number"
               value={form.rooms}
@@ -497,7 +495,7 @@ function Step3({
             />
           </div>
           <div>
-            <Label>Bäder</Label>
+            <Label>{t.addProperty.bathrooms}</Label>
             <input
               type="number"
               value={form.bathrooms}
@@ -509,7 +507,7 @@ function Step3({
             />
           </div>
           <div>
-            <Label>Balkone</Label>
+            <Label>{t.addProperty.balconies}</Label>
             <input
               type="number"
               value={form.balconies}
@@ -520,7 +518,7 @@ function Step3({
             />
           </div>
           <div>
-            <Label>Badewannen</Label>
+            <Label>{t.addProperty.bathtubs}</Label>
             <input
               type="number"
               value={form.bathtubs}
@@ -531,7 +529,7 @@ function Step3({
             />
           </div>
           <div>
-            <Label>Küchen</Label>
+            <Label>{t.addProperty.kitchens}</Label>
             <input
               type="number"
               value={form.kitchens}
@@ -542,7 +540,7 @@ function Step3({
             />
           </div>
           <div>
-            <Label>Garagen / Stellplätze</Label>
+            <Label>{t.addProperty.garage}</Label>
             <input
               type="number"
               value={form.garage}
@@ -558,12 +556,12 @@ function Step3({
       {/* Pricing */}
       <div>
         <p className="text-[11px] font-bold text-gray-600 dark:text-zinc-500 uppercase tracking-widest mb-3 flex items-center gap-2 before:flex-1 before:h-px before:bg-gray-300 dark:before:bg-zinc-800 after:flex-1 after:h-px after:bg-gray-300 dark:after:bg-zinc-800">
-          <span>Preisangaben</span>
+          <span>{t.addProperty.sectionPricing}</span>
         </p>
         <div className="space-y-3">
           <div>
             <Label required>
-              {form.marketingType === 'Rent' ? 'Monatsmiete (€)' : 'Kaufpreis (€)'}
+              {form.marketingType === 'Rent' ? t.addProperty.monthlyRent : t.addProperty.purchasePrice}
             </Label>
             <input
               type="number"
@@ -576,7 +574,7 @@ function Step3({
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-            <Label>Nebenkosten (€)</Label>
+            <Label>{t.addProperty.additionalCosts}</Label>
               <input
                 type="number"
                 value={form.additionalCosts}
@@ -587,7 +585,7 @@ function Step3({
               />
             </div>
             <div>
-            <Label>Provision (%)</Label>
+            <Label>{t.addProperty.commission}</Label>
               <input
                 type="number"
                 value={form.commission}
@@ -605,11 +603,11 @@ function Step3({
       {/* Energy & Legal */}
       <div>
         <p className="text-[11px] font-bold text-gray-600 dark:text-zinc-500 uppercase tracking-widest mb-3 flex items-center gap-2 before:flex-1 before:h-px before:bg-gray-300 dark:before:bg-zinc-800 after:flex-1 after:h-px after:bg-gray-300 dark:after:bg-zinc-800">
-          <span>Energie &amp; Rechtliches</span>
+          <span>{t.addProperty.sectionEnergy}</span>
         </p>
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <Label>Energiekennwert (kWh/m²a)</Label>
+            <Label>{t.addProperty.energyCertificate}</Label>
             <input
               type="number"
               value={form.energyCertificate}
@@ -620,7 +618,7 @@ function Step3({
             />
           </div>
           <div>
-            <Label>Heizungsart</Label>
+            <Label>{t.addProperty.heatingType}</Label>
             <select value={form.heatingType} onChange={set('heatingType')} className={inputCls}>
               {HEATING_TYPES.map((h) => (
                 <option key={h} value={h}>
@@ -678,22 +676,19 @@ function Step4({
   deletingVideoUrl: string | null;
   onDeleteVideo: (url: string) => Promise<void>;
 }) {
+  const { t } = useLanguage();
   return (
     <div className="space-y-5">
-      <p className="text-sm text-zinc-400 leading-relaxed">
-        Lade Immobilienfotos in Firebase Storage hoch. Das{' '}
-        <span className="text-accent font-semibold">erste Bild</span> wird als Titelbild
-        im Dashboard verwendet. Optional können auch Videos (MP4, WebM) hinzugefügt werden.
-      </p>
+      <p className="text-sm text-zinc-400 leading-relaxed">{t.addProperty.mediaHint}</p>
 
       {/* Existing images section (edit mode) */}
       {isEditing && propertyImages.length > 0 && (
         <div>
           <div className="flex items-center justify-between mb-3">
             <p className="text-xs font-semibold text-gray-600 dark:text-zinc-400 uppercase tracking-wider">
-              {propertyImages.length} existing image{propertyImages.length !== 1 ? 's' : ''}
+              {propertyImages.length} {propertyImages.length === 1 ? t.addProperty.existingImageSingular : t.addProperty.existingImagePlural}
             </p>
-            <p className="text-[11px] text-gray-600 dark:text-zinc-600">Click image to delete</p>
+            <p className="text-[11px] text-gray-600 dark:text-zinc-600">{t.addProperty.clickImageToDelete}</p>
           </div>
           <div className="grid grid-cols-3 gap-3">
             {propertyImages.map((imageUrl, i) => (
@@ -709,7 +704,7 @@ function Step4({
                 {i === 0 && (
                   <div className="absolute top-2 left-2 bg-accent text-white dark:text-black text-[9px] font-black px-1.5 py-0.5 rounded flex items-center gap-1 shadow">
                     <Star size={8} fill="currentColor" />
-                    COVER
+                    {t.addProperty.coverLabel}
                   </div>
                 )}
                 <button
@@ -754,9 +749,9 @@ function Step4({
           />
         </div>
         <p className="text-sm font-semibold text-gray-900 dark:text-white mb-1">
-          {isDragActive ? 'Loslassen zum Hochladen' : 'Bilder hierher ziehen &amp; ablegen'}
+          {isDragActive ? t.addProperty.dropToUpload : t.addProperty.dragImagesHere}
         </p>
-          <p className="text-xs text-gray-600 dark:text-zinc-500">oder klicken, um auszuwählen · JPG, PNG, WebP · max. 20 MB</p>
+          <p className="text-xs text-gray-600 dark:text-zinc-500">{t.addProperty.clickToSelectHint}</p>
         </div>
 
         {/* Preview grid */}
@@ -764,9 +759,9 @@ function Step4({
           <div>
             <div className="flex items-center justify-between mb-3">
               <p className="text-xs font-semibold text-gray-600 dark:text-zinc-400 uppercase tracking-wider">
-                {stagedFiles.length} Bild{stagedFiles.length !== 1 ? 'er' : ''} vorbereitet
+                {stagedFiles.length} {stagedFiles.length === 1 ? t.addProperty.preparedImageSingular : t.addProperty.preparedImagePlural}
               </p>
-              <p className="text-[11px] text-gray-600 dark:text-zinc-600">Erstes Bild = Titelbild</p>
+              <p className="text-[11px] text-gray-600 dark:text-zinc-600">{t.addProperty.firstImageIsCover}</p>
             </div>
             <div className="grid grid-cols-3 gap-3">
               {stagedFiles.map((sf, i) => (
@@ -783,7 +778,7 @@ function Step4({
                   {i === 0 && (
                     <div className="absolute top-2 left-2 bg-accent text-white dark:text-black text-[9px] font-black px-1.5 py-0.5 rounded flex items-center gap-1 shadow">
                       <Star size={8} fill="currentColor" />
-                      COVER
+                      {t.addProperty.coverLabel}
                     </div>
                   )}
                   <button
@@ -806,10 +801,10 @@ function Step4({
 
       {/* Videos section */}
       <div className="pt-6 border-t border-gray-300 dark:border-zinc-800">
-            <p className="text-xs font-semibold text-gray-600 dark:text-zinc-400 uppercase tracking-wider mb-3">Videos (optional)</p>
+            <p className="text-xs font-semibold text-gray-600 dark:text-zinc-400 uppercase tracking-wider mb-3">{t.addProperty.videosOptional}</p>
         {isEditing && propertyVideos.length > 0 && (
           <div className="mb-4">
-            <p className="text-[11px] text-gray-600 dark:text-zinc-600 mb-2">Vorhandene Videos — zum Löschen anklicken</p>
+            <p className="text-[11px] text-gray-600 dark:text-zinc-600 mb-2">{t.addProperty.existingVideosHint}</p>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {propertyVideos.map((videoUrl) => (
                 <div key={videoUrl} className="relative group aspect-video rounded-xl overflow-hidden bg-gray-300 dark:bg-zinc-800 ring-1 ring-gray-300 dark:ring-zinc-700">
@@ -835,7 +830,7 @@ function Step4({
         >
           <input {...getVideoInputProps()} />
           <Video className="text-gray-500 dark:text-zinc-500 mb-2" size={22} />
-          <p className="text-xs text-gray-600 dark:text-zinc-500">Videos hier ablegen oder klicken · MP4, WebM · max. 5 MB</p>
+          <p className="text-xs text-gray-600 dark:text-zinc-500">{t.addProperty.dragVideosHere}</p>
         </div>
         {stagedVideoFiles.length > 0 && (
           <div className="mt-3 flex flex-wrap gap-2">
@@ -866,6 +861,8 @@ interface AddPropertyPanelProps {
 }
 
 export default function AddPropertyPanel({ onClose, onSuccess, property, initialStep = 0 }: AddPropertyPanelProps) {
+  const { t } = useLanguage();
+  const STEPS = [t.addProperty.basics, t.addProperty.address, t.addProperty.details, t.addProperty.media];
   const isEditing = Boolean(property);
   const stepIndex = Math.min(STEPS.length - 1, Math.max(0, initialStep));
 
@@ -1221,7 +1218,7 @@ export default function AddPropertyPanel({ onClose, onSuccess, property, initial
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/65 backdrop-blur-sm z-40"
+        className="fixed inset-0 bg-black/65 backdrop-blur-sm z-50"
         onClick={handleClose}
       />
 
@@ -1231,7 +1228,7 @@ export default function AddPropertyPanel({ onClose, onSuccess, property, initial
         animate={{ x: 0 }}
         exit={{ x: '100%' }}
         transition={{ type: 'spring', damping: 28, stiffness: 280 }}
-        className="fixed right-0 top-0 h-full w-full sm:w-135 bg-app-light dark:bg-app-dark border-l border-gray-300 dark:border-zinc-800 z-50 flex flex-col shadow-[0_0_80px_rgba(0,0,0,0.8)]"
+        className="fixed right-0 top-0 h-full w-full sm:w-135 bg-app-light dark:bg-app-dark border-l border-gray-300 dark:border-zinc-800 z-60 flex flex-col shadow-[0_0_80px_rgba(0,0,0,0.8)]"
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-gray-300 dark:border-zinc-800 shrink-0">
@@ -1251,49 +1248,21 @@ export default function AddPropertyPanel({ onClose, onSuccess, property, initial
 
         {/* Step indicator */}
         <div className="px-6 pt-5 pb-4 border-b border-gray-300 dark:border-zinc-800/60 shrink-0">
-          <div className="flex items-center">
+          <div className="flex items-center gap-6">
             {STEPS.map((label, i) => (
-              <React.Fragment key={i}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (i <= step) {
-                      sfx.menuSelect();
-                      setStep(i);
-                    }
-                  }}
-                  disabled={i > step}
-                  className={`flex items-center gap-2 transition-all ${
-                    i > step ? 'cursor-not-allowed' : 'cursor-pointer'
-                  }`}
-                >
-                  <div
-                    className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all shrink-0 ${
-                      i < step
-                        ? 'bg-accent text-accent'
-                        : i === step
-                        ? 'border-2 border-accent bg-zinc-800 dark:bg-zinc-800 text-white'
-                        : 'bg-gray-200 dark:bg-zinc-800 text-gray-600 dark:text-zinc-500 border border-gray-300 dark:border-zinc-700'
-                    }`}
-                  >
-                    {i < step ? <Check size={12} strokeWidth={3} className="text-black" /> : i + 1}
-                  </div>
-                  <span
-                    className={`text-xs font-semibold hidden sm:block whitespace-nowrap ${
-                      i === step ? 'text-gray-900 dark:text-white' : i < step ? 'text-accent' : 'text-gray-600 dark:text-zinc-600'
-                    }`}
-                  >
-                    {label}
-                  </span>
-                </button>
-                {i < STEPS.length - 1 && (
-                  <div
-                    className={`flex-1 h-px mx-3 transition-colors ${
-                      i < step ? 'bg-accent/60' : 'bg-gray-300 dark:bg-zinc-800'
-                    }`}
-                  />
-                )}
-              </React.Fragment>
+              <button
+                key={i}
+                type="button"
+                onClick={() => {
+                  sfx.menuSelect();
+                  setStep(i);
+                }}
+                className={`text-sm font-semibold transition-colors cursor-pointer whitespace-nowrap ${
+                  i === step ? 'text-gray-900 dark:text-white' : 'text-gray-600 dark:text-zinc-500 hover:text-gray-900 dark:hover:text-zinc-300'
+                }`}
+              >
+                {label}
+              </button>
             ))}
           </div>
         </div>

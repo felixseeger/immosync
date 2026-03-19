@@ -2,6 +2,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { CookieConsentProvider } from './contexts/CookieConsentContext';
+import { LanguageProvider } from './contexts/LanguageContext';
 import App from './App.tsx';
 import NotFoundPage from './components/NotFoundPage';
 import ImprintPage from './components/ImprintPage';
@@ -13,14 +14,16 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
       <CookieConsentProvider>
-        <Routes>
-          <Route path="/" element={<App />} />
-          <Route path="/imprint" element={<ImprintPage />} />
-          <Route path="/privacy" element={<PrivacyPage />} />
-          <Route path="/terms" element={<TermsPage />} />
-          <Route path="*" element={<NotFoundPage />} />
-        </Routes>
-      </CookieConsentProvider>
+          <LanguageProvider>
+            <Routes>
+              <Route path="/" element={<App />} />
+              <Route path="/imprint" element={<ImprintPage />} />
+              <Route path="/privacy" element={<PrivacyPage />} />
+              <Route path="/terms" element={<TermsPage />} />
+              <Route path="*" element={<NotFoundPage />} />
+            </Routes>
+          </LanguageProvider>
+        </CookieConsentProvider>
     </BrowserRouter>
   </StrictMode>,
 );

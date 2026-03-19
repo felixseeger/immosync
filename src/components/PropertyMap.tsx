@@ -4,7 +4,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import { MapPin, Building2, LayoutGrid, Bath, Car, ExternalLink, PanelLeftClose, PanelRightOpen } from 'lucide-react';
 import type { Property } from '../types';
 import { geocodeAddresses } from '../utils/geocode';
-import { t } from '../i18n/de';
+import { useLanguage } from '../contexts/LanguageContext';
 import { sfx } from '../utils/sfx';
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
@@ -111,6 +111,21 @@ const DEFAULT_HEIGHT = 24;
 const DEFAULT_MIN_HEIGHT = 0;
 
 export default function PropertyMap({ properties, isDarkMode = true, onSelectProperty, selectedPropertyId }: PropertyMapProps) {
+  const { t } = useLanguage();
+  const translateStatus = (status: Property['status']) => {
+    switch (status) {
+      case 'Active':
+        return t.propertyStatus.active;
+      case 'Pending':
+        return t.propertyStatus.pending;
+      case 'Rented':
+        return t.propertyStatus.rented;
+      case 'Sold':
+        return t.propertyStatus.sold;
+      default:
+        return status;
+    }
+  };
   const mapStyleUrl = isDarkMode ? MAP_STYLE_DARK : MAP_STYLE_LIGHT;
   const [placed, setPlaced] = useState<PlacedProperty[]>([]);
   const [loading, setLoading] = useState(true);
@@ -383,7 +398,7 @@ export default function PropertyMap({ properties, isDarkMode = true, onSelectPro
         <div className="w-16 h-16 bg-zinc-800 rounded-full flex items-center justify-center mb-4">
           <MapPin className="text-zinc-500" size={32} />
         </div>
-        <h3 className="text-lg font-bold text-white mb-2">Mapbox Token Required</h3>
+        <h3 className="text-lg font-bold text-white mb-2">{t.propertyUi.mapboxTokenRequired}</h3>
         <p className="text-zinc-400 text-sm max-w-md mb-4">
           {t.property.addMapboxToken}
         </p>
@@ -399,14 +414,14 @@ export default function PropertyMap({ properties, isDarkMode = true, onSelectPro
     <div ref={containerRef} className="property-map-root absolute inset-0 w-full h-full min-h-[300px] rounded-xl overflow-hidden bg-gray-100 dark:bg-zinc-900">
       {loading && placed.length === 0 && (
         <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-10">
-          <span className="text-sm text-white">Geocoding addresses…</span>
+          <span className="text-sm text-white">{t.propertyUi.geocodingAddresses}</span>
         </div>
       )}
       {tilesLoading && !loading && (
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 px-4 py-2 rounded-lg bg-white/95 dark:bg-zinc-900/95 border border-gray-200 dark:border-zinc-700 shadow-xl flex items-center gap-2">
           <span className="inline-block w-2 h-2 rounded-full bg-neon-green animate-pulse" />
-          <span className="text-sm text-gray-700 dark:text-zinc-300">Loading map tiles…</span>
-          <span className="text-xs text-gray-500 dark:text-zinc-500">Ensure your internet connection is stable.</span>
+          <span className="text-sm text-gray-700 dark:text-zinc-300">{t.propertyUi.loadingMapTiles}</span>
+          <span className="text-xs text-gray-500 dark:text-zinc-500">{t.propertyUi.mapConnectionHint}</span>
         </div>
       )}
       <Map
@@ -525,18 +540,18 @@ export default function PropertyMap({ properties, isDarkMode = true, onSelectPro
           <div className="flex items-center justify-between gap-2 mb-2">
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-accent animate-pulse" style={{ boxShadow: '0 0 8px var(--tw-accent, #9372c9)' }} />
-              <span className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">LIVE PORTFOLIO</span>
+              <span className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">{t.propertyUi.livePortfolio}</span>
             </div>
             <button
               type="button"
               onClick={() => { sfx.menuSelect(); setLivePortfolioOpen(false); }}
               className="p-1 rounded-md text-gray-500 dark:text-zinc-400 hover:bg-gray-200 dark:hover:bg-zinc-700 hover:text-gray-900 dark:hover:text-white transition-colors"
-              aria-label="Close Live Portfolio panel"
+              aria-label={t.propertyUi.closeLivePortfolioPanel}
             >
               <PanelLeftClose size={18} />
             </button>
           </div>
-          <h4 className="text-base font-bold text-gray-900 dark:text-white mb-0.5">Global Asset View</h4>
+          <h4 className="text-base font-bold text-gray-900 dark:text-white mb-0.5">{t.propertyUi.globalAssetView}</h4>
           <p className="text-xs text-gray-500 dark:text-zinc-400 mb-3">
             {placed.length} {placed.length === 1 ? t.property.propertyTracked : t.property.propertiesTracked}
           </p>
@@ -547,9 +562,9 @@ export default function PropertyMap({ properties, isDarkMode = true, onSelectPro
               className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors flex items-center gap-1 ${
                 showTraffic ? 'bg-accent text-white dark:text-black' : 'bg-gray-200 dark:bg-zinc-700 text-gray-700 dark:text-zinc-300 hover:bg-gray-300 dark:hover:bg-zinc-600'
               }`}
-              title="Real-time traffic (Mapbox, ~8 min updates)"
+              title={t.propertyUi.trafficHint}
             >
-              Traffic
+              {t.propertyUi.traffic}
             </button>
             <button
               type="button"
@@ -557,9 +572,9 @@ export default function PropertyMap({ properties, isDarkMode = true, onSelectPro
               className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors flex items-center gap-1 ${
                 simulateTraffic ? 'bg-accent text-white dark:text-black' : 'bg-gray-200 dark:bg-zinc-700 text-gray-700 dark:text-zinc-300 hover:bg-gray-300 dark:hover:bg-zinc-600'
               }`}
-              title="Simulate traffic flow (animated)"
+              title={t.propertyUi.simulateHint}
             >
-              Simulate
+              {t.propertyUi.simulate}
             </button>
           </div>
           <div className="flex flex-wrap gap-1.5 mb-3">
@@ -588,7 +603,11 @@ export default function PropertyMap({ properties, isDarkMode = true, onSelectPro
               const filtered = placed.filter(({ property }) => portfolioFilter === 'All' || property.status === portfolioFilter);
               if (filtered.length === 0) {
                 return (
-                  <p className="text-xs text-gray-500 dark:text-zinc-500 px-2 py-2">No {portfolioFilter === 'All' ? 'properties' : portfolioFilter.toLowerCase()} to show.</p>
+                  <p className="text-xs text-gray-500 dark:text-zinc-500 px-2 py-2">
+                    {portfolioFilter === 'All'
+                      ? t.propertyUi.noPropertiesToShow
+                      : t.propertyUi.noStatusToShow.replace('{status}', translateStatus(portfolioFilter))}
+                  </p>
                 );
               }
               return filtered.map(({ property, lng, lat }) => (
@@ -613,10 +632,10 @@ export default function PropertyMap({ properties, isDarkMode = true, onSelectPro
           type="button"
           onClick={() => { sfx.menuSelect(); setLivePortfolioOpen(true); }}
           className="absolute top-4 left-4 glass border-2 border-accent/40 px-3 py-2 rounded-xl z-10 shadow-xl shadow-black/10 flex items-center gap-2 hover:bg-white/20 dark:hover:bg-black/20 transition-colors"
-          aria-label="Open Live Portfolio panel"
+          aria-label={t.propertyUi.openLivePortfolioPanel}
         >
           <span className="w-2 h-2 rounded-full bg-accent animate-pulse" style={{ boxShadow: '0 0 8px var(--tw-accent, #9372c9)' }} />
-          <span className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">LIVE PORTFOLIO</span>
+          <span className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">{t.propertyUi.livePortfolio}</span>
           <PanelRightOpen size={18} className="text-gray-500 dark:text-zinc-400" />
         </button>
       )}

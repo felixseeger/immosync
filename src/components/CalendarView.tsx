@@ -25,7 +25,7 @@ import {
   isToday,
   addDays,
 } from 'date-fns';
-import { de } from 'date-fns/locale';
+import { de, enUS, zhCN, ja, fr } from 'date-fns/locale';
 import { subscribeToViewings, updateViewing, deleteViewing } from '../services/viewingsService';
 import { getProperties } from '../services/propertyService';
 import { subscribeToContacts } from '../services/contactsService';
@@ -33,7 +33,7 @@ import { logActivity } from '../services/activityService';
 import AddViewingModal from './AddViewingModal';
 import { sfx } from '../utils/sfx';
 import type { Viewing, Property, Contact, ViewingEventType } from '../types';
-import { t } from '../i18n/de';
+import { useLanguage } from '../contexts/LanguageContext';
 
 function getViewingDate(v: Viewing): Date | null {
   if (!v?.scheduledAt) return null;
@@ -41,22 +41,27 @@ function getViewingDate(v: Viewing): Date | null {
   return d instanceof Date ? d : new Date(d);
 }
 
-function getEventTypeLabel(v: Viewing): string {
-  const type = (v.eventType ?? 'viewing') as ViewingEventType;
-  return t.viewing[type] ?? t.viewing.viewing;
-}
-
-function getStatusLabel(status: Viewing['status']): string {
-  switch (status) {
-    case 'scheduled': return t.viewing.viewingScheduled;
-    case 'completed': return t.viewing.viewingCompleted;
-    case 'cancelled': return t.viewing.viewingCancelled;
-    case 'no_show': return t.viewing.viewingNoShow;
-    default: return status ?? '';
-  }
-}
+const dateLocaleMap = { de, en: enUS, zh: zhCN, ja, fr } as const;
 
 export default function CalendarView() {
+  const { t, language } = useLanguage();
+  const dateLocale = dateLocaleMap[language] ?? de;
+
+  function getEventTypeLabel(v: Viewing): string {
+    const type = (v.eventType ?? 'viewing') as ViewingEventType;
+    return t.viewing[type] ?? t.viewing.viewing;
+  }
+
+  function getStatusLabel(status: Viewing['status']): string {
+    switch (status) {
+      case 'scheduled': return t.viewing.viewingScheduled;
+      case 'completed': return t.viewing.viewingCompleted;
+      case 'cancelled': return t.viewing.viewingCancelled;
+      case 'no_show': return t.viewing.viewingNoShow;
+      default: return status ?? '';
+    }
+  }
+
   const [viewings, setViewings] = useState<Viewing[]>([]);
   const [properties, setProperties] = useState<Property[]>([]);
   const [contacts, setContacts] = useState<Contact[]>([]);
@@ -178,7 +183,7 @@ export default function CalendarView() {
         <div className="flex flex-col min-w-0 flex-1">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-              {format(currentMonth, 'MMMM yyyy', { locale: de })}
+              {format(currentMonth, 'MMMM yyyy', { locale: dateLocale })}
             </h3>
             <div className="flex items-center gap-2">
               <button
@@ -299,7 +304,7 @@ export default function CalendarView() {
             <>
               <div className="p-4 border-b border-gray-200 dark:border-zinc-800 flex items-center justify-between">
                 <h3 className="font-semibold text-gray-900 dark:text-white">
-                  {format(selectedDay, 'EEEE, MMM d', { locale: de })}
+                  {format(selectedDay, 'EEEE, MMM d', { locale: dateLocale })}
                 </h3>
                 <button
                   type="button"
@@ -410,7 +415,7 @@ export default function CalendarView() {
                 <div className="flex items-center gap-2 text-sm">
                   <Clock size={16} className="text-gray-500" />
                   {getViewingDate(detailViewing)
-                    ? format(getViewingDate(detailViewing)!, 'EEEE, MMM d · HH:mm', { locale: de })
+                    ? format(getViewingDate(detailViewing)!, 'EEEE, MMM d · HH:mm', { locale: dateLocale })
                     : '—'}
                 </div>
                 <div className="flex items-center gap-2 text-sm">

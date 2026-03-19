@@ -1,6 +1,6 @@
 import React from 'react';
 import { Property } from '../types';
-import { t } from '../i18n/de';
+import { useLanguage } from '../contexts/LanguageContext';
 import { MapPin, ArrowRight } from 'lucide-react';
 
 interface PropertyListProps {
@@ -9,6 +9,21 @@ interface PropertyListProps {
 }
 
 export default function PropertyList({ properties, onSelectProperty }: PropertyListProps) {
+  const { t } = useLanguage();
+  const translateStatus = (status: Property['status']) => {
+    switch (status) {
+      case 'Active':
+        return t.propertyStatus.active;
+      case 'Pending':
+        return t.propertyStatus.pending;
+      case 'Rented':
+        return t.propertyStatus.rented;
+      case 'Sold':
+        return t.propertyStatus.sold;
+      default:
+        return status;
+    }
+  };
   return (
     <div className="glass rounded-xl overflow-hidden">
       <div className="overflow-x-auto">
@@ -17,14 +32,14 @@ export default function PropertyList({ properties, onSelectProperty }: PropertyL
             <tr className="border-b border-gray-200 dark:border-zinc-800 bg-gray-50 dark:bg-zinc-900/80">
               <th className="px-4 py-3 font-semibold text-gray-700 dark:text-zinc-300">{t.property.property}</th>
               <th className="px-4 py-3 font-semibold text-gray-700 dark:text-zinc-300">{t.property.address}</th>
-              <th className="px-4 py-3 font-semibold text-gray-700 dark:text-zinc-300">Price</th>
-              <th className="px-4 py-3 font-semibold text-gray-700 dark:text-zinc-300">Rooms</th>
-              <th className="px-4 py-3 font-semibold text-gray-700 dark:text-zinc-300">Baths</th>
-              <th className="px-4 py-3 font-semibold text-gray-700 dark:text-zinc-300">Balc.</th>
-              <th className="px-4 py-3 font-semibold text-gray-700 dark:text-zinc-300">Tubs</th>
-              <th className="px-4 py-3 font-semibold text-gray-700 dark:text-zinc-300">Kit.</th>
-              <th className="px-4 py-3 font-semibold text-gray-700 dark:text-zinc-300">Garage</th>
-              <th className="px-4 py-3 font-semibold text-gray-700 dark:text-zinc-300">Status</th>
+              <th className="px-4 py-3 font-semibold text-gray-700 dark:text-zinc-300">{t.propertyUi.price}</th>
+              <th className="px-4 py-3 font-semibold text-gray-700 dark:text-zinc-300">{t.propertyDetail.rooms}</th>
+              <th className="px-4 py-3 font-semibold text-gray-700 dark:text-zinc-300">{t.propertyDetail.baths}</th>
+              <th className="px-4 py-3 font-semibold text-gray-700 dark:text-zinc-300">{t.propertyDetail.balconies}</th>
+              <th className="px-4 py-3 font-semibold text-gray-700 dark:text-zinc-300">{t.propertyDetail.bathtubs}</th>
+              <th className="px-4 py-3 font-semibold text-gray-700 dark:text-zinc-300">{t.propertyDetail.kitchens}</th>
+              <th className="px-4 py-3 font-semibold text-gray-700 dark:text-zinc-300">{t.propertyDetail.garage}</th>
+              <th className="px-4 py-3 font-semibold text-gray-700 dark:text-zinc-300">{t.propertyUi.status}</th>
               <th className="px-4 py-3 w-10" aria-hidden />
             </tr>
           </thead>
@@ -62,7 +77,7 @@ export default function PropertyList({ properties, onSelectProperty }: PropertyL
                 <td className="px-4 py-3 text-gray-600 dark:text-zinc-400">{property.sqft ?? '—'}</td>
                 <td className="px-4 py-3">
                   <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-200 dark:bg-zinc-700 text-gray-700 dark:text-zinc-300">
-                    {property.status}
+                    {translateStatus(property.status)}
                   </span>
                 </td>
                 <td className="px-4 py-3">

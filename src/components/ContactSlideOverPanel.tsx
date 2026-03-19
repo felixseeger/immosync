@@ -5,7 +5,7 @@ import { X, Loader2, Trash2, User, Building2, Unlink } from 'lucide-react';
 import { createContact, updateContact, deleteContact, getLinkedPropertyIdsForContact, linkContactToProperty, unlinkContactFromProperty } from '../services/contactsService';
 import { getProperties } from '../services/propertyService';
 import { sfx } from '../utils/sfx';
-import { t } from '../i18n/de';
+import { useLanguage } from '../contexts/LanguageContext';
 import type { Contact, ContactCategory, LeadStatus, MarketingType, Property } from '../types';
 
 const inputCls =
@@ -69,6 +69,7 @@ function stripUndefined<T extends Record<string, unknown>>(obj: T): Partial<T> {
 }
 
 export default function ContactSlideOverPanel({ contact, onClose, onSuccess }: ContactSlideOverPanelProps) {
+  const { t } = useLanguage();
   const isEditing = Boolean(contact);
   const [form, setForm] = useState<FormState>(emptyForm);
   const [saving, setSaving] = useState(false);

@@ -5,10 +5,11 @@ import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea
 import { X, MapPin, LayoutGrid, Bath, Box, Droplets, UtensilsCrossed, Car, CheckCircle, Image as ImageIcon, ArrowLeft, Pencil, Trash2, Loader2, FileDown, Calendar, ChevronLeft, ChevronRight, GripVertical } from 'lucide-react';
 import AddPropertyPanel from './AddPropertyPanel';
 import ScheduleViewingModal from './ScheduleViewingModal';
+import ExposeGenerationModal from './ExposeGenerationModal';
 import { deleteProperty, deletePropertyImage, updatePropertyImages } from '../services/propertyService';
-import { downloadBrochurePdf } from '../utils/brochurePdf';
+import { useExposeGeneration } from '../hooks/useExposeGeneration';
 import { sfx } from '../utils/sfx';
-import { t } from '../i18n/de';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface PropertyDetailProps {
   property: Property;
@@ -19,6 +20,7 @@ interface PropertyDetailProps {
 }
 
 export default function PropertyDetail({ property, onClose, onDeleted, onPropertyUpdated }: PropertyDetailProps) {
+  const { t } = useLanguage();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [carouselIndex, setCarouselIndex] = useState(0);
   const [showEditPanel, setShowEditPanel] = useState(false);
@@ -31,8 +33,9 @@ export default function PropertyDetail({ property, onClose, onDeleted, onPropert
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deletingImageUrl, setDeletingImageUrl] = useState<string | null>(null);
-  const [generatingBrochure, setGeneratingBrochure] = useState(false);
+  const [showExposeModal, setShowExposeModal] = useState(false);
   const [showScheduleViewing, setShowScheduleViewing] = useState(false);
+  const { step: exposeStep, error: exposeError, generate: generateExpose, reset: resetExpose } = useExposeGeneration();
 
   const handleDelete = async () => {
     setIsDeleting(true);
@@ -48,15 +51,9 @@ export default function PropertyDetail({ property, onClose, onDeleted, onPropert
     }
   };
 
-  const handleGenerateBrochure = async () => {
-    setGeneratingBrochure(true);
-    try {
-      await downloadBrochurePdf(property);
-    } catch (err) {
-      console.error('Brochure generation failed', err);
-    } finally {
-      setGeneratingBrochure(false);
-    }
+  const handleGenerateExpose = () => {
+    setShowExposeModal(true);
+    generateExpose(property);
   };
 
   const handleDeleteImage = useCallback(
@@ -131,7 +128,7 @@ export default function PropertyDetail({ property, onClose, onDeleted, onPropert
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.2 }}
-      className="fixed inset-0 z-50 flex items-center justify-center pt-12 pb-4 px-4 sm:pt-16 sm:pb-6 sm:px-6 max-[1560px]:pt-10 max-[1560px]:pb-2 max-[1560px]:px-2"
+      className="fixed inset-0 z-[9999] flex items-center justify-center pt-6 pb-4 px-4 max-[1727px]:pt-6 max-[1727px]:pb-4 max-[1727px]:px-4 max-[1024px]:pt-4 max-[1024px]:pb-4 max-[1024px]:px-4"
     >
       <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={handleClose} />
       
@@ -140,21 +137,21 @@ export default function PropertyDetail({ property, onClose, onDeleted, onPropert
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.96, y: 20 }}
         transition={panelTransition}
-        className="relative w-full max-w-5xl max-[1560px]:max-w-[94vw] max-[1560px]:max-h-[96vh] bg-app-light/85 dark:bg-app-dark/85 rounded-2xl max-[1560px]:rounded-xl overflow-hidden flex flex-col max-h-[90vh] border border-white/40 dark:border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.1)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-sm"
+        className="relative w-full max-w-7xl max-h-[calc(100vh-2rem)] max-[1727px]:max-w-[calc(100vw-2rem)] max-[1727px]:max-h-[calc(100vh-2rem)] max-[1024px]:max-w-[calc(100vw-2rem)] max-[1024px]:max-h-[calc(100vh-2rem)] bg-app-light/85 dark:bg-app-dark/85 rounded-2xl max-[1727px]:rounded-xl overflow-hidden flex flex-col border border-white/40 dark:border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.1)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-sm"
       >
         {/* Header */}
-        <div className="flex flex-wrap items-center justify-between gap-3 p-6 max-[1560px]:p-4 border-b border-gray-200 dark:border-zinc-800 bg-app-light/80 dark:bg-app-dark/80 backdrop-blur-sm sticky top-0 z-10">
-          <div className="flex items-center gap-3 max-[1560px]:gap-2 min-w-0 flex-1">
+        <div className="flex flex-wrap items-center justify-between gap-3 p-6 max-[1727px]:p-4 border-b border-gray-200 dark:border-zinc-800 bg-app-light/80 dark:bg-app-dark/80 backdrop-blur-sm sticky top-0 z-10">
+          <div className="flex items-center gap-3 max-[1727px]:gap-2 min-w-0 flex-1">
             <button
               onClick={handleClose}
               aria-label={t.propertyDetail.goBack}
               className="p-2 shrink-0 hover:bg-gray-200 dark:hover:bg-zinc-800 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-accent/50 text-gray-600 dark:text-zinc-400"
             >
-              <ArrowLeft size={20} className="max-[1560px]:w-5 max-[1560px]:h-5" aria-hidden="true" />
+              <ArrowLeft size={20} className="max-[1727px]:w-5 max-[1727px]:h-5" aria-hidden="true" />
             </button>
             <div className="min-w-0">
-              <h2 className="text-2xl max-[1560px]:text-lg font-bold text-gray-900 dark:text-white truncate">{property.title}</h2>
-              <div className="flex items-center text-gray-600 dark:text-zinc-400 text-sm max-[1560px]:text-xs truncate">
+              <h2 className="text-2xl max-[1727px]:text-lg font-bold text-gray-900 dark:text-white truncate">{property.title}</h2>
+              <div className="flex items-center text-gray-600 dark:text-zinc-400 text-sm max-[1727px]:text-xs truncate">
                 <MapPin size={14} className="mr-1 shrink-0" />
                 <span className="truncate">{property.address}</span>
               </div>
@@ -189,12 +186,12 @@ export default function PropertyDetail({ property, onClose, onDeleted, onPropert
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6 max-[1560px]:p-4">
-          <div className="grid grid-cols-1 lg:grid-cols-3 max-[1560px]:grid-cols-1 gap-8 max-[1560px]:gap-6">
+        <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-6 max-[1727px]:p-4 max-[1024px]:p-3">
+          <div className="grid min-w-0 grid-cols-1 min-[1728px]:grid-cols-3 gap-8 max-[1727px]:gap-6">
             {/* Main Content */}
-            <div className="lg:col-span-2 max-[1560px]:col-span-1 space-y-8 max-[1560px]:space-y-6">
+            <div className="min-[1728px]:col-span-2 min-w-0 space-y-8 max-[1727px]:space-y-6">
               {/* Image Carousel */}
-              <div className="rounded-xl overflow-hidden bg-gray-300 dark:bg-zinc-800 border border-white/40 dark:border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.1)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.4)] relative group aspect-video max-[1560px]:aspect-16/10">
+              <div className="rounded-xl overflow-hidden bg-gray-300 dark:bg-zinc-800 border border-white/40 dark:border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.1)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.4)] relative group aspect-video max-[1727px]:aspect-16/10">
                 <AnimatePresence mode="wait" initial={false}>
                   <motion.img
                     key={safeIndex}
@@ -257,7 +254,7 @@ export default function PropertyDetail({ property, onClose, onDeleted, onPropert
                   <h3 className="text-lg font-bold text-gray-900 dark:text-white">{t.propertyDetail.gallery}</h3>
                   <span className="text-xs text-gray-600 dark:text-zinc-500">{allImages.length} {allImages.length !== 1 ? t.propertyDetail.photos : t.propertyDetail.photo}</span>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 max-[1560px]:grid-cols-2 max-[1560px]:sm:grid-cols-3 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 max-[1727px]:grid-cols-2 max-[1727px]:sm:grid-cols-3 gap-4">
                   <DragDropContext onDragEnd={handleGalleryDragEnd}>
                     <Droppable droppableId="gallery">
                       {(provided) => (
@@ -363,17 +360,17 @@ export default function PropertyDetail({ property, onClose, onDeleted, onPropert
             </div>
 
             {/* Sidebar */}
-            <div className="space-y-6 max-[1560px]:space-y-4 max-[1560px]:lg:col-span-1">
-              <div className="rounded-xl p-6 max-[1560px]:p-4 bg-app-light dark:bg-app-dark border border-white/40 dark:border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.1)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.4)]">
-                <div className="text-3xl max-[1560px]:text-2xl font-bold text-gray-900 dark:text-white mb-1">
+            <div className="min-w-0 space-y-6 max-[1727px]:space-y-4 min-[1728px]:col-span-1">
+              <div className="rounded-xl p-6 max-[1727px]:p-4 bg-app-light dark:bg-app-dark border border-white/40 dark:border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.1)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.4)]">
+                <div className="text-3xl max-[1727px]:text-2xl font-bold text-gray-900 dark:text-white mb-1">
                   €{property.price.toLocaleString()}
                 </div>
-                <div className="text-gray-600 dark:text-zinc-500 text-sm max-[1560px]:text-xs mb-6 max-[1560px]:mb-4">
+                <div className="text-gray-600 dark:text-zinc-500 text-sm max-[1727px]:text-xs mb-6 max-[1727px]:mb-4">
                   {t.propertyDetail.estMortgage.replace('{amount}', Math.round(property.price * 0.0045).toLocaleString())}
                 </div>
 
                 {property.status === 'Rented' && (property.moveInDate || property.moveOutDate) && (
-                  <div className="mb-6 max-[1560px]:mb-4 p-3 rounded-xl bg-emerald-500/10 dark:bg-emerald-500/15 border border-emerald-500/30 space-y-2">
+                  <div className="mb-6 max-[1727px]:mb-4 p-3 rounded-xl bg-emerald-500/10 dark:bg-emerald-500/15 border border-emerald-500/30 space-y-2">
                     {property.moveInDate && (
                       <p className="text-sm text-gray-700 dark:text-zinc-300">
                         <span className="text-gray-500 dark:text-zinc-500">{t.propertyRental.moveInDate}:</span>{' '}
@@ -390,7 +387,7 @@ export default function PropertyDetail({ property, onClose, onDeleted, onPropert
                 )}
 
                 {property.status === 'Sold' && (property.purchaseDate || property.saleDate) && (
-                  <div className="mb-6 max-[1560px]:mb-4 p-3 rounded-xl bg-zinc-500/10 dark:bg-zinc-500/15 border border-zinc-500/30 space-y-2">
+                  <div className="mb-6 max-[1727px]:mb-4 p-3 rounded-xl bg-zinc-500/10 dark:bg-zinc-500/15 border border-zinc-500/30 space-y-2">
                     {property.purchaseDate && (
                       <p className="text-sm text-gray-700 dark:text-zinc-300">
                         <span className="text-gray-500 dark:text-zinc-500">{t.propertySale.purchaseDate}:</span>{' '}
@@ -406,7 +403,7 @@ export default function PropertyDetail({ property, onClose, onDeleted, onPropert
                   </div>
                 )}
 
-                <div className="grid grid-cols-3 max-[1560px]:gap-2 gap-3 mb-6 max-[1560px]:mb-4">
+                <div className="grid grid-cols-3 max-[1727px]:gap-2 gap-3 mb-6 max-[1727px]:mb-4">
                   <div className="text-center p-3 bg-app-light dark:bg-app-dark rounded-lg border border-white/40 dark:border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.3)] hover:border-accent/50 transition-colors">
                     <LayoutGrid size={20} className="mx-auto mb-1 text-gray-600 dark:text-zinc-400" />
                     <div className="text-lg font-bold text-gray-900 dark:text-white">{property.rooms ?? '—'}</div>
@@ -441,12 +438,11 @@ export default function PropertyDetail({ property, onClose, onDeleted, onPropert
 
                 <button
                   type="button"
-                  onClick={() => { sfx.menuSelect(); handleGenerateBrochure(); }}
-                  disabled={generatingBrochure}
-                  className="w-full bg-gray-200 dark:bg-zinc-800 text-gray-900 dark:text-white font-medium py-3 rounded-xl border-2 border-gray-300 dark:border-zinc-700 hover:border-accent/50 focus:outline-none focus:ring-2 focus:ring-accent/50 transition-colors mb-3 flex items-center justify-center gap-2 disabled:opacity-50"
+                  onClick={() => { sfx.menuSelect(); handleGenerateExpose(); }}
+                  className="w-full bg-gray-200 dark:bg-zinc-800 text-gray-900 dark:text-white font-medium py-3 rounded-xl border-2 border-gray-300 dark:border-zinc-700 hover:border-accent/50 focus:outline-none focus:ring-2 focus:ring-accent/50 transition-colors mb-3 flex items-center justify-center gap-2"
                 >
-                  {generatingBrochure ? <Loader2 size={18} className="animate-spin" /> : <FileDown size={18} />}
-                  {generatingBrochure ? t.propertyDetail.generating : t.propertyDetail.generateBrochure}
+                  <FileDown size={18} />
+                  {t.propertyDetail.generateBrochure}
                 </button>
                 <button
                   type="button"
@@ -459,13 +455,13 @@ export default function PropertyDetail({ property, onClose, onDeleted, onPropert
               </div>
 
               {/* Features */}
-              <div className="rounded-xl p-6 max-[1560px]:p-4 bg-app-light dark:bg-app-dark border border-white/40 dark:border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.1)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.4)]">
+              <div className="rounded-xl p-6 max-[1727px]:p-4 bg-app-light dark:bg-app-dark border border-white/40 dark:border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.1)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.4)]">
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">{t.propertyDetail.features}</h3>
-                <div className="grid grid-cols-2 max-[1560px]:gap-2 gap-3">
+                <div className="grid grid-cols-2 max-[1727px]:gap-2 gap-3">
                   {property.features?.map((feature, index) => (
-                    <div key={index} className="flex items-center gap-2 text-gray-700 dark:text-zinc-400 text-sm">
+                    <div key={index} className="min-w-0 flex items-center gap-2 text-gray-700 dark:text-zinc-400 text-sm">
                       <CheckCircle size={14} className="text-accent shrink-0" />
-                      {feature}
+                      <span className="wrap-break-word">{feature}</span>
                     </div>
                   ))}
                 </div>
@@ -496,7 +492,7 @@ export default function PropertyDetail({ property, onClose, onDeleted, onPropert
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-60 bg-black/95 flex items-center justify-center p-4"
+              className="fixed inset-0 z-[10001] bg-black/95 flex items-center justify-center p-4"
               onClick={() => { sfx.menuSelect(); setSelectedImage(null); }}
             >
               <button
@@ -549,7 +545,7 @@ export default function PropertyDetail({ property, onClose, onDeleted, onPropert
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-60 flex items-center justify-center p-6"
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[10001] flex items-center justify-center p-6"
           >
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
@@ -616,6 +612,15 @@ export default function PropertyDetail({ property, onClose, onDeleted, onPropert
           />
         )}
       </AnimatePresence>
+
+      {/* Expose Generation Modal */}
+      <ExposeGenerationModal
+        open={showExposeModal}
+        step={exposeStep}
+        error={exposeError}
+        onClose={() => { setShowExposeModal(false); resetExpose(); }}
+        onRetry={() => generateExpose(property)}
+      />
     </motion.div>
   );
 }

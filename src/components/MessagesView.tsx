@@ -15,7 +15,7 @@ import { subscribeToUsers } from '../services/usersService';
 import type { Conversation, Message, UserProfile } from '../types';
 import type { User as FirebaseUser } from 'firebase/auth';
 import { sfx } from '../utils/sfx';
-import { t } from '../i18n/de';
+import { useLanguage } from '../contexts/LanguageContext';
 
 function getMessageDate(m: Message): Date | null {
   const raw = m.createdAt;
@@ -40,6 +40,7 @@ interface MessagesViewProps {
 }
 
 export default function MessagesView({ currentUser }: MessagesViewProps) {
+  const { t } = useLanguage();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);

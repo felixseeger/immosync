@@ -27,13 +27,7 @@ import {
   updateDealStageAndLog,
 } from '../services/dealsService';
 import type { Deal, DealActivity, DealDocument, DealStageId, DealDocumentCategory } from '../types';
-
-const DOC_CATEGORIES: { value: DealDocumentCategory; label: string }[] = [
-  { value: 'lease', label: 'Mietvertrag' },
-  { value: 'credit_check', label: 'Kreditabfrage' },
-  { value: 'notary', label: 'Notar / Vertrag' },
-  { value: 'other', label: 'Sonstiges' },
-];
+import { useLanguage } from '../contexts/LanguageContext';
 
 const inputCls =
   'w-full bg-white dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 text-gray-900 dark:text-white rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-accent transition-colors';
@@ -62,6 +56,13 @@ export default function DealDetailSlideOver({
   onSelectContact,
   onSelectProperty,
 }: DealDetailSlideOverProps) {
+  const { t } = useLanguage();
+  const DOC_CATEGORIES: { value: DealDocumentCategory; label: string }[] = [
+    { value: 'lease', label: t.deal.leaseAgreement },
+    { value: 'credit_check', label: t.deal.creditCheck },
+    { value: 'notary', label: t.deal.notaryDraft },
+    { value: 'other', label: t.deal.other },
+  ];
   const [activities, setActivities] = useState<DealActivity[]>([]);
   const [documents, setDocuments] = useState<DealDocument[]>([]);
   const [uploading, setUploading] = useState(false);
@@ -137,7 +138,7 @@ export default function DealDetailSlideOver({
 
   if (!deal) return null;
 
-  const valueLabel = deal.dealType === 'sale' ? 'Commission' : 'Rent';
+  const valueLabel = deal.dealType === 'sale' ? t.deal.commission : t.deal.rent;
 
   const panelContent = (
     <AnimatePresence>
@@ -166,14 +167,14 @@ export default function DealDetailSlideOver({
                 <CheckSquare size={18} className="text-accent" />
               </span>
               <h2 id="deal-panel-title" className="text-lg font-bold text-gray-900 dark:text-white">
-                Deal details
+                {t.dealsPage.dealDetails}
               </h2>
             </div>
             <button
               type="button"
               onClick={onClose}
               className="p-2 rounded-lg text-gray-500 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 hover:text-gray-900 dark:hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-accent/50"
-              aria-label="Close"
+              aria-label={t.common.close}
             >
               <X size={20} />
             </button>
@@ -183,7 +184,7 @@ export default function DealDetailSlideOver({
             {/* Deal info */}
             <section>
               <h3 className="text-xs font-bold text-gray-500 dark:text-zinc-500 uppercase tracking-wider mb-3">
-                Deal
+                {t.dealsPage.dealSection}
               </h3>
               <div className="space-y-2 rounded-xl border border-gray-200 dark:border-zinc-800 p-4 bg-gray-50/50 dark:bg-zinc-800/30">
                 <div className="flex items-center gap-2 flex-wrap">
@@ -195,7 +196,7 @@ export default function DealDetailSlideOver({
                       className="text-xs font-medium flex items-center gap-1 shrink-0"
                     >
                       <ExternalLink size={12} />
-                      View contact
+                      {t.dealsPage.viewContact}
                     </AnimatedLink>
                   ) : null}
                 </div>
@@ -208,7 +209,7 @@ export default function DealDetailSlideOver({
                       className="text-xs font-medium flex items-center gap-1 shrink-0"
                     >
                       <ExternalLink size={12} />
-                      View property
+                      {t.dealsPage.viewProperty}
                     </AnimatedLink>
                   ) : null}
                 </div>
@@ -219,7 +220,7 @@ export default function DealDetailSlideOver({
                 </div>
                 <div>
                   <label className="block text-[11px] font-semibold text-gray-500 dark:text-zinc-500 uppercase tracking-wider mb-1">
-                    Stage
+                    {t.addDeal.stage}
                   </label>
                   <select
                     value={deal.stageId}
@@ -229,7 +230,7 @@ export default function DealDetailSlideOver({
                   >
                     {DEAL_STAGES.map((s) => (
                       <option key={s.id} value={s.id}>
-                        {s.label}
+                        {t.dealStage?.[s.id] ?? s.label}
                       </option>
                     ))}
                   </select>
@@ -244,7 +245,7 @@ export default function DealDetailSlideOver({
             <section>
               <h3 className="text-xs font-bold text-gray-500 dark:text-zinc-500 uppercase tracking-wider mb-3 flex items-center gap-2">
                 <FolderOpen size={14} />
-                Documents
+                {t.dealsPage.documents}
               </h3>
               <input
                 ref={fileInputRef}
@@ -290,12 +291,14 @@ export default function DealDetailSlideOver({
                       {doc.name}
                       <ExternalLink size={12} />
                     </a>
-                    <span className="text-[10px] text-gray-500 dark:text-zinc-500 uppercase">{doc.category}</span>
+                    <span className="text-[10px] text-gray-500 dark:text-zinc-500 uppercase">
+                      {DOC_CATEGORIES.find((c) => c.value === doc.category)?.label ?? doc.category}
+                    </span>
                     <button
                       type="button"
                       onClick={() => handleDeleteDocument(doc.id)}
                       disabled={deletingId === doc.id}
-                      aria-label="Remove document"
+                      aria-label={t.deal.removeDocument}
                       className="p-1.5 rounded text-gray-500 dark:text-zinc-400 hover:bg-red-500/10 hover:text-red-500 disabled:opacity-50"
                     >
                       {deletingId === doc.id ? <Loader2 size={14} className="animate-spin" aria-hidden="true" /> : <Trash2 size={14} aria-hidden="true" />}
@@ -305,7 +308,7 @@ export default function DealDetailSlideOver({
               </ul>
               {documents.length === 0 && !uploading && (
                 <p className="text-sm text-gray-500 dark:text-zinc-500 py-4 text-center">
-                  Noch keine Dokumente vorhanden. Laden Sie oben Mietverträge, Kreditabfragen oder Notarunterlagen hoch.
+                  {t.dealsPage.noDocumentsYet}
                 </p>
               )}
             </section>
@@ -314,7 +317,7 @@ export default function DealDetailSlideOver({
             <section>
               <h3 className="text-xs font-bold text-gray-500 dark:text-zinc-500 uppercase tracking-wider mb-3 flex items-center gap-2">
                 <Activity size={14} />
-                Activity
+                {t.dealsPage.recentActivity}
               </h3>
               <div className="mb-3 flex gap-2">
                 <input
@@ -322,7 +325,7 @@ export default function DealDetailSlideOver({
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleAddNote()}
-                  placeholder="Add a note…"
+                  placeholder={t.deal.addNote}
                   className={inputCls + ' flex-1'}
                 />
                 <button
@@ -332,7 +335,7 @@ export default function DealDetailSlideOver({
                   className="px-4 py-2.5 bg-accent text-white dark:text-black font-bold rounded-lg text-sm border-2 border-accent hover:opacity-90 disabled:opacity-50 flex items-center gap-2"
                 >
                   {addingNote ? <Loader2 size={16} className="animate-spin" /> : null}
-                  Add
+                  {t.contact.add}
                 </button>
               </div>
               <ul className="space-y-2">
@@ -360,7 +363,7 @@ export default function DealDetailSlideOver({
               </ul>
               {activities.length === 0 && (
                 <p className="text-sm text-gray-500 dark:text-zinc-500 py-4 text-center">
-                  No activity yet. Changes and notes will appear here.
+                  {t.dealsPage.noActivityYet}
                 </p>
               )}
             </section>

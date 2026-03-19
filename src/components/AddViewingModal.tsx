@@ -5,7 +5,7 @@ import { createViewing, updateViewing } from '../services/viewingsService';
 import { subscribeToContacts } from '../services/contactsService';
 import { getProperties } from '../services/propertyService';
 import type { Property, Contact, Viewing, ViewingEventType } from '../types';
-import { t } from '../i18n/de';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const EVENT_TYPES: ViewingEventType[] = ['viewing', 'signing', 'payment', 'negotiation', 'notar'];
 import { Timestamp } from 'firebase/firestore';
@@ -33,6 +33,7 @@ interface AddViewingModalProps {
 }
 
 export default function AddViewingModal({ initialDate, viewing, onClose, onSuccess }: AddViewingModalProps) {
+  const { t } = useLanguage();
   const isEdit = !!viewing;
   const [properties, setProperties] = useState<Property[]>([]);
   const [contacts, setContacts] = useState<Contact[]>([]);

@@ -151,6 +151,15 @@ export interface DealActivity {
   userId?: string;
 }
 
+/** Monthly rent payment review — tracks which property/month has been personally reviewed */
+export interface RentReview {
+  id: string;
+  propertyId: string;
+  /** ISO month string, e.g. '2025-07' */
+  month: string;
+  reviewedAt: any;
+}
+
 export type DealDocumentCategory = 'lease' | 'credit_check' | 'notary' | 'other';
 
 export interface DealDocument {

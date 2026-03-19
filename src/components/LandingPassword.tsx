@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Lock, ArrowRight, AlertCircle } from 'lucide-react';
 import { motion } from 'motion/react';
-import { t } from '../i18n/de';
+import { useLanguage } from '../contexts/LanguageContext';
 import LiquidGradientBackground from './LiquidGradientBackground';
 
 const GATE_PASSWORD = 'sitesync123';
@@ -21,6 +21,7 @@ interface LandingPasswordProps {
 }
 
 export default function LandingPassword({ onUnlock }: LandingPasswordProps) {
+  const { t } = useLanguage();
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
 
