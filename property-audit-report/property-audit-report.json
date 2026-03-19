@@ -1,0 +1,288 @@
+{
+  "de": {
+    "language": "de",
+    "consoleLogs": [
+      {
+        "type": "debug",
+        "text": "[vite] connecting..."
+      },
+      {
+        "type": "info",
+        "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_NETWORK_ACCESS_DENIED"
+      },
+      {
+        "type": "log",
+        "text": "Theme toggled: DARK html.classList: [dark]"
+      },
+      {
+        "type": "log",
+        "text": "Theme toggled: DARK html.classList: [dark]"
+      },
+      {
+        "type": "debug",
+        "text": "[vite] connected."
+      },
+      {
+        "type": "warning",
+        "text": "[.WebGL-0x641c045a9c00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+      },
+      {
+        "type": "warning",
+        "text": "[.WebGL-0x641c045a9c00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+      },
+      {
+        "type": "warning",
+        "text": "[.WebGL-0x641c045a9c00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+      },
+      {
+        "type": "warning",
+        "text": "[.WebGL-0x641c045a9c00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)"
+      },
+      {
+        "type": "debug",
+        "text": "[vite] connecting..."
+      },
+      {
+        "type": "info",
+        "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_NETWORK_ACCESS_DENIED"
+      },
+      {
+        "type": "log",
+        "text": "Theme toggled: DARK html.classList: [dark]"
+      },
+      {
+        "type": "log",
+        "text": "Theme toggled: DARK html.classList: [dark]"
+      },
+      {
+        "type": "debug",
+        "text": "[vite] connected."
+      }
+    ],
+    "success": true
+  },
+  "en": {
+    "language": "en",
+    "consoleLogs": [
+      {
+        "type": "debug",
+        "text": "[vite] connecting..."
+      },
+      {
+        "type": "info",
+        "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_NETWORK_ACCESS_DENIED"
+      },
+      {
+        "type": "log",
+        "text": "Theme toggled: DARK html.classList: [dark]"
+      },
+      {
+        "type": "log",
+        "text": "Theme toggled: DARK html.classList: [dark]"
+      },
+      {
+        "type": "debug",
+        "text": "[vite] connected."
+      },
+      {
+        "type": "debug",
+        "text": "[vite] connecting..."
+      },
+      {
+        "type": "info",
+        "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_NETWORK_ACCESS_DENIED"
+      },
+      {
+        "type": "log",
+        "text": "Theme toggled: DARK html.classList: [dark]"
+      },
+      {
+        "type": "log",
+        "text": "Theme toggled: DARK html.classList: [dark]"
+      },
+      {
+        "type": "debug",
+        "text": "[vite] connected."
+      }
+    ],
+    "success": true
+  },
+  "fr": {
+    "language": "fr",
+    "consoleLogs": [
+      {
+        "type": "debug",
+        "text": "[vite] connecting..."
+      },
+      {
+        "type": "info",
+        "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_NETWORK_ACCESS_DENIED"
+      },
+      {
+        "type": "log",
+        "text": "Theme toggled: DARK html.classList: [dark]"
+      },
+      {
+        "type": "log",
+        "text": "Theme toggled: DARK html.classList: [dark]"
+      },
+      {
+        "type": "debug",
+        "text": "[vite] connected."
+      },
+      {
+        "type": "debug",
+        "text": "[vite] connecting..."
+      },
+      {
+        "type": "info",
+        "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_NETWORK_ACCESS_DENIED"
+      },
+      {
+        "type": "log",
+        "text": "Theme toggled: DARK html.classList: [dark]"
+      },
+      {
+        "type": "log",
+        "text": "Theme toggled: DARK html.classList: [dark]"
+      },
+      {
+        "type": "debug",
+        "text": "[vite] connected."
+      }
+    ],
+    "success": true
+  },
+  "ja": {
+    "language": "ja",
+    "consoleLogs": [
+      {
+        "type": "debug",
+        "text": "[vite] connecting..."
+      },
+      {
+        "type": "info",
+        "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_NETWORK_ACCESS_DENIED"
+      },
+      {
+        "type": "log",
+        "text": "Theme toggled: DARK html.classList: [dark]"
+      },
+      {
+        "type": "log",
+        "text": "Theme toggled: DARK html.classList: [dark]"
+      },
+      {
+        "type": "debug",
+        "text": "[vite] connected."
+      },
+      {
+        "type": "debug",
+        "text": "[vite] connecting..."
+      },
+      {
+        "type": "info",
+        "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_NETWORK_ACCESS_DENIED"
+      },
+      {
+        "type": "log",
+        "text": "Theme toggled: DARK html.classList: [dark]"
+      },
+      {
+        "type": "log",
+        "text": "Theme toggled: DARK html.classList: [dark]"
+      },
+      {
+        "type": "debug",
+        "text": "[vite] connected."
+      }
+    ],
+    "success": true
+  },
+  "zh": {
+    "language": "zh",
+    "consoleLogs": [
+      {
+        "type": "debug",
+        "text": "[vite] connecting..."
+      },
+      {
+        "type": "info",
+        "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_NETWORK_ACCESS_DENIED"
+      },
+      {
+        "type": "log",
+        "text": "Theme toggled: DARK html.classList: [dark]"
+      },
+      {
+        "type": "log",
+        "text": "Theme toggled: DARK html.classList: [dark]"
+      },
+      {
+        "type": "debug",
+        "text": "[vite] connected."
+      },
+      {
+        "type": "debug",
+        "text": "[vite] connecting..."
+      },
+      {
+        "type": "info",
+        "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_NETWORK_ACCESS_DENIED"
+      },
+      {
+        "type": "log",
+        "text": "Theme toggled: DARK html.classList: [dark]"
+      },
+      {
+        "type": "log",
+        "text": "Theme toggled: DARK html.classList: [dark]"
+      },
+      {
+        "type": "debug",
+        "text": "[vite] connected."
+      }
+    ],
+    "success": true
+  }
+}

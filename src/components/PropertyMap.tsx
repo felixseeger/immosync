@@ -4,6 +4,8 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import { MapPin, Building2, LayoutGrid, Bath, Car, ExternalLink, PanelLeftClose, PanelRightOpen } from 'lucide-react';
 import type { Property } from '../types';
 import { geocodeAddresses } from '../utils/geocode';
+import { fetchIsochrone } from '../utils/isochrone';
+import { fetchNearbyPOIs, type NearbyPOI } from '../utils/mapboxSearch';
 import { useLanguage } from '../contexts/LanguageContext';
 import { sfx } from '../utils/sfx';
 
@@ -43,6 +45,8 @@ interface PlacedProperty {
 function markerColor(property: Property): string {
   switch (property.status) {
     case 'Active': return '#9372c9'; // accent purple
+    case 'For Sale': return '#9372c9'; // accent purple
+    case 'For Rent': return '#9372c9'; // accent purple
     case 'Pending': return '#3B82F6'; // blue-500
     case 'Rented': return '#10B981';  // emerald-500
     case 'Sold': return '#71717A';   // zinc-500
@@ -86,29 +90,15 @@ interface PropertyMapProps {
 
 const PLOTS_SOURCE_ID = 'property-plots';
 const PLOTS_LAYER_ID = 'property-plots-circle';
-const ACTIVE_HIGHLIGHT_SOURCE_ID = 'property-active-3d-highlight';
-const ACTIVE_HIGHLIGHT_LAYER_ID = 'property-active-3d-highlight-layer';
 const TRAFFIC_SOURCE_ID = 'mapbox-traffic';
 const TRAFFIC_LAYER_ID = 'traffic-congestion';
-const TRAFFIC_SIMULATE_LAYER_ID = 'traffic-simulate-flow';
-
-/** Small square polygon (in degrees) around a point for 3D extrusion. ~25m half-size at mid-lat. */
-function squarePolygon(lng: number, lat: number, halfSizeDeg = 0.00015): [number, number][] {
-  return [
-    [lng - halfSizeDeg, lat - halfSizeDeg],
-    [lng + halfSizeDeg, lat - halfSizeDeg],
-    [lng + halfSizeDeg, lat + halfSizeDeg],
-    [lng - halfSizeDeg, lat + halfSizeDeg],
-    [lng - halfSizeDeg, lat - halfSizeDeg],
-  ];
-}
+const RAILWAY_LAYER_ID = 'railway-tracks';
+const RAIL_STATIONS_LAYER_ID = 'rail-stations';
+const ISOCHRONE_SOURCE_ID = 'isochrone-reachability';
+const ISOCHRONE_LAYER_ID = 'isochrone-fill';
 
 const MAP_STYLE_DARK = 'mapbox://styles/mapbox/dark-v11';
 const MAP_STYLE_LIGHT = 'mapbox://styles/mapbox/light-v11';
-const SELECTED_HIGHLIGHT_COLOR = '#D9FF00';
-const ACTIVE_HIGHLIGHT_COLOR = '#9372c9';
-const DEFAULT_HEIGHT = 24;
-const DEFAULT_MIN_HEIGHT = 0;
 
 export default function PropertyMap({ properties, isDarkMode = true, onSelectProperty, selectedPropertyId }: PropertyMapProps) {
   const { t } = useLanguage();
@@ -122,6 +112,10 @@ export default function PropertyMap({ properties, isDarkMode = true, onSelectPro
         return t.propertyStatus.rented;
       case 'Sold':
         return t.propertyStatus.sold;
+      case 'For Sale':
+        return t.propertyStatus.forSale;
+      case 'For Rent':
+        return t.propertyStatus.forRent;
       default:
         return status;
     }
@@ -132,11 +126,13 @@ export default function PropertyMap({ properties, isDarkMode = true, onSelectPro
   const [tilesLoading, setTilesLoading] = useState(true);
   const [popupProperty, setPopupProperty] = useState<PlacedProperty | null>(null);
   const [viewState, setViewState] = useState(DEFAULT_VIEW);
-  const [portfolioFilter, setPortfolioFilter] = useState<'All' | 'Active' | 'Pending' | 'Sold' | 'Rented'>('All');
-  const [showTraffic, setShowTraffic] = useState(false);
-  const [simulateTraffic, setSimulateTraffic] = useState(false);
+  const [portfolioFilter, setPortfolioFilter] = useState<'All' | 'Active' | 'For Sale' | 'For Rent' | 'Pending' | 'Sold' | 'Rented'>('All');
+  const [showTraffic, setShowTraffic] = useState(true);
+  const [showReachability, setShowReachability] = useState(false);
+  const [reachabilityLoading, setReachabilityLoading] = useState(false);
+  const [nearbyPOIs, setNearbyPOIs] = useState<NearbyPOI[]>([]);
+  const [nearbyLoading, setNearbyLoading] = useState(false);
   const [livePortfolioOpen, setLivePortfolioOpen] = useState(true);
-  const trafficSimulateRef = useRef<number>(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<{
     getSource: (id: string) => { setData: (data: object) => void } | undefined;
@@ -208,27 +204,6 @@ export default function PropertyMap({ properties, isDarkMode = true, onSelectPro
         /* style may not have composite/building */
       }
     }
-    // Yellow 3D highlight for active property buildings (drawn on top of 3D buildings)
-    if (!map.getSource(ACTIVE_HIGHLIGHT_SOURCE_ID)) {
-      map.addSource(ACTIVE_HIGHLIGHT_SOURCE_ID, {
-        type: 'geojson',
-        data: { type: 'FeatureCollection', features: [] },
-      });
-    }
-    if (!map.getLayer(ACTIVE_HIGHLIGHT_LAYER_ID)) {
-      map.addLayer({
-        id: ACTIVE_HIGHLIGHT_LAYER_ID,
-        type: 'fill-extrusion',
-        source: ACTIVE_HIGHLIGHT_SOURCE_ID,
-        minzoom: 14,
-        paint: {
-          'fill-extrusion-color': ACTIVE_HIGHLIGHT_COLOR,
-          'fill-extrusion-height': ['coalesce', ['get', 'height'], DEFAULT_HEIGHT],
-          'fill-extrusion-base': ['coalesce', ['get', 'min_height'], DEFAULT_MIN_HEIGHT],
-          'fill-extrusion-opacity': 0.92,
-        },
-      });
-    }
     // Traffic (Mapbox Traffic v1 – real-time congestion, ~8 min updates)
     if (!map.getSource(TRAFFIC_SOURCE_ID)) {
       map.addSource(TRAFFIC_SOURCE_ID, {
@@ -243,7 +218,7 @@ export default function PropertyMap({ properties, isDarkMode = true, onSelectPro
         source: TRAFFIC_SOURCE_ID,
         'source-layer': 'traffic',
         minzoom: 10,
-        layout: { visibility: 'none' },
+        layout: { visibility: 'visible' },
         paint: {
           'line-color': [
             'match',
@@ -259,20 +234,63 @@ export default function PropertyMap({ properties, isDarkMode = true, onSelectPro
         },
       });
     }
-    if (!map.getLayer(TRAFFIC_SIMULATE_LAYER_ID)) {
+    // Railway tracks from Mapbox Streets composite (road layer – type/class may vary by region)
+    if (!map.getLayer(RAILWAY_LAYER_ID)) {
+      try {
+        map.addLayer({
+          id: RAILWAY_LAYER_ID,
+          type: 'line',
+          source: 'composite',
+          'source-layer': 'road',
+          minzoom: 10,
+          filter: ['any', ['==', ['get', 'type'], 'railway'], ['in', ['get', 'class'], ['literal', ['rail', 'railway']]]],
+          paint: {
+            'line-color': isDarkMode ? '#94a3b8' : '#64748b',
+            'line-width': ['interpolate', ['linear'], ['zoom'], 10, 1, 14, 2, 18, 3],
+            'line-opacity': 0.85,
+            'line-dasharray': [2, 1],
+          },
+        });
+      } catch {
+        /* composite/road may not have railway */
+      }
+    }
+    // Rail stations from transit_stop_label (rail, rail-metro, rail-light)
+    if (!map.getLayer(RAIL_STATIONS_LAYER_ID)) {
+      try {
+        map.addLayer({
+          id: RAIL_STATIONS_LAYER_ID,
+          type: 'circle',
+          source: 'composite',
+          'source-layer': 'transit_stop_label',
+          minzoom: 12,
+          filter: ['in', ['get', 'class'], ['literal', ['rail', 'rail-metro', 'rail-light']]],
+          paint: {
+            'circle-radius': ['interpolate', ['linear'], ['zoom'], 12, 3, 16, 6, 18, 10],
+            'circle-color': isDarkMode ? '#f59e0b' : '#d97706',
+            'circle-stroke-width': 2,
+            'circle-stroke-color': isDarkMode ? '#1e293b' : '#ffffff',
+          },
+        });
+      } catch {
+        /* composite/transit_stop_label may not exist */
+      }
+    }
+    // Isochrone (reachability) – 5/10/15 min drive zones
+    if (!map.getSource(ISOCHRONE_SOURCE_ID)) {
+      map.addSource(ISOCHRONE_SOURCE_ID, {
+        type: 'geojson',
+        data: { type: 'FeatureCollection', features: [] },
+      });
+    }
+    if (!map.getLayer(ISOCHRONE_LAYER_ID)) {
       map.addLayer({
-        id: TRAFFIC_SIMULATE_LAYER_ID,
-        type: 'line',
-        source: TRAFFIC_SOURCE_ID,
-        'source-layer': 'traffic',
-        minzoom: 10,
-        layout: { visibility: 'none' },
+        id: ISOCHRONE_LAYER_ID,
+        type: 'fill',
+        source: ISOCHRONE_SOURCE_ID,
         paint: {
-          'line-color': ['match', ['get', 'congestion'], 'low', '#22c55e', 'moderate', '#eab308', 'heavy', '#f97316', 'severe', '#ef4444', '#64748b'],
-          'line-width': ['interpolate', ['linear'], ['zoom'], 10, 1.5, 14, 3, 18, 5],
-          'line-opacity': 0.7,
-          'line-dasharray': [2, 2],
-          'line-dash-offset': 0,
+          'fill-color': ['coalesce', ['get', 'fill'], ['get', 'fillColor'], '#9372c9'],
+          'fill-opacity': ['coalesce', ['get', 'fill-opacity'], ['get', 'fillOpacity'], 0.2],
         },
       });
     }
@@ -313,84 +331,52 @@ export default function PropertyMap({ properties, isDarkMode = true, onSelectPro
     (map.getSource(PLOTS_SOURCE_ID) as { setData: (data: object) => void }).setData(geojson);
   }, [placed]);
 
-  // Update 3D highlight: selected = one square marker (accent); otherwise all Active = square markers
+  // Traffic layer visibility
   useEffect(() => {
     const map = mapRef.current;
-    if (!map?.getSource(ACTIVE_HIGHLIGHT_SOURCE_ID)) return;
-    const isSelected = Boolean(selectedPropertyId);
-    const candidates = isSelected
-      ? placed.filter(({ property }) => property.id === selectedPropertyId)
-      : placed.filter(({ property }) => property.status === 'Active');
+    if (!map?.getLayer(TRAFFIC_LAYER_ID)) return;
+    (map as { setLayoutProperty: (id: string, name: string, value: unknown) => void }).setLayoutProperty(
+      TRAFFIC_LAYER_ID,
+      'visibility',
+      showTraffic ? 'visible' : 'none'
+    );
+  }, [showTraffic]);
 
-    const makeSquareFeature = (lng: number, lat: number) => ({
-      type: 'Feature' as const,
-      geometry: { type: 'Polygon' as const, coordinates: [squarePolygon(lng, lat)] },
-      properties: { height: DEFAULT_HEIGHT, min_height: DEFAULT_MIN_HEIGHT },
-    });
+  // Isochrone: fetch and display when a property is focused and reachability is on
+  useEffect(() => {
+    const map = mapRef.current;
+    const source = map?.getSource(ISOCHRONE_SOURCE_ID) as { setData: (data: object) => void } | undefined;
+    if (!source) return;
 
-    const source = map.getSource(ACTIVE_HIGHLIGHT_SOURCE_ID) as { setData: (data: object) => void };
-    const setPaint = (color: string, opacity: number) => {
-      (map as { setPaintProperty: (id: string, name: string, value: unknown) => void }).setPaintProperty(
-        ACTIVE_HIGHLIGHT_LAYER_ID,
-        'fill-extrusion-color',
-        color
-      );
-      (map as { setPaintProperty: (id: string, name: string, value: unknown) => void }).setPaintProperty(
-        ACTIVE_HIGHLIGHT_LAYER_ID,
-        'fill-extrusion-opacity',
-        opacity
-      );
-    };
-
-    if (candidates.length === 0) {
+    if (!showReachability || !popupProperty) {
       source.setData({ type: 'FeatureCollection', features: [] });
       return;
     }
 
-    const geojson = {
-      type: 'FeatureCollection' as const,
-      features: candidates.map(({ lng, lat }) => makeSquareFeature(lng, lat)),
-    };
-    source.setData(geojson);
-    setPaint(isSelected ? SELECTED_HIGHLIGHT_COLOR : ACTIVE_HIGHLIGHT_COLOR, isSelected ? 1 : 0.92);
-  }, [placed, selectedPropertyId]);
+    const { lng, lat } = popupProperty;
+    setReachabilityLoading(true);
+    fetchIsochrone(lng, lat)
+      .then((fc) => {
+        if (fc && mapRef.current?.getSource(ISOCHRONE_SOURCE_ID)) {
+          (mapRef.current.getSource(ISOCHRONE_SOURCE_ID) as { setData: (data: object) => void }).setData(fc);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setReachabilityLoading(false));
+  }, [showReachability, popupProperty]);
 
-  // Traffic layer visibility and simulate (animated dash) 
+  // Nearby POIs: fetch when popup is open
   useEffect(() => {
-    const map = mapRef.current;
-    if (!map?.getLayer(TRAFFIC_LAYER_ID)) return;
-    const setVisibility = (layerId: string, visible: boolean) => {
-      (map as { setLayoutProperty: (id: string, name: string, value: unknown) => void }).setLayoutProperty(
-        layerId,
-        'visibility',
-        visible ? 'visible' : 'none'
-      );
-    };
-    setVisibility(TRAFFIC_LAYER_ID, showTraffic && !simulateTraffic);
-    setVisibility(TRAFFIC_SIMULATE_LAYER_ID, showTraffic && simulateTraffic);
-  }, [showTraffic, simulateTraffic]);
-
-  // Animate traffic flow (line-dash-offset) when simulate is on
-  useEffect(() => {
-    if (!simulateTraffic || !showTraffic) return;
-    const map = mapRef.current;
-    if (!map?.getLayer(TRAFFIC_SIMULATE_LAYER_ID)) return;
-    let offset = 0;
-    const step = () => {
-      trafficSimulateRef.current = requestAnimationFrame(step);
-      offset += 0.4;
-      (map as { setPaintProperty: (id: string, name: string, value: unknown) => void }).setPaintProperty(
-        TRAFFIC_SIMULATE_LAYER_ID,
-        'line-dash-offset',
-        offset
-      );
-      (map as { triggerRepaint?: () => void }).triggerRepaint?.();
-    };
-    step();
-    return () => {
-      if (trafficSimulateRef.current) cancelAnimationFrame(trafficSimulateRef.current);
-    };
-  }, [simulateTraffic, showTraffic]);
+    if (!popupProperty) {
+      setNearbyPOIs([]);
+      return;
+    }
+    setNearbyLoading(true);
+    fetchNearbyPOIs(popupProperty.lng, popupProperty.lat, ['education', 'shopping', 'transit'], 4)
+      .then(setNearbyPOIs)
+      .catch(() => setNearbyPOIs([]))
+      .finally(() => setNearbyLoading(false));
+  }, [popupProperty]);
 
   if (!MAPBOX_TOKEN) {
     return (
@@ -518,6 +504,28 @@ export default function PropertyMap({ properties, isDarkMode = true, onSelectPro
                   <span className="flex items-center gap-1"><Bath size={12} /> {popupProperty.property.bathrooms ?? '—'} B</span>
                   <span className="flex items-center gap-1"><Car size={12} /> {popupProperty.property.garage ?? '—'} G</span>
                 </div>
+                {/* Nearby POIs */}
+                <div className="mt-2 pt-2 border-t border-gray-200 dark:border-zinc-600">
+                  <p className="text-[11px] font-semibold text-gray-700 dark:text-zinc-300 mb-1">{t.propertyUi.nearby}</p>
+                  {nearbyLoading ? (
+                    <p className="text-[10px] text-gray-500 dark:text-zinc-400">{t.common.loading}</p>
+                  ) : nearbyPOIs.length > 0 ? (
+                    <ul className="space-y-0.5 max-h-24 overflow-y-auto text-[10px] text-gray-600 dark:text-zinc-400">
+                      {nearbyPOIs.slice(0, 8).map((poi, i) => (
+                        <li key={i} className="truncate" title={poi.address || undefined}>
+                          <span className="font-medium text-gray-700 dark:text-zinc-300">{poi.name}</span>
+                          {poi.category && (
+                            <span className="ml-1 text-gray-500 dark:text-zinc-500">
+                              ({(poi.category === 'education' ? t.propertyUi.categoryEducation : poi.category === 'shopping' ? t.propertyUi.categoryShopping : poi.category === 'transit' ? t.propertyUi.categoryTransit : poi.category)})
+                            </span>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-[10px] text-gray-500 dark:text-zinc-400">{t.propertyUi.nearbyNone}</p>
+                  )}
+                </div>
                 {onSelectProperty && (
                   <button
                     type="button"
@@ -558,7 +566,7 @@ export default function PropertyMap({ properties, isDarkMode = true, onSelectPro
           <div className="flex flex-wrap gap-1.5 mb-2">
             <button
               type="button"
-              onClick={() => { sfx.menuSelect(); setShowTraffic(!showTraffic); if (showTraffic) setSimulateTraffic(false); }}
+              onClick={() => { sfx.menuSelect(); setShowTraffic(!showTraffic); }}
               className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors flex items-center gap-1 ${
                 showTraffic ? 'bg-accent text-white dark:text-black' : 'bg-gray-200 dark:bg-zinc-700 text-gray-700 dark:text-zinc-300 hover:bg-gray-300 dark:hover:bg-zinc-600'
               }`}
@@ -568,26 +576,38 @@ export default function PropertyMap({ properties, isDarkMode = true, onSelectPro
             </button>
             <button
               type="button"
-              onClick={() => { sfx.menuSelect(); setSimulateTraffic(!simulateTraffic); if (simulateTraffic && !showTraffic) setShowTraffic(true); }}
+              onClick={() => { sfx.menuSelect(); setShowReachability(!showReachability); }}
               className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors flex items-center gap-1 ${
-                simulateTraffic ? 'bg-accent text-white dark:text-black' : 'bg-gray-200 dark:bg-zinc-700 text-gray-700 dark:text-zinc-300 hover:bg-gray-300 dark:hover:bg-zinc-600'
+                showReachability ? 'bg-accent text-white dark:text-black' : 'bg-gray-200 dark:bg-zinc-700 text-gray-700 dark:text-zinc-300 hover:bg-gray-300 dark:hover:bg-zinc-600'
               }`}
-              title={t.propertyUi.simulateHint}
+              title={t.propertyUi.reachabilityHint}
             >
-              {t.propertyUi.simulate}
+              {reachabilityLoading ? '…' : t.propertyUi.reachability}
             </button>
           </div>
           <div className="flex flex-wrap gap-1.5 mb-3">
-            {(['All', 'Active', 'Pending', 'Sold', 'Rented'] as const).map((status) => {
+            {(['All', 'Active', 'For Sale', 'For Rent', 'Pending', 'Sold', 'Rented'] as const).map((status) => {
               const count = status === 'All' ? placed.length : placed.filter(({ property }) => property.status === status).length;
               const isActive = portfolioFilter === status;
-              const label = status === 'All' ? t.propertyFilter.all : status === 'Active' ? t.propertyStatus.active : status === 'Pending' ? t.propertyStatus.pending : status === 'Rented' ? t.propertyStatus.rented : t.propertyStatus.sold;
+              const label = status === 'All' 
+                ? t.propertyFilter.all 
+                : status === 'Active' 
+                ? t.propertyStatus.active 
+                : status === 'For Sale' 
+                ? t.propertyStatus.forSale 
+                : status === 'For Rent' 
+                ? t.propertyStatus.forRent 
+                : status === 'Pending' 
+                ? t.propertyStatus.pending 
+                : status === 'Rented' 
+                ? t.propertyStatus.rented 
+                : t.propertyStatus.sold;
               return (
                 <button
                   key={status}
                   type="button"
                   onClick={() => { sfx.menuSelect(); setPortfolioFilter(status); }}
-                  className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
+                  className={`px-2.5 py-1 rounded-md text-[10px] font-medium transition-colors ${
                     isActive
                       ? 'bg-accent text-white dark:text-black'
                       : 'bg-gray-200 dark:bg-zinc-700 text-gray-700 dark:text-zinc-300 hover:bg-gray-300 dark:hover:bg-zinc-600'

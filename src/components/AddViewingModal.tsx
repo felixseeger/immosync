@@ -1,16 +1,16 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'motion/react';
-import { X, Calendar, User, Building2, Loader2 } from 'lucide-react';
+import { X, Calendar, Loader2 } from 'lucide-react';
+import { Timestamp } from 'firebase/firestore';
+import { format, setHours, setMinutes } from 'date-fns';
 import { createViewing, updateViewing } from '../services/viewingsService';
 import { subscribeToContacts } from '../services/contactsService';
 import { getProperties } from '../services/propertyService';
+import { sfx } from '../utils/sfx';
 import type { Property, Contact, Viewing, ViewingEventType } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
 
 const EVENT_TYPES: ViewingEventType[] = ['viewing', 'signing', 'payment', 'negotiation', 'notar'];
-import { Timestamp } from 'firebase/firestore';
-import { format, setHours, setMinutes } from 'date-fns';
-import { sfx } from '../utils/sfx';
 
 const inputCls =
   'w-full bg-white dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 text-gray-900 dark:text-white rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-colors placeholder:text-gray-500 dark:placeholder:text-zinc-600';
@@ -149,10 +149,7 @@ export default function AddViewingModal({ initialDate, viewing, onClose, onSucce
         className="bg-app-light dark:bg-app-dark border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden"
       >
         <div className="p-4 border-b border-gray-200 dark:border-zinc-800 flex items-center justify-between">
-          <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <span className="p-2 rounded-lg bg-[#D9FF00]/15 border-2 border-[#D9FF00]/40">
-              <Calendar size={18} className="text-accent" />
-            </span>
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white">
             {t.viewing.newViewing}
           </h3>
           <button
@@ -170,57 +167,36 @@ export default function AddViewingModal({ initialDate, viewing, onClose, onSucce
             <label className="block text-[11px] font-semibold text-gray-600 dark:text-zinc-400 uppercase tracking-wider mb-1.5">
               {t.property.property}
             </label>
-            <div className="relative">
-              <Building2
-                size={16}
-                className={
-                  'absolute left-3 top-1/2 -translate-y-1/2 transition-colors ' +
-                  (propertyId ? 'text-accent' : 'text-gray-400 dark:text-zinc-500')
-                }
-              />
-              <select
-                value={propertyId}
-                onChange={(e) => { sfx.menuSelect(); setPropertyId(e.target.value); }}
-                className={selectCls(!!propertyId) + ' pl-9'}
-                required
-              >
-                <option value="">{t.viewing.selectProperty}</option>
-                {properties.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.title}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <select
+              value={propertyId}
+              onChange={(e) => { sfx.menuSelect(); setPropertyId(e.target.value); }}
+              className={selectCls(!!propertyId)}
+              required
+            >
+              <option value="">{t.viewing.selectProperty}</option>
+              {properties.map((p) => (
+                <option key={p.id} value={p.id}>{p.title}</option>
+              ))}
+            </select>
           </div>
 
           <div>
             <label className="block text-[11px] font-semibold text-gray-600 dark:text-zinc-400 uppercase tracking-wider mb-1.5">
               {t.contact.label}
             </label>
-            <div className="relative">
-              <User
-                size={16}
-                className={
-                  'absolute left-3 top-1/2 -translate-y-1/2 transition-colors ' +
-                  (contactId ? 'text-accent' : 'text-gray-400 dark:text-zinc-500')
-                }
-              />
-              <select
-                value={contactId}
-                onChange={(e) => { sfx.menuSelect(); setContactId(e.target.value); }}
-                className={selectCls(!!contactId) + ' pl-9'}
-                required
-              >
-                <option value="">{t.viewing.selectContact}</option>
-                {contacts.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                    {c.email ? ` (${c.email})` : ''}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <select
+              value={contactId}
+              onChange={(e) => { sfx.menuSelect(); setContactId(e.target.value); }}
+              className={selectCls(!!contactId)}
+              required
+            >
+              <option value="">{t.viewing.selectContact}</option>
+              {contacts.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}{c.email ? ` (${c.email})` : ''}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div>
@@ -293,7 +269,7 @@ export default function AddViewingModal({ initialDate, viewing, onClose, onSucce
             <button
               type="button"
               onClick={handleClose}
-              className="flex-1 py-2.5 bg-gray-200 dark:bg-zinc-800 text-gray-900 dark:text-white rounded-xl font-medium text-sm hover:border-accent/50 focus:outline-none focus:ring-2 focus:ring-accent/50 transition-colors"
+              className="flex-1 py-2.5 bg-gray-200 dark:bg-zinc-800 text-gray-900 dark:text-white rounded-xl font-medium text-sm hover:bg-gray-300 dark:hover:bg-zinc-700 transition-colors focus:outline-none focus:ring-2 focus:ring-accent/50"
             >
               {t.common.cancel}
             </button>

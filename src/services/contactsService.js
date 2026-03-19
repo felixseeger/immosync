@@ -52,6 +52,26 @@ export async function getLinkedContactIdsForProperty(propertyId) {
     const snapshot = await getDocs(q);
     return snapshot.docs.map((d) => d.data().contactId);
 }
+/** Batch: returns propertyId -> contactId[] for many properties (Firestore 'in' limit 30). */
+export async function getLinkedContactIdsForProperties(propertyIds) {
+    const result = {};
+    propertyIds.forEach((id) => (result[id] = []));
+    if (propertyIds.length === 0) return result;
+    const CHUNK = 30;
+    for (let i = 0; i < propertyIds.length; i += CHUNK) {
+        const chunk = propertyIds.slice(i, i + CHUNK);
+        const q = query(collection(db, PROPERTY_CONTACTS_COLLECTION), where('propertyId', 'in', chunk));
+        const snapshot = await getDocs(q);
+        snapshot.docs.forEach((d) => {
+            const data = d.data();
+            const pid = data.propertyId;
+            const cid = data.contactId;
+            if (!result[pid]) result[pid] = [];
+            result[pid].push(cid);
+        });
+    }
+    return result;
+}
 export async function getLinkedPropertyIdsForContact(contactId) {
     const q = query(collection(db, PROPERTY_CONTACTS_COLLECTION), where('contactId', '==', contactId));
     const snapshot = await getDocs(q);

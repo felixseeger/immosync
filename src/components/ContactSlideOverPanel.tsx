@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Loader2, Trash2, User, Building2, Unlink } from 'lucide-react';
+import { X, Loader2, Trash2, Building2, Unlink } from 'lucide-react';
 import { createContact, updateContact, deleteContact, getLinkedPropertyIdsForContact, linkContactToProperty, unlinkContactFromProperty } from '../services/contactsService';
 import { getProperties } from '../services/propertyService';
 import { sfx } from '../utils/sfx';
 import { useLanguage } from '../contexts/LanguageContext';
-import type { Contact, ContactCategory, LeadStatus, MarketingType, Property } from '../types';
+import type { Contact, ContactCategory, LeadStatus, Property } from '../types';
 
 const inputCls =
   'w-full bg-white dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 text-gray-900 dark:text-white rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-colors placeholder:text-gray-500 dark:placeholder:text-zinc-600';
@@ -20,9 +20,8 @@ const Label = ({ children, required }: { children: React.ReactNode; required?: b
   </label>
 );
 
-const CATEGORIES: ContactCategory[] = ['buyer', 'tenant', 'owner', 'investor'];
+const CATEGORIES: ContactCategory[] = ['buyer', 'tenant', 'owner', 'investor', 'facility_manager', 'facility_service'];
 const LEAD_STATUSES: LeadStatus[] = ['new', 'contacted', 'qualified', 'viewing', 'negotiation', 'won', 'lost'];
-const MARKETING_TYPES: MarketingType[] = ['Sale', 'Rent'];
 
 interface FormState {
   name: string;
@@ -32,11 +31,6 @@ interface FormState {
   category: ContactCategory | '';
   leadStatus: LeadStatus | '';
   notes: string;
-  marketingType: MarketingType | '';
-  minPrice: string;
-  maxPrice: string;
-  minRooms: string;
-  preferredLocationsStr: string;
 }
 
 const emptyForm: FormState = {
@@ -47,11 +41,6 @@ const emptyForm: FormState = {
   category: '',
   leadStatus: '',
   notes: '',
-  marketingType: '',
-  minPrice: '',
-  maxPrice: '',
-  minRooms: '',
-  preferredLocationsStr: '',
 };
 
 interface ContactSlideOverPanelProps {
@@ -119,7 +108,6 @@ export default function ContactSlideOverPanel({ contact, onClose, onSuccess }: C
 
   useEffect(() => {
     if (contact) {
-      const sp = contact.searchProfile;
       setForm({
         name: contact.name ?? '',
         email: contact.email ?? '',
@@ -128,11 +116,6 @@ export default function ContactSlideOverPanel({ contact, onClose, onSuccess }: C
         category: contact.category ?? '',
         leadStatus: contact.leadStatus ?? '',
         notes: contact.notes ?? '',
-        marketingType: sp?.marketingType ?? '',
-        minPrice: sp?.minPrice != null ? String(sp.minPrice) : '',
-        maxPrice: sp?.maxPrice != null ? String(sp.maxPrice) : '',
-        minRooms: sp?.minRooms != null ? String(sp.minRooms) : '',
-        preferredLocationsStr: sp?.preferredLocations?.join(', ') ?? '',
       });
     } else {
       setForm(emptyForm);
@@ -159,17 +142,6 @@ export default function ContactSlideOverPanel({ contact, onClose, onSuccess }: C
     setError(null);
     setSaving(true);
     try {
-      const preferredLocations = form.preferredLocationsStr
-        .split(/[,;]/)
-        .map((s) => s.trim())
-        .filter(Boolean);
-      const searchProfile = stripUndefined({
-        marketingType: form.marketingType || undefined,
-        minPrice: form.minPrice ? Number(form.minPrice) : undefined,
-        maxPrice: form.maxPrice ? Number(form.maxPrice) : undefined,
-        minRooms: form.minRooms ? Number(form.minRooms) : undefined,
-        preferredLocations: preferredLocations.length ? preferredLocations : undefined,
-      });
       const payload = stripUndefined({
         name: form.name.trim(),
         email: form.email.trim() || undefined,
@@ -178,7 +150,6 @@ export default function ContactSlideOverPanel({ contact, onClose, onSuccess }: C
         category: form.category || undefined,
         leadStatus: form.leadStatus || undefined,
         notes: form.notes.trim() || undefined,
-        searchProfile: Object.keys(searchProfile).length ? searchProfile : undefined,
       });
       if (isEditing && contact) {
         await updateContact(contact.id, payload);
@@ -188,9 +159,7 @@ export default function ContactSlideOverPanel({ contact, onClose, onSuccess }: C
       onSuccess();
       onClose();
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Could not save contact. Check console.';
-      setError(message);
-      console.error('Save contact failed:', err);
+      setError(err instanceof Error ? err.message : t.contact.saveError);
     } finally {
       setSaving(false);
     }
@@ -204,8 +173,8 @@ export default function ContactSlideOverPanel({ contact, onClose, onSuccess }: C
       setShowDeleteConfirm(false);
       onSuccess();
       onClose();
-    } catch (err) {
-      console.error('Delete contact failed:', err);
+    } catch {
+      // deletion failed silently — contact remains
     } finally {
       setDeleting(false);
     }
@@ -233,10 +202,7 @@ export default function ContactSlideOverPanel({ contact, onClose, onSuccess }: C
           aria-labelledby="contact-panel-title"
         >
           <div className="p-4 border-b border-gray-200 dark:border-zinc-800 flex items-center justify-between shrink-0">
-            <div className="flex items-center gap-2">
-              <div className="p-2 rounded-lg bg-accent/15 border-2 border-accent/40">
-                <User size={18} className="text-accent" />
-              </div>
+            <div>
               <h2 id="contact-panel-title" className="text-lg font-bold text-gray-900 dark:text-white">
                 {isEditing ? t.contact.editContact : t.contact.newContact}
               </h2>
@@ -279,26 +245,26 @@ export default function ContactSlideOverPanel({ contact, onClose, onSuccess }: C
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label>Category</Label>
+                <Label>{t.contact.category}</Label>
                 <select value={form.category} onChange={set('category')} className={selectCls(!!form.category)}>
                   <option value="">—</option>
                   {CATEGORIES.map((c) => (
-                    <option key={c} value={c}>{c}</option>
+                    <option key={c} value={c}>{t.contactRole[c]}</option>
                   ))}
                 </select>
               </div>
               <div>
-                <Label>Lead status</Label>
+                <Label>{t.contact.leadStatus}</Label>
                 <select value={form.leadStatus} onChange={set('leadStatus')} className={selectCls(!!form.leadStatus)}>
                   <option value="">—</option>
                   {LEAD_STATUSES.map((s) => (
-                    <option key={s} value={s}>{s}</option>
+                    <option key={s} value={s}>{t.contactStage[s]}</option>
                   ))}
                 </select>
               </div>
             </div>
             <div>
-              <Label>Notes</Label>
+              <Label>{t.contact.notes}</Label>
               <textarea
                 value={form.notes}
                 onChange={set('notes')}
@@ -308,52 +274,11 @@ export default function ContactSlideOverPanel({ contact, onClose, onSuccess }: C
               />
             </div>
 
-            <div className="pt-4 border-t border-gray-200 dark:border-zinc-800">
-              <p className="text-xs font-bold text-gray-600 dark:text-zinc-500 uppercase tracking-wider mb-3">
-                Search criteria (for matching)
-              </p>
-              <div className="space-y-3">
-                <div>
-                  <Label>Vermarktungsart</Label>
-                  <select value={form.marketingType} onChange={set('marketingType')} className={selectCls(!!form.marketingType)}>
-                    <option value="">—</option>
-                    {MARKETING_TYPES.map((m) => (
-                      <option key={m} value={m}>{m}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <Label>Min price</Label>
-                    <input type="number" value={form.minPrice} onChange={set('minPrice')} placeholder="0" className={inputCls} min={0} step={1000} />
-                  </div>
-                  <div>
-                    <Label>Max price</Label>
-                    <input type="number" value={form.maxPrice} onChange={set('maxPrice')} placeholder="0" className={inputCls} min={0} step={1000} />
-                  </div>
-                </div>
-                <div>
-                  <Label>Min rooms</Label>
-                  <input type="number" value={form.minRooms} onChange={set('minRooms')} placeholder="0" className={inputCls} min={0} step={0.5} />
-                </div>
-                <div>
-                  <Label>Preferred locations</Label>
-                  <input
-                    type="text"
-                    value={form.preferredLocationsStr}
-                    onChange={set('preferredLocationsStr')}
-                    placeholder="City, Area, or comma-separated"
-                    className={inputCls}
-                  />
-                </div>
-              </div>
-            </div>
-
             {isEditing && contact && (
               <div className="pt-4 border-t border-gray-200 dark:border-zinc-800">
                 <p className="text-xs font-bold text-gray-600 dark:text-zinc-500 uppercase tracking-wider mb-3 flex items-center gap-2">
                   <Building2 size={14} />
-                  Assigned properties
+                  {t.contact.assignedProperties}
                 </p>
                 <div className="space-y-2">
                   {linkedPropertyIds.length > 0 && (

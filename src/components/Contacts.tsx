@@ -8,8 +8,7 @@ import {
   User,
   Mail,
   Phone,
-  ChevronDown,
-  X,
+  Search,
 } from 'lucide-react';
 import { subscribeToContacts, deleteContact, subscribeToPropertyLinksByContact } from '../services/contactsService';
 import { getPropertyTitles } from '../services/propertyService';
@@ -47,6 +46,8 @@ export default function Contacts({
     tenant: t.contactRole.tenant,
     owner: t.contactRole.owner,
     investor: t.contactRole.investor,
+    facility_manager: t.contactRole.facility_manager,
+    facility_service: t.contactRole.facility_service,
   };
 
   const STATUS_LABELS: Record<LeadStatus, string> = {
@@ -120,8 +121,8 @@ export default function Contacts({
     try {
       await deleteContact(contact.id);
       setDeleteConfirm(null);
-    } catch (e) {
-      console.error(e);
+    } catch {
+      // deletion failed silently — contact remains
     } finally {
       setDeleting(false);
     }
@@ -129,45 +130,55 @@ export default function Contacts({
 
   return (
     <div className="h-full flex flex-col bg-app-light dark:bg-app-dark relative">
-      <div className="p-6 border-b border-gray-200 dark:border-zinc-800 flex items-center justify-between gap-4 bg-app-light/90 dark:bg-app-dark/50 backdrop-blur-md sticky top-0 z-10">
-        <div className="flex-1 min-w-0">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight truncate">
+      <div className="px-6 pt-5 pb-4 border-b border-gray-200 dark:border-zinc-800 bg-app-light/90 dark:bg-app-dark/50 backdrop-blur-md sticky top-0 z-10 space-y-3">
+        <div className="flex items-center justify-between gap-4">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
             {t.nav.contacts}
           </h2>
-        </div>
-        <div className="flex items-center justify-center gap-2 bg-gray-100 dark:bg-zinc-900 rounded-lg p-1 border border-gray-300 dark:border-zinc-800 shrink-0">
-          <button
-            onClick={() => setCategoryFilter('')}
-            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
-              categoryFilter === ''
-                ? 'bg-accent text-white dark:text-black border border-accent'
-                : 'text-gray-600 dark:text-zinc-500 hover:text-gray-900 dark:hover:text-white border border-transparent'
-            }`}
-          >
-            {t.propertyFilter.all}
-          </button>
-          {(Object.keys(CATEGORY_LABELS) as ContactCategory[]).map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setCategoryFilter(cat)}
-              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                categoryFilter === cat
-                  ? 'bg-accent text-white dark:text-black border border-accent'
-                  : 'text-gray-600 dark:text-zinc-500 hover:text-gray-900 dark:hover:text-white border border-transparent'
-              }`}
-            >
-              {CATEGORY_LABELS[cat]}
-            </button>
-          ))}
-        </div>
-        <div className="flex-1 flex justify-end min-w-0">
           <button
             onClick={() => setPanelContact('new')}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold btn-outline-accent [&_svg]:text-current"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold btn-outline-accent [&_svg]:text-current shrink-0"
           >
             <Plus size={16} />
             {t.contact.newContact}
           </button>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="relative flex-1 max-w-xs">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-zinc-500 pointer-events-none" />
+            <input
+              type="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder={t.common.search ?? 'Search…'}
+              className="w-full pl-8 pr-3 py-2 text-sm bg-gray-100 dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded-lg text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-zinc-600 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-colors"
+            />
+          </div>
+          <div className="flex items-center gap-1.5 bg-gray-100 dark:bg-zinc-900 rounded-lg p-1 border border-gray-300 dark:border-zinc-800">
+            <button
+              onClick={() => setCategoryFilter('')}
+              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                categoryFilter === ''
+                  ? 'bg-accent text-white dark:text-black border border-accent'
+                  : 'text-gray-600 dark:text-zinc-500 hover:text-gray-900 dark:hover:text-white border border-transparent'
+              }`}
+            >
+              {t.propertyFilter.all}
+            </button>
+            {(Object.keys(CATEGORY_LABELS) as ContactCategory[]).map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setCategoryFilter(cat)}
+                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                  categoryFilter === cat
+                    ? 'bg-accent text-white dark:text-black border border-accent'
+                    : 'text-gray-600 dark:text-zinc-500 hover:text-gray-900 dark:hover:text-white border border-transparent'
+                }`}
+              >
+                {CATEGORY_LABELS[cat]}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -178,9 +189,7 @@ export default function Contacts({
           </div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
-            <div className="w-16 h-16 rounded-full bg-gray-200 dark:bg-zinc-900 flex items-center justify-center mb-4">
-              <User size={28} className="text-gray-500 dark:text-zinc-500" />
-            </div>
+            <User size={20} className="text-gray-400 dark:text-zinc-600 mb-3" />
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">{t.contact.noContactsYet}</h3>
             <p className="text-sm text-gray-600 dark:text-zinc-500 mb-4 max-w-sm">
               {search || categoryFilter ? t.contact.noContacts : t.contact.noContactsHint}

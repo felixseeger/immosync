@@ -1,31 +1,28 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { DragDropContext, Droppable, DropResult } from '@hello-pangea/dnd';
-import { CheckSquare, Loader2, Plus, Activity } from 'lucide-react';
+import { Loader2, Plus } from 'lucide-react';
 import { getProperties } from '../services/propertyService';
 import {
   subscribeToDealsSimple,
   updateDealStageAndLog,
   DEAL_STAGES,
 } from '../services/dealsService';
-import type { Deal, DealType } from '../types';
-import type { Contact } from '../types';
-import type { Property } from '../types';
+import type { Deal, DealType, Contact, Property } from '../types';
 import { subscribeToContacts } from '../services/contactsService';
 import DealCard from './DealCard';
 import DealDetailSlideOver from './DealDetailSlideOver';
 import AddDealPanel from './AddDealPanel';
-import ActivityStream from './ActivityStream';
 import { sfx } from '../utils/sfx';
 import { useLanguage } from '../contexts/LanguageContext';
 
-const STAGE_COLORS: Record<string, { borderLeft: string; headerBg: string; headerText: string; columnBg: string }> = {
-  lead: { borderLeft: 'border-l-4 border-l-blue-500', headerBg: 'bg-blue-500/25 dark:bg-blue-500/30', headerText: 'text-blue-800 dark:text-blue-200 font-bold', columnBg: 'bg-blue-500/5 dark:bg-blue-500/10' },
-  viewing: { borderLeft: 'border-l-4 border-l-violet-500', headerBg: 'bg-violet-500/25 dark:bg-violet-500/30', headerText: 'text-violet-800 dark:text-violet-200 font-bold', columnBg: 'bg-violet-500/5 dark:bg-violet-500/10' },
-  credit_check: { borderLeft: 'border-l-4 border-l-amber-500', headerBg: 'bg-amber-500/25 dark:bg-amber-500/30', headerText: 'text-amber-800 dark:text-amber-200 font-bold', columnBg: 'bg-amber-500/5 dark:bg-amber-500/10' },
-  negotiation: { borderLeft: 'border-l-4 border-l-orange-500', headerBg: 'bg-orange-500/25 dark:bg-orange-500/30', headerText: 'text-orange-800 dark:text-orange-200 font-bold', columnBg: 'bg-orange-500/5 dark:bg-orange-500/10' },
-  maintenance: { borderLeft: 'border-l-4 border-l-yellow-500', headerBg: 'bg-yellow-500/25 dark:bg-yellow-500/30', headerText: 'text-yellow-800 dark:text-yellow-200 font-bold', columnBg: 'bg-yellow-500/5 dark:bg-yellow-500/10' },
-  notary_contract: { borderLeft: 'border-l-4 border-l-teal-500', headerBg: 'bg-teal-500/25 dark:bg-teal-500/30', headerText: 'text-teal-800 dark:text-teal-200 font-bold', columnBg: 'bg-teal-500/5 dark:bg-teal-500/10' },
-  closed: { borderLeft: 'border-l-4 border-l-emerald-500', headerBg: 'bg-emerald-500/25 dark:bg-emerald-500/30', headerText: 'text-emerald-800 dark:text-emerald-200 font-bold', columnBg: 'bg-emerald-500/5 dark:bg-emerald-500/10' },
+const STAGE_COLORS: Record<string, { borderLeft: string; headerBg: string; headerText: string }> = {
+  lead: { borderLeft: 'border-l-4 border-l-blue-500', headerBg: 'bg-blue-500/25 dark:bg-blue-500/30', headerText: 'text-blue-800 dark:text-blue-200 font-bold' },
+  viewing: { borderLeft: 'border-l-4 border-l-violet-500', headerBg: 'bg-violet-500/25 dark:bg-violet-500/30', headerText: 'text-violet-800 dark:text-violet-200 font-bold' },
+  credit_check: { borderLeft: 'border-l-4 border-l-amber-500', headerBg: 'bg-amber-500/25 dark:bg-amber-500/30', headerText: 'text-amber-800 dark:text-amber-200 font-bold' },
+  negotiation: { borderLeft: 'border-l-4 border-l-orange-500', headerBg: 'bg-orange-500/25 dark:bg-orange-500/30', headerText: 'text-orange-800 dark:text-orange-200 font-bold' },
+  maintenance: { borderLeft: 'border-l-4 border-l-yellow-500', headerBg: 'bg-yellow-500/25 dark:bg-yellow-500/30', headerText: 'text-yellow-800 dark:text-yellow-200 font-bold' },
+  notary_contract: { borderLeft: 'border-l-4 border-l-teal-500', headerBg: 'bg-teal-500/25 dark:bg-teal-500/30', headerText: 'text-teal-800 dark:text-teal-200 font-bold' },
+  closed: { borderLeft: 'border-l-4 border-l-emerald-500', headerBg: 'bg-emerald-500/25 dark:bg-emerald-500/30', headerText: 'text-emerald-800 dark:text-emerald-200 font-bold' },
 };
 
 interface DealsProps {
@@ -127,8 +124,7 @@ export default function Deals({
     <div className="h-full flex flex-col bg-app-light dark:bg-app-dark">
       <div className="p-6 border-b border-gray-200 dark:border-zinc-800 grid grid-cols-3 items-center bg-app-light/90 dark:bg-app-dark/50 backdrop-blur-md sticky top-0 z-10">
         <div className="flex items-center gap-4">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight flex items-center gap-2">
-            <CheckSquare size={28} className="text-accent" />
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
             {t.nav.deals}
           </h2>
         </div>
@@ -161,16 +157,15 @@ export default function Deals({
         </div>
       </div>
 
-      <div className="flex-1 min-h-0 flex flex-col">
-        <div className="flex-1 min-h-0 overflow-hidden p-6 flex flex-col gap-4">
-          <DragDropContext onDragEnd={handleDragEnd}>
+      <div className="flex-1 min-h-0 overflow-hidden p-6">
+        <DragDropContext onDragEnd={handleDragEnd}>
             <div className="flex gap-4 min-w-max h-full">
               {DEAL_STAGES.filter((s) => s.id !== 'lead' && s.id !== 'closed').map((stage) => {
-                const colors = STAGE_COLORS[stage.id] ?? { borderLeft: '', headerBg: '', headerText: 'text-gray-900 dark:text-white', columnBg: '' };
+                const colors = STAGE_COLORS[stage.id] ?? { borderLeft: '', headerBg: '', headerText: 'text-gray-900 dark:text-white' };
                 return (
                   <div
                     key={stage.id}
-                    className={`w-72 shrink-0 flex flex-col rounded-xl border-2 border-gray-200 dark:border-zinc-700 overflow-hidden ${colors.borderLeft} ${colors.columnBg || 'bg-gray-50/50 dark:bg-zinc-900/50'}`}
+                    className={`w-72 shrink-0 flex flex-col rounded-xl border-2 border-gray-200 dark:border-zinc-700 overflow-hidden bg-gray-50/50 dark:bg-zinc-900/50 ${colors.borderLeft}`}
                   >
                     <div className={`p-3 border-b-2 border-gray-200 dark:border-zinc-700 flex items-center justify-between ${colors.headerBg}`}>
                       <h3 className={`text-sm ${colors.headerText}`}>{t.dealStage?.[stage.id] ?? stage.label}</h3>
@@ -206,19 +201,7 @@ export default function Deals({
                 );
               })}
             </div>
-          </DragDropContext>
-        </div>
-
-        {/* Recent Activity - bottom section */}
-        <div className="shrink-0 border-t border-gray-200/50 dark:border-white/10 glass">
-          <div className="px-6 py-3 border-b border-gray-200 dark:border-zinc-800 flex items-center gap-2">
-            <Activity size={18} className="text-accent" />
-            <h3 className="font-bold text-gray-900 dark:text-white text-sm">{t.dealsPage.recentActivity}</h3>
-          </div>
-          <div className="min-h-0 overflow-hidden px-6 py-3">
-            <ActivityStream limit={1} />
-          </div>
-        </div>
+        </DragDropContext>
       </div>
 
       <DealDetailSlideOver

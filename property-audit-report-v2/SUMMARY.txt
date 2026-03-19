@@ -1,0 +1,20 @@
+Property Section Audit Report
+==============================
+Generated: 2026-03-18T22:35:25.521Z
+
+Summary:
+--------
+✓ DE: Navigation failed
+✓ EN: Navigation failed
+✓ FR: Navigation failed
+✓ JA: Navigation failed
+✓ ZH: Navigation failed
+
+Screenshots Generated:
+  - de-01-dashboard.png
+  - en-01-dashboard.png
+  - fr-01-dashboard.png
+  - ja-01-dashboard.png
+  - zh-01-dashboard.png
+
+See audit-report.json for detailed results.

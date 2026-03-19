@@ -59,6 +59,7 @@ export async function createContact(data: ContactCreateInput): Promise<string> {
     type: 'lead',
     action: 'New contact',
     details: detail,
+    actionKey: 'newContact',
   });
   return ref.id;
 }
@@ -96,6 +97,32 @@ export async function getLinkedContactIdsForProperty(propertyId: string): Promis
   );
   const snapshot = await getDocs(q);
   return snapshot.docs.map((d) => d.data().contactId as string);
+}
+
+/** Batch: returns propertyId -> contactId[] for many properties (Firestore 'in' limit 30). */
+export async function getLinkedContactIdsForProperties(
+  propertyIds: string[]
+): Promise<Record<string, string[]>> {
+  const result: Record<string, string[]> = {};
+  propertyIds.forEach((id) => (result[id] = []));
+  if (propertyIds.length === 0) return result;
+  const CHUNK = 30;
+  for (let i = 0; i < propertyIds.length; i += CHUNK) {
+    const chunk = propertyIds.slice(i, i + CHUNK);
+    const q = query(
+      collection(db, PROPERTY_CONTACTS_COLLECTION),
+      where('propertyId', 'in', chunk)
+    );
+    const snapshot = await getDocs(q);
+    snapshot.docs.forEach((d) => {
+      const data = d.data();
+      const pid = data.propertyId as string;
+      const cid = data.contactId as string;
+      if (!result[pid]) result[pid] = [];
+      result[pid].push(cid);
+    });
+  }
+  return result;
 }
 
 export async function getLinkedPropertyIdsForContact(contactId: string): Promise<string[]> {

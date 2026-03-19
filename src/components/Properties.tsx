@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Property } from '../types';
+import { Property, Contact } from '../types';
 import { getProperties, seedProperties } from '../services/propertyService';
+import { getContacts, getLinkedContactIdsForProperties } from '../services/contactsService';
 import PropertyGrid from './PropertyGrid';
 import PropertyList from './PropertyList';
 import PropertyMap from './PropertyMap';
@@ -28,6 +29,7 @@ export default function Properties({
 }: PropertiesProps = {}) {
   const { t } = useLanguage();
   const [properties, setProperties] = useState<Property[]>([]);
+  const [linkedContactsByPropertyId, setLinkedContactsByPropertyId] = useState<Record<string, Contact[]>>({});
   const [loading, setLoading] = useState(true);
   const [seeding, setSeeding] = useState(false);
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
@@ -38,13 +40,23 @@ export default function Properties({
   const showAddPanel = isControlled ? controlledShowAddPanel : internalShowAddPanel;
   const setShowAddPanel = isControlled ? onAddPanelChange! : setInternalShowAddPanel;
 
-  const fetchProperties = async () => {
+  const fetchProperties = async (): Promise<Property[]> => {
     try {
       setLoading(true);
-      const data = await getProperties();
+      const [data, contacts] = await Promise.all([getProperties(), getContacts()]);
       setProperties(data);
+      const ids = data.map((p) => p.id);
+      const linkedIds = await getLinkedContactIdsForProperties(ids);
+      const byProp: Record<string, Contact[]> = {};
+      ids.forEach((pid) => {
+        const cids = linkedIds[pid] || [];
+        byProp[pid] = cids.map((cid) => contacts.find((c) => c.id === cid)).filter(Boolean) as Contact[];
+      });
+      setLinkedContactsByPropertyId(byProp);
+      return data;
     } catch (error) {
       console.error("Failed to load properties", error);
+      return [];
     } finally {
       setLoading(false);
     }
@@ -95,18 +107,30 @@ export default function Properties({
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">{t.property.properties}</h2>
         </div>
 
-        <div className="hidden lg:flex items-center gap-2 bg-gray-100 dark:bg-zinc-900 rounded-lg p-1 border border-gray-300 dark:border-zinc-800 shrink-0">
-          {['All', 'Active', 'Pending', 'Sold', 'Rented'].map((status) => (
+        <div className="hidden lg:flex items-center gap-2 bg-gray-100 dark:bg-zinc-900 rounded-lg p-1 border border-gray-300 dark:border-zinc-800 shrink-0 overflow-x-auto">
+          {['All', 'Active', 'For Sale', 'For Rent', 'Pending', 'Sold', 'Rented'].map((status) => (
             <button
               key={status}
               onClick={() => setFilter(status)}
-              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors whitespace-nowrap ${
                 filter === status
                   ? 'bg-gray-300 dark:bg-zinc-800 text-accent shadow-sm'
                   : 'text-gray-600 dark:text-zinc-500 hover:text-gray-800 dark:hover:text-zinc-300'
               }`}
             >
-              {status === 'All' ? t.propertyFilter.all : status === 'Active' ? t.propertyStatus.active : status === 'Pending' ? t.propertyStatus.pending : status === 'Rented' ? t.propertyStatus.rented : t.propertyStatus.sold}
+              {status === 'All' 
+                ? t.propertyFilter.all 
+                : status === 'Active' 
+                ? t.propertyStatus.active 
+                : status === 'For Sale' 
+                ? t.propertyStatus.forSale 
+                : status === 'For Rent' 
+                ? t.propertyStatus.forRent 
+                : status === 'Pending' 
+                ? t.propertyStatus.pending 
+                : status === 'Rented' 
+                ? t.propertyStatus.rented 
+                : t.propertyStatus.sold}
             </button>
           ))}
         </div>
@@ -193,7 +217,7 @@ export default function Properties({
           </div>
         ) : viewMode === 'list' ? (
           <div className="flex-1 overflow-y-auto p-6">
-            <PropertyList properties={filteredProperties} onSelectProperty={setSelectedProperty} />
+            <PropertyList properties={filteredProperties} linkedContactsByPropertyId={linkedContactsByPropertyId} onSelectProperty={setSelectedProperty} />
           </div>
         ) : (
           <div className="flex-1 overflow-y-auto">
@@ -210,8 +234,7 @@ export default function Properties({
               property={selectedProperty}
               onClose={() => setSelectedProperty(null)}
               onPropertyUpdated={async () => {
-                const data = await getProperties();
-                setProperties(data);
+                const data = await fetchProperties();
                 const updated = data.find((p) => p.id === selectedProperty?.id);
                 if (updated) setSelectedProperty(updated);
               }}

@@ -50,6 +50,7 @@ export async function createViewing(
     type: 'task',
     action: 'Viewing scheduled',
     details: activityDetail?.trim() || 'New viewing',
+    actionKey: 'viewingScheduled',
   });
   return ref.id;
 }

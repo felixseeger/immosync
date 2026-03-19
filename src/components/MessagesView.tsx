@@ -2,7 +2,6 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Plus,
-  MessageSquare,
   Send,
   User,
   Loader2,
@@ -47,6 +46,7 @@ export default function MessagesView({ currentUser }: MessagesViewProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [composeText, setComposeText] = useState('');
   const [sending, setSending] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
   const [showNewModal, setShowNewModal] = useState(false);
   const [newContactId, setNewContactId] = useState('');
   const [starting, setStarting] = useState(false);
@@ -100,13 +100,16 @@ export default function MessagesView({ currentUser }: MessagesViewProps) {
     const text = composeText.trim();
     if (!text || !selectedId || sending) return;
     setSending(true);
-    setComposeText('');
+    setSendError(null);
     try {
       await createMessage({
         conversationId: selectedId,
         senderId: currentUser.uid,
         body: text,
       });
+      setComposeText('');
+    } catch {
+      setSendError(t.messages.sendFailed ?? 'Failed to send message.');
     } finally {
       setSending(false);
     }
@@ -140,7 +143,7 @@ export default function MessagesView({ currentUser }: MessagesViewProps) {
           className="flex items-center gap-2 px-5 py-2.5 font-bold rounded-lg text-sm btn-outline-accent [&_svg]:text-current"
         >
           <Plus size={18} />
-          <span>{t.messages.newConversation}</span>
+          {t.messages.newConversation}
         </button>
       </div>
 
@@ -240,6 +243,9 @@ export default function MessagesView({ currentUser }: MessagesViewProps) {
                 <div ref={threadEndRef} />
               </div>
               <div className="shrink-0 p-4 border-t border-gray-200 dark:border-zinc-800">
+                {sendError && (
+                  <p className="text-xs text-red-500 dark:text-red-400 mb-2">{sendError}</p>
+                )}
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();
@@ -268,10 +274,7 @@ export default function MessagesView({ currentUser }: MessagesViewProps) {
             </>
           ) : (
             <div className="flex-1 flex items-center justify-center text-gray-500 dark:text-zinc-500">
-              <div className="text-center">
-                <MessageSquare className="mx-auto text-gray-300 dark:text-zinc-600 mb-3" size={48} />
-                <p className="text-sm">{t.messages.selectOrStart}</p>
-              </div>
+              <p className="text-sm">{t.messages.selectOrStart}</p>
             </div>
           )}
         </main>
@@ -295,11 +298,8 @@ export default function MessagesView({ currentUser }: MessagesViewProps) {
               className="glass rounded-2xl shadow-xl w-full max-w-sm overflow-hidden transition-colors duration-200"
             >
               <div className="p-4 border-b border-gray-200 dark:border-zinc-800 flex items-center justify-between transition-colors duration-200">
-                <div className="flex items-center gap-2">
-                  <span className="p-2 rounded-lg bg-accent/15 border-2 border-accent/40">
-                    <MessageSquare size={18} className="text-accent" />
-                  </span>
-                  <h3 className="text-lg font-bold text-gray-900 dark:text-white transition-colors duration-200">
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white">
                     {t.messages.newConversation}
                   </h3>
                 </div>

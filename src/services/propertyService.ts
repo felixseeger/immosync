@@ -366,6 +366,42 @@ export const seedProperties = async () => {
       features: ["Open Layout", "Conference Rooms", "Kitchenette", "Bike Storage"],
       createdAt: serverTimestamp(),
       agentId: "demo-agent-3"
+    },
+    {
+      title: "Urban Loft Apartment",
+      address: "101 Industrial Way, Berlin, BE 10115",
+      price: 2200,
+      status: 'Rented',
+      marketingType: 'Rent',
+      type: 'Residential',
+      rooms: 3,
+      bedrooms: 1,
+      bathrooms: 1,
+      sqft: 1100,
+      description: "Modern loft in a converted factory building.",
+      mainImage: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=1600&q=80",
+      images: ["https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=800&q=80"],
+      features: ["High Ceilings", "Exposed Brick"],
+      createdAt: serverTimestamp(),
+      agentId: "demo-agent-1"
+    },
+    {
+      title: "Family Suburban House",
+      address: "22 Maple St, Munich, BY 80331",
+      price: 3500,
+      status: 'Rented',
+      marketingType: 'Rent',
+      type: 'Residential',
+      rooms: 6,
+      bedrooms: 4,
+      bathrooms: 2.5,
+      sqft: 2200,
+      description: "Spacious house with large backyard.",
+      mainImage: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1600&q=80",
+      images: ["https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80"],
+      features: ["Garden", "Garage"],
+      createdAt: serverTimestamp(),
+      agentId: "demo-agent-1"
     }
   ];
 

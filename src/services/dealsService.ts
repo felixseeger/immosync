@@ -48,6 +48,7 @@ export async function createDeal(data: DealCreateInput): Promise<string> {
     type: 'deal',
     action: 'Deal created',
     details: `Value: ${valueStr}`,
+    actionKey: 'dealCreated',
   });
   return ref.id;
 }
@@ -97,6 +98,7 @@ export async function updateDealStageAndLog(
     type: 'deal',
     action: isReorderOnly ? 'Deal reordered' : 'Stage updated',
     details,
+    actionKey: isReorderOnly ? 'dealReordered' : 'stageUpdated',
   });
 }
 

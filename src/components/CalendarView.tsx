@@ -2,7 +2,6 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Plus,
-  Calendar as CalendarIcon,
   ChevronLeft,
   ChevronRight,
   Clock,
@@ -143,18 +142,19 @@ export default function CalendarView() {
       const detail = [property?.title || property?.address, contact?.name || contact?.email]
         .filter(Boolean)
         .join(' · ');
-      const action =
+      const actionKey =
         status === 'completed'
-          ? t.viewing.activityMarkedCompleted
+          ? 'viewingMarkedCompleted'
           : status === 'cancelled'
-            ? t.viewing.activityCancelled
+            ? 'viewingCancelled'
             : status === 'no_show'
-              ? t.viewing.activityNoShow
-              : t.viewing.activityUpdated;
+              ? 'viewingNoShow'
+              : 'viewingUpdated';
       await logActivity({
         type: 'task',
-        action,
+        action: t.viewing.activityUpdated,
         details: detail || t.viewing.viewing,
+        actionKey,
       });
       setDetailViewing(null);
     } catch {
@@ -355,10 +355,7 @@ export default function CalendarView() {
             </>
           ) : (
             <div className="flex-1 flex items-center justify-center p-6 text-center">
-              <div>
-                <CalendarIcon className="mx-auto text-gray-300 dark:text-zinc-600 mb-2" size={32} />
-                <p className="text-sm text-gray-500 dark:text-zinc-500">{t.viewing.clickDayToSeeViewings}</p>
-              </div>
+              <p className="text-sm text-gray-500 dark:text-zinc-500">{t.viewing.clickDayToSeeViewings}</p>
             </div>
           )}
         </div>
@@ -382,10 +379,7 @@ export default function CalendarView() {
               className="bg-app-light dark:bg-app-dark border border-gray-200 dark:border-zinc-800 rounded-xl shadow-xl w-full max-w-sm overflow-hidden"
             >
               <div className="p-4 border-b border-gray-200 dark:border-zinc-800 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="p-2 rounded-lg bg-accent/20 border border-accent/40" aria-hidden>
-                    <CalendarIcon size={18} className="text-accent" />
-                  </span>
+                <div>
                   <h3 className="font-semibold text-gray-900 dark:text-white">{detailViewing ? getEventTypeLabel(detailViewing) : t.viewing.event}</h3>
                 </div>
                 <div className="flex items-center gap-1">
@@ -457,8 +451,8 @@ export default function CalendarView() {
                       try {
                         await deleteViewing(detailViewing.id);
                         setDetailViewing(null);
-                      } catch (err) {
-                        console.error('Failed to delete viewing', err);
+                      } catch {
+                        // deletion failed silently — user can retry
                       }
                     }}
                     className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium bg-red-500/20 text-red-600 dark:text-red-400 hover:bg-red-500/30 border border-red-500/30"

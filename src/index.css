@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
 @import "flag-icons/css/flag-icons.min.css";
 @import "tailwindcss";
 
@@ -32,6 +32,14 @@
 
 .technical-label {
   @apply font-mono text-[10px] uppercase tracking-wider;
+}
+
+.logo-type {
+  font-family: 'Bebas Neue', sans-serif;
+  letter-spacing: 0.02em;
+  display: inline-block;
+  transform: scale(1.2);
+  transform-origin: center;
 }
 
 /* Outline primary buttons: same purple (light) / yellow (dark) as Aside nav links */

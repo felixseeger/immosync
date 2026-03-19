@@ -1,0 +1,57 @@
+{
+  "timestamp": "2026-03-18T22:20:19.797Z",
+  "languages": [
+    "de",
+    "en",
+    "fr",
+    "ja",
+    "zh"
+  ],
+  "results": {
+    "de": {
+      "language": "de",
+      "sections": {
+        "dashboard": {
+          "untranslated": [],
+          "suspiciousPatterns": []
+        }
+      }
+    },
+    "en": {
+      "language": "en",
+      "sections": {
+        "dashboard": {
+          "untranslated": [],
+          "suspiciousPatterns": []
+        }
+      }
+    },
+    "fr": {
+      "language": "fr",
+      "sections": {
+        "dashboard": {
+          "untranslated": [],
+          "suspiciousPatterns": []
+        }
+      }
+    },
+    "ja": {
+      "language": "ja",
+      "sections": {
+        "dashboard": {
+          "untranslated": [],
+          "suspiciousPatterns": []
+        }
+      }
+    },
+    "zh": {
+      "language": "zh",
+      "sections": {
+        "dashboard": {
+          "untranslated": [],
+          "suspiciousPatterns": []
+        }
+      }
+    }
+  }
+}

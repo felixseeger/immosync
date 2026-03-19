@@ -6,7 +6,6 @@ import {
   ChevronRight,
   ChevronLeft,
   Check,
-  MapPin,
   Loader2,
   Star,
   AlertCircle,
@@ -14,13 +13,17 @@ import {
   UploadCloud,
   Trash2,
   Video,
+  Users,
+  Link2,
+  UserMinus,
 } from 'lucide-react';
 import { createProperty, updatePropertyImages, updatePropertyVideos, updateProperty, deletePropertyImage, deletePropertyVideo } from '../services/propertyService';
+import { getContacts, getContactById, getLinkedContactIdsForProperty, linkContactToProperty, unlinkContactFromProperty } from '../services/contactsService';
 import { sfx } from '../utils/sfx';
 import { uploadPropertyImage, uploadPropertyVideo } from '../services/storageService';
 import { auth } from '../firebase';
 import { useLanguage } from '../contexts/LanguageContext';
-import type { MarketingType, HeatingType, Property } from '../types';
+import type { MarketingType, HeatingType, Property, Contact } from '../types';
 
 /* ─── Constants ────────────────────────────────────────────────────────────── */
 
@@ -56,7 +59,7 @@ interface FormState {
   description: string;
   marketingType: 'Sale' | 'Rent';
   propertyType: string;
-  status: 'Active' | 'Pending' | 'Sold' | 'Rented';
+  status: 'Active' | 'Pending' | 'Sold' | 'Rented' | 'For Sale' | 'For Rent';
   moveInDate: string;
   moveOutDate: string;
   purchaseDate: string;
@@ -78,8 +81,6 @@ interface FormState {
   garage: string;
   objectDescription: string;
   featuresInput: string;
-  featuresInput2: string;
-  featuresInput3: string;
   locationDescription: string;
   price: string;
   additionalCosts: string;
@@ -113,8 +114,6 @@ const DEFAULTS: FormState = {
   garage: '',
   objectDescription: '',
   featuresInput: '',
-  featuresInput2: '',
-  featuresInput3: '',
   locationDescription: '',
   price: '',
   additionalCosts: '',
@@ -182,7 +181,13 @@ function Step1({
               type="button"
               onClick={() => {
                 onSelect?.();
-                setForm((f) => ({ ...f, marketingType: mode }));
+                setForm((f) => {
+                  let newStatus = f.status;
+                  if (f.status === 'Active' || f.status === 'For Sale' || f.status === 'For Rent') {
+                    newStatus = mode === 'Sale' ? 'For Sale' : 'For Rent';
+                  }
+                  return { ...f, marketingType: mode, status: newStatus };
+                });
               }}
               className={`flex-1 py-2.5 rounded-md text-sm font-bold transition-all border-2 ${
                 form.marketingType === mode
@@ -222,7 +227,7 @@ function Step1({
       <div>
         <Label>{t.addProperty.statusLabel}</Label>
         <div className="flex flex-wrap bg-white dark:bg-zinc-800 rounded-lg p-1 border border-gray-300 dark:border-zinc-700 gap-1">
-          {(['Active', 'Pending', 'Sold', 'Rented'] as const).map((s) => (
+          {(['Active', 'For Sale', 'For Rent', 'Pending', 'Sold', 'Rented'] as const).map((s) => (
             <button
               key={s}
               type="button"
@@ -230,9 +235,9 @@ function Step1({
                 onSelect?.();
                 setForm((f) => ({ ...f, status: s }));
               }}
-              className={`flex-1 min-w-0 py-2 rounded-md text-xs font-bold transition-all ring-2 ${
+              className={`flex-1 min-w-[80px] py-2 rounded-md text-[10px] font-bold transition-all ring-2 ${
                 form.status === s
-                  ? s === 'Active'
+                  ? (s === 'Active' || s === 'For Sale' || s === 'For Rent')
                     ? 'ring-accent bg-accent/15 text-accent'
                     : s === 'Pending'
                     ? 'ring-accent bg-blue-500/90 text-white'
@@ -242,7 +247,17 @@ function Step1({
                   : 'ring-transparent text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
-              {s === 'Active' ? t.propertyStatus.active : s === 'Pending' ? t.propertyStatus.pending : s === 'Rented' ? t.propertyStatus.rented : t.propertyStatus.sold}
+              {s === 'Active' 
+                ? t.propertyStatus.active 
+                : s === 'For Sale' 
+                ? t.propertyStatus.forSale 
+                : s === 'For Rent' 
+                ? t.propertyStatus.forRent 
+                : s === 'Pending' 
+                ? t.propertyStatus.pending 
+                : s === 'Rented' 
+                ? t.propertyStatus.rented 
+                : t.propertyStatus.sold}
             </button>
           ))}
         </div>
@@ -384,12 +399,6 @@ function Step2({
           className={inputCls}
         />
       </div>
-      <div className="bg-gray-200 dark:bg-zinc-800/40 border border-gray-300 dark:border-zinc-700/50 border-dashed rounded-xl h-28 flex items-center justify-center">
-        <div className="text-center">
-          <MapPin size={20} className="mx-auto mb-1 text-gray-500 dark:text-zinc-600" />
-          <p className="text-xs text-gray-600 dark:text-zinc-600">{t.addProperty.mapPreviewHint}</p>
-        </div>
-      </div>
     </div>
   );
 }
@@ -429,26 +438,6 @@ function Step3({
               value={form.featuresInput}
               onChange={set('featuresInput')}
               placeholder={t.addProperty.featuresPlaceholder}
-              className={inputCls}
-            />
-          </div>
-          <div>
-            <Label>{t.addProperty.features2}</Label>
-            <input
-              type="text"
-              value={form.featuresInput2}
-              onChange={set('featuresInput2')}
-              placeholder={t.addProperty.features2Placeholder}
-              className={inputCls}
-            />
-          </div>
-          <div>
-            <Label>{t.addProperty.features3}</Label>
-            <input
-              type="text"
-              value={form.featuresInput3}
-              onChange={set('featuresInput3')}
-              placeholder={t.addProperty.features3Placeholder}
               className={inputCls}
             />
           </div>
@@ -850,6 +839,141 @@ function Step4({
   );
 }
 
+/* ─── Step 5 — Contacts ─────────────────────────────────────────────────────── */
+
+function Step5Contacts({
+  isEditing,
+  propertyId,
+  linkedContacts,
+  contactsToLink,
+  allContacts,
+  onLink,
+  onUnlink,
+  onAddToLink,
+  onRemoveFromLink,
+  loading,
+}: {
+  isEditing: boolean;
+  propertyId?: string;
+  linkedContacts: Contact[];
+  contactsToLink: Contact[];
+  allContacts: Contact[];
+  onLink: (contactId: string) => Promise<void>;
+  onUnlink: (contactId: string) => Promise<void>;
+  onAddToLink: (contactId: string) => void;
+  onRemoveFromLink: (contactId: string) => void;
+  loading: boolean;
+}) {
+  const { t } = useLanguage();
+  const [showPicker, setShowPicker] = useState(false);
+  const [linkingId, setLinkingId] = useState<string | null>(null);
+
+  const displayContacts = isEditing ? linkedContacts : contactsToLink;
+  const availableToAdd = allContacts.filter(
+    (c) => !displayContacts.some((d) => d.id === c.id)
+  );
+
+  const handleLink = async (contactId: string) => {
+    setLinkingId(contactId);
+    try {
+      await onLink(contactId);
+      setShowPicker(false);
+    } finally {
+      setLinkingId(null);
+    }
+  };
+
+  const handleUnlink = async (contactId: string) => {
+    setLinkingId(contactId);
+    try {
+      await onUnlink(contactId);
+    } finally {
+      setLinkingId(null);
+    }
+  };
+
+  return (
+    <div className="space-y-5">
+      <p className="text-sm text-gray-600 dark:text-zinc-400">{t.addProperty.contactsHint}</p>
+      {loading ? (
+        <div className="flex items-center gap-2 text-gray-500 dark:text-zinc-500 py-8">
+          <Loader2 size={18} className="animate-spin" />
+          <span>{t.common.loading}</span>
+        </div>
+      ) : (
+        <>
+          <div className="flex flex-wrap gap-2">
+            {displayContacts.map((c) => (
+              <div
+                key={c.id}
+                className="flex items-center gap-2 px-3 py-2 bg-gray-200 dark:bg-zinc-800 rounded-lg border border-gray-300 dark:border-zinc-700"
+              >
+                <Users size={14} className="text-gray-600 dark:text-zinc-400" />
+                <span className="text-sm font-medium text-gray-900 dark:text-white">{c.name}</span>
+                {c.company && (
+                  <span className="text-xs text-gray-500 dark:text-zinc-500">— {c.company}</span>
+                )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (isEditing && propertyId) {
+                      handleUnlink(c.id);
+                    } else {
+                      onRemoveFromLink(c.id);
+                    }
+                  }}
+                  disabled={isEditing && linkingId === c.id}
+                  className="p-1 hover:bg-gray-300 dark:hover:bg-zinc-600 rounded transition-colors text-gray-600 dark:text-zinc-400 hover:text-red-600 disabled:opacity-50"
+                  aria-label="Remove"
+                >
+                  {isEditing && linkingId === c.id ? <Loader2 size={14} className="animate-spin" /> : <UserMinus size={14} />}
+                </button>
+              </div>
+            ))}
+          </div>
+          {displayContacts.length === 0 && (
+            <p className="text-sm text-gray-500 dark:text-zinc-500 py-4">{t.addProperty.noContactsLinked}</p>
+          )}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setShowPicker(!showPicker)}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg border-2 border-dashed border-gray-300 dark:border-zinc-700 hover:border-accent text-gray-600 dark:text-zinc-400 hover:text-accent transition-colors text-sm font-medium"
+            >
+              <Link2 size={16} />
+              {t.addProperty.linkContact}
+            </button>
+            {showPicker && availableToAdd.length > 0 && (
+              <div className="absolute left-0 top-full mt-2 w-full max-h-48 overflow-y-auto bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 rounded-lg shadow-lg z-10 py-2">
+                {availableToAdd.map((c) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => {
+                      if (isEditing && propertyId) {
+                        handleLink(c.id);
+                      } else {
+                        onAddToLink(c.id);
+                        setShowPicker(false);
+                      }
+                    }}
+                    disabled={linkingId === c.id}
+                    className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-zinc-800 text-sm text-gray-900 dark:text-white flex items-center justify-between disabled:opacity-50"
+                  >
+                    <span>{c.name}</span>
+                    {c.company && <span className="text-xs text-gray-500">{c.company}</span>}
+                    {linkingId === c.id && <Loader2 size={14} className="animate-spin" />}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 /* ─── Main Component ────────────────────────────────────────── */
 
 interface AddPropertyPanelProps {
@@ -862,7 +986,7 @@ interface AddPropertyPanelProps {
 
 export default function AddPropertyPanel({ onClose, onSuccess, property, initialStep = 0 }: AddPropertyPanelProps) {
   const { t } = useLanguage();
-  const STEPS = [t.addProperty.basics, t.addProperty.address, t.addProperty.details, t.addProperty.media];
+  const STEPS = [t.addProperty.basics, t.addProperty.address, t.addProperty.details, t.addProperty.media, t.addProperty.contacts];
   const isEditing = Boolean(property);
   const stepIndex = Math.min(STEPS.length - 1, Math.max(0, initialStep));
 
@@ -892,8 +1016,6 @@ export default function AddPropertyPanel({ onClose, onSuccess, property, initial
         kitchens: property.kitchens != null ? String(property.kitchens) : '',
         garage: property.garage != null ? String(property.garage) : '',
         featuresInput: property.features?.length ? property.features.join(', ') : '',
-        featuresInput2: '',
-        featuresInput3: '',
         locationDescription: property.locationDescription ?? '',
         price: property.price != null ? String(property.price) : '',
         additionalCosts: property.additionalCosts != null ? String(property.additionalCosts) : '',
@@ -918,6 +1040,10 @@ export default function AddPropertyPanel({ onClose, onSuccess, property, initial
   const [stagedVideoFiles, setStagedVideoFiles] = useState<StagedVideoFile[]>([]);
   const [isDeletingVideo, setIsDeletingVideo] = useState(false);
   const [deletingVideoUrl, setDeletingVideoUrl] = useState<string | null>(null);
+  const [linkedContacts, setLinkedContacts] = useState<Contact[]>([]);
+  const [contactsToLink, setContactsToLink] = useState<Contact[]>([]);
+  const [allContacts, setAllContacts] = useState<Contact[]>([]);
+  const [contactsLoading, setContactsLoading] = useState(false);
 
   // Generic field setter
   const set =
@@ -977,6 +1103,27 @@ export default function AddPropertyPanel({ onClose, onSuccess, property, initial
     sfx.menuOpen();
   }, []);
 
+  useEffect(() => {
+    let cancelled = false;
+    setContactsLoading(true);
+    (async () => {
+      try {
+        const contacts = await getContacts();
+        if (cancelled) return;
+        setAllContacts(contacts);
+        if (property?.id) {
+          const ids = await getLinkedContactIdsForProperty(property.id);
+          if (cancelled) return;
+          const linked = (await Promise.all(ids.map((id) => getContactById(id)))).filter(Boolean) as Contact[];
+          setLinkedContacts(linked);
+        }
+      } finally {
+        if (!cancelled) setContactsLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [property?.id]);
+
   const handleDeleteImage = async (imageUrl: string) => {
     if (!property) return;
     setIsDeleting(true);
@@ -1018,6 +1165,7 @@ export default function AddPropertyPanel({ onClose, onSuccess, property, initial
   const canAdvance = () => {
     if (step === 0) return form.title.trim().length > 0;
     if (step === 2) return form.price.trim().length > 0;
+    if (step === 4) return true;
     return true;
   };
 
@@ -1028,24 +1176,12 @@ export default function AddPropertyPanel({ onClose, onSuccess, property, initial
     setUploadStatus(null);
 
     try {
-      console.log('=== handleSubmit started ===');
-      console.log('Mode:', isEditing ? 'EDIT' : 'CREATE');
-      console.log('Form data:', {
-        title: form.title,
-        price: form.price,
-        street: form.street,
-        city: form.city,
-        country: form.country,
-        userUid: auth.currentUser?.uid,
-      });
-      
       const addressParts = [
         [form.street, form.houseNumber].filter(Boolean).join(' '),
         [form.zip, form.city].filter(Boolean).join(' '),
         form.country,
       ].filter(Boolean);
       const address = addressParts.join(', ');
-      console.log('Constructed address:', address);
 
       const legacyTypeMap: Record<string, Property['type']> = {
         Apartment: 'Residential',
@@ -1063,16 +1199,10 @@ export default function AddPropertyPanel({ onClose, onSuccess, property, initial
 
       const descriptionTrim = form.description.trim();
       const objectDescriptionTrim = form.objectDescription.trim();
-      const parseFeatures = (s: string) =>
-        s
-          .split(/[,;\n]/)
-          .map((x) => x.trim())
-          .filter(Boolean);
-      const featuresList = [
-        ...parseFeatures(form.featuresInput ?? ''),
-        ...parseFeatures(form.featuresInput2 ?? ''),
-        ...parseFeatures(form.featuresInput3 ?? ''),
-      ];
+      const featuresList = (form.featuresInput ?? '')
+        .split(/[,;\n]/)
+        .map((x) => x.trim())
+        .filter(Boolean);
 
       const propertyData: Omit<Property, 'id' | 'createdAt'> = {
         title: form.title.trim(),
@@ -1115,20 +1245,6 @@ export default function AddPropertyPanel({ onClose, onSuccess, property, initial
         agentId: auth.currentUser?.uid ?? 'unknown',
       };
 
-      console.log('=== propertyData constructed ===');
-      console.log('Data being sent to service:', propertyData);
-      console.log('Field types check:', {
-        title: typeof propertyData.title,
-        price: typeof propertyData.price,
-        address: typeof propertyData.address,
-        agentId: typeof propertyData.agentId,
-      });
-      console.log('Validation:', {
-        titleLength: propertyData.title.length,
-        priceValue: propertyData.price,
-        addressLength: propertyData.address.length,
-      });
-
       if (isEditing && property) {
         // When editing, preserve existing images unless new ones are uploaded
         await updateProperty(property.id, propertyData);
@@ -1153,35 +1269,18 @@ export default function AddPropertyPanel({ onClose, onSuccess, property, initial
           await updatePropertyVideos(property.id, [...propertyVideos, ...videoUrls]);
         }
       } else {
-        // When creating, upload to new property
-        console.log('=== CREATE MODE ===');
-        console.log('Calling createProperty() with propertyData');
         const propertyId = await createProperty(propertyData);
-        console.log('=== createProperty returned ===');
-        console.log('Property created:', propertyId);
-        console.log('Type of propertyId:', typeof propertyId);
-        console.log('propertyId length:', propertyId?.length ?? 'null/undefined');
-        
         if (!propertyId) {
-          console.error('ERROR: propertyId is null or undefined!');
           throw new Error('Failed to create property: no ID returned');
         }
-        
         if (stagedFiles.length > 0) {
-          console.log(`Uploading ${stagedFiles.length} image(s) to property ${propertyId}...`);
           const urls: string[] = [];
           for (let i = 0; i < stagedFiles.length; i++) {
             setUploadStatus({ current: i + 1, total: stagedFiles.length });
             const url = await uploadPropertyImage(stagedFiles[i].file, propertyId, () => {});
-            console.log(`Image ${i + 1} uploaded:`, url);
             urls.push(url);
           }
-          console.log('All images uploaded, updating Firestore with URLs:', urls);
-          console.log('Calling updatePropertyImages() with propertyId:', propertyId, 'urls:', urls);
           await updatePropertyImages(propertyId, urls);
-          console.log('updatePropertyImages() completed successfully');
-        } else {
-          console.log('No images to upload for this property');
         }
         if (stagedVideoFiles.length > 0) {
           const videoUrls: string[] = [];
@@ -1192,17 +1291,14 @@ export default function AddPropertyPanel({ onClose, onSuccess, property, initial
           }
           await updatePropertyVideos(propertyId, videoUrls);
         }
+        for (const c of contactsToLink) {
+          await linkContactToProperty(propertyId, c.id);
+        }
       }
 
-      console.log('Calling onSuccess()');
       onSuccess();
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : String(err);
-      console.error('=== HANDLE SUBMIT ERROR ===');
-      console.error('Error message:', errorMsg);
-      console.error('Full error:', err);
-      console.error('Error stack:', err instanceof Error ? err.stack : 'no stack');
-      setError(`Error: ${errorMsg}`);
+      setError(err instanceof Error ? err.message : String(err));
     } finally {
       setSubmitting(false);
       setUploadStatus(null);
@@ -1232,12 +1328,7 @@ export default function AddPropertyPanel({ onClose, onSuccess, property, initial
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-gray-300 dark:border-zinc-800 shrink-0">
-          <div>
-            <h2 className="text-lg font-bold text-gray-900 dark:text-white tracking-tight">{isEditing ? t.addProperty.editProperty : t.addProperty.addProperty}</h2>
-            <p className="text-[11px] text-gray-600 dark:text-zinc-500 mt-0.5 font-mono uppercase tracking-wider">
-              {t.addProperty.stepOf.replace('{current}', String(step + 1)).replace('{total}', String(STEPS.length)).replace('{step}', STEPS[step])}
-            </p>
-          </div>
+          <h2 className="text-lg font-bold text-gray-900 dark:text-white tracking-tight">{isEditing ? t.addProperty.editProperty : t.addProperty.addProperty}</h2>
           <button
             onClick={handleClose}
             className="p-2 hover:bg-gray-200 dark:hover:bg-zinc-800 rounded-full transition-colors text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
@@ -1301,6 +1392,34 @@ export default function AddPropertyPanel({ onClose, onSuccess, property, initial
                   isDeletingVideo={isDeletingVideo}
                   deletingVideoUrl={deletingVideoUrl}
                   onDeleteVideo={handleDeleteVideo}
+                />
+              )}
+              {step === 4 && (
+                <Step5Contacts
+                  isEditing={isEditing}
+                  propertyId={property?.id}
+                  linkedContacts={linkedContacts}
+                  contactsToLink={contactsToLink}
+                  allContacts={allContacts}
+                  onLink={async (contactId) => {
+                    if (!property?.id) return;
+                    await linkContactToProperty(property.id, contactId);
+                    const c = allContacts.find((x) => x.id === contactId);
+                    if (c) setLinkedContacts((prev) => [...prev, c]);
+                  }}
+                  onUnlink={async (contactId) => {
+                    if (!property?.id) return;
+                    await unlinkContactFromProperty(property.id, contactId);
+                    setLinkedContacts((prev) => prev.filter((c) => c.id !== contactId));
+                  }}
+                  onAddToLink={(contactId) => {
+                    const c = allContacts.find((x) => x.id === contactId);
+                    if (c) setContactsToLink((prev) => [...prev, c]);
+                  }}
+                  onRemoveFromLink={(contactId) =>
+                    setContactsToLink((prev) => prev.filter((c) => c.id !== contactId))
+                  }
+                  loading={contactsLoading}
                 />
               )}
             </motion.div>

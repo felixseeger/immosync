@@ -80,6 +80,30 @@ const LANGUAGE_OPTIONS: Array<{ code: Language; flagClass: string; labelKey: 'ge
   { code: 'ja', flagClass: 'fi fi-jp', labelKey: 'japanese' },
 ];
 
+const LOGO_LETTERS = 'IMMOSYNC'.split('');
+
+const LOGO_WAVE_ANIMATION = { y: [0, 5, 0] } as const;
+const LOGO_WAVE_TRANSITION = (i: number) => ({ duration: 0.5, delay: i * 0.06, ease: [0.25, 0.1, 0.25, 1] }); // ease (easy-ease)
+
+function AnimatedLogoText({ className, collapseKey, animationKey }: { className?: string; collapseKey?: boolean; animationKey?: string | number }) {
+  const key = animationKey !== undefined ? String(animationKey) : String(collapseKey);
+  return (
+    <span key={key} className={className}>
+      {LOGO_LETTERS.map((letter, i) => (
+        <motion.span
+          key={`${letter}-${i}`}
+          className="inline-block"
+          initial={{ y: 0 }}
+          animate={LOGO_WAVE_ANIMATION}
+          transition={LOGO_WAVE_TRANSITION(i)}
+        >
+          {letter}
+        </motion.span>
+      ))}
+    </span>
+  );
+}
+
 export default function App() {
   const { t, language, setLanguage } = useLanguage();
   const [activeTab, setActiveTab] = useState('Dashboard');
@@ -90,6 +114,8 @@ export default function App() {
   const [initialSelectedViewingId, setInitialSelectedViewingId] = useState<string | null>(null);
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadingProgress, setLoadingProgress] = useState(0);
+  const [showLoadingComplete, setShowLoadingComplete] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const stored = localStorage.getItem('theme-mode');
     return stored ? stored === 'dark' : true;
@@ -131,6 +157,31 @@ export default function App() {
   }, [showLanguagePopover]);
 
   useEffect(() => {
+    if (!loading) {
+      setLoadingProgress(100);
+      setShowLoadingComplete(true);
+      const t = setTimeout(() => setShowLoadingComplete(false), 300);
+      return () => clearTimeout(t);
+    }
+  }, [loading]);
+
+  // Real progress from document.readyState (loading→interactive→complete) + auth
+  useEffect(() => {
+    const getProgressFromReadyState = () => {
+      switch (document.readyState) {
+        case 'loading': return 15;
+        case 'interactive': return 45;
+        case 'complete': return 75;
+        default: return 0;
+      }
+    };
+    setLoadingProgress(getProgressFromReadyState());
+    const onReadyStateChange = () => setLoadingProgress(getProgressFromReadyState());
+    document.addEventListener('readystatechange', onReadyStateChange);
+    return () => document.removeEventListener('readystatechange', onReadyStateChange);
+  }, []);
+
+  useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       setLoading(false);
@@ -168,14 +219,32 @@ export default function App() {
     }
   };
 
-  if (loading) {
+  if (loading || showLoadingComplete) {
+    const rotationDeg = loadingProgress * 3.6; // 0%→0°, 100%→360°
     return (
       <div className="min-h-screen bg-app-light dark:bg-app-dark flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 bg-accent rounded-lg flex items-center justify-center animate-pulse">
-            <div className="w-6 h-6 border-2 border-black rotate-45" />
-          </div>
+        <div className="flex flex-col items-center gap-4 w-full max-w-xs px-6">
+          <img
+            src="/img/logo-icon.svg"
+            alt=""
+            className="w-14 h-14 transition-transform duration-300 ease-in-out"
+            style={{ transform: `rotate(${rotationDeg}deg)` }}
+            aria-hidden
+          />
+          <AnimatedLogoText animationKey="loading" className="logo-type text-2xl text-gray-900 dark:text-white" />
           <p className="text-gray-500 dark:text-zinc-500 technical-label animate-pulse">{t.app.initializing}</p>
+          <div className="w-full">
+            <div className="flex justify-between text-xs text-gray-500 dark:text-zinc-400 mb-1">
+              <span>{t.app.loading}</span>
+              <span>{Math.round(loadingProgress)}%</span>
+            </div>
+            <div className="h-1.5 w-full bg-gray-200 dark:bg-zinc-700 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-accent rounded-full transition-all duration-300 ease-out"
+                style={{ width: `${loadingProgress}%` }}
+              />
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -241,19 +310,27 @@ export default function App() {
         <div className={`relative flex items-center gap-2 shrink-0 border-b border-gray-200 dark:border-border-dark ${(effectiveCollapsed && isMdOrLarger) ? 'p-3 md:justify-center md:flex-col md:gap-2 min-h-[72px]' : 'p-4 md:px-4 h-[72px]'} transition-all duration-200`}>
           {(effectiveCollapsed && isMdOrLarger) ? (
             <motion.span
+              key={`logo-icon-${effectiveCollapsed}`}
               className="shrink-0 hidden md:inline-flex"
-              initial={{ scale: 0.9 }}
-              animate={{ scale: [0.9, 1, 0.95] }}
-              transition={{ duration: 0.4, ease: 'easeInOut' }}
+              initial={{ rotate: 0 }}
+              animate={{ rotate: 360 }}
+              transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
               aria-hidden
             >
               <img src="/img/logo-icon.svg" alt="IMMOSYNC" className="w-8 h-8" />
             </motion.span>
           ) : (
             <>
-              <img src="/img/logo-icon.svg" alt="IMMOSYNC" className="w-8 h-8 shrink-0" />
-              <img src="/img/logo-type.svg" alt="IMMOSYNC" className="h-[20px] shrink-0 hidden sm:block dark:sm:hidden" />
-              <img src="/img/logo-type-white.svg" alt="IMMOSYNC" className="h-[20px] shrink-0 hidden dark:sm:block" />
+              <motion.span
+                key={`logo-icon-${effectiveCollapsed}`}
+                className="shrink-0 inline-flex"
+                initial={{ rotate: 0 }}
+                animate={{ rotate: 360 }}
+                transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
+              >
+                <img src="/img/logo-icon.svg" alt="IMMOSYNC" className="w-8 h-8" />
+              </motion.span>
+              <AnimatedLogoText collapseKey={effectiveCollapsed} className="logo-type text-xl shrink-0 hidden sm:block pl-[10px] text-gray-900 dark:text-white" />
             </>
           )}
           {/* Mobile: close button */}
@@ -429,22 +506,22 @@ export default function App() {
           {/* Mobile: logo between burger and search */}
           <div className="md:hidden flex items-center gap-2 shrink-0">
             <img src="/img/logo-icon.svg" alt="IMMOSYNC" className="w-7 h-7 shrink-0" />
-            <img src="/img/logo-type.svg" alt="IMMOSYNC" className="h-[16px] shrink-0 dark:hidden" />
-            <img src="/img/logo-type-white.svg" alt="IMMOSYNC" className="h-[16px] shrink-0 hidden dark:block" />
+            <span className="logo-type text-base shrink-0 text-gray-900 dark:text-white">IMMOSYNC</span>
           </div>
           {/* When aside collapsed (desktop): logo text + expand toggle in header */}
-          {effectiveCollapsed && isSidebarExpandable && (
+          {effectiveCollapsed && isMdOrLarger && (
             <div className="hidden md:flex items-center gap-2 shrink-0">
-              <img src="/img/logo-type.svg" alt="IMMOSYNC" className="h-[20px] shrink-0 dark:hidden" />
-              <img src="/img/logo-type-white.svg" alt="IMMOSYNC" className="h-[20px] shrink-0 hidden dark:block" />
-              <button
-                type="button"
-                onClick={() => setSidebarCollapsed(false)}
-                className="p-2 rounded-lg border-2 border-transparent text-gray-500 dark:text-zinc-400 hover:border-gray-400 dark:hover:border-zinc-500 hover:text-gray-900 dark:hover:text-white transition-colors"
-                aria-label={t.app.expandSidebar}
-              >
-                <ChevronRight size={20} />
-              </button>
+              <AnimatedLogoText collapseKey={effectiveCollapsed} className="logo-type text-xl shrink-0 text-gray-900 dark:text-white" />
+              {isSidebarExpandable && (
+                <button
+                  type="button"
+                  onClick={() => setSidebarCollapsed(false)}
+                  className="p-2 rounded-lg border-2 border-transparent text-gray-500 dark:text-zinc-400 hover:border-gray-400 dark:hover:border-zinc-500 hover:text-gray-900 dark:hover:text-white transition-colors"
+                  aria-label={t.app.expandSidebar}
+                >
+                  <ChevronRight size={20} />
+                </button>
+              )}
             </div>
           )}
           <GlobalSearchBar

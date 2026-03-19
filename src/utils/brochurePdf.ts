@@ -70,12 +70,15 @@ function blobToDataUrl(blob: Blob): Promise<string | null> {
 /** Fetch a URL and return as data URL. Returns null on failure. */
 async function fetchAsDataUrl(url: string): Promise<string | null> {
   try {
+    console.log('[PDF] Fetching URL:', url.slice(0, 80) + '...');
     const res = await fetch(url);
     if (!res.ok) {
       console.warn('[PDF] fetch failed:', res.status, url.slice(0, 120));
       return null;
     }
-    return blobToDataUrl(await res.blob());
+    const blob = await res.blob();
+    console.log('[PDF] Fetched blob size:', blob.size);
+    return blobToDataUrl(blob);
   } catch (e) {
     console.warn('[PDF] fetch error:', url.slice(0, 120), e);
     return null;
@@ -87,11 +90,13 @@ async function loadImageViaFirebaseStorage(url: string): Promise<string | null> 
   const path = getStoragePathFromDownloadUrl(url);
   if (!path) return null;
 
+  console.log('[PDF] Detected Firebase path:', path);
   try {
     const fileRef = ref(storage, path);
 
     // Strategy A: get fresh download URL (handles expired tokens)
     try {
+      console.log('[PDF] Getting fresh download URL for:', path);
       const freshUrl = await getDownloadURL(fileRef);
       const result = await fetchAsDataUrl(freshUrl);
       if (result) return result;
@@ -101,7 +106,9 @@ async function loadImageViaFirebaseStorage(url: string): Promise<string | null> 
 
     // Strategy B: getBlob via Firebase SDK
     try {
+      console.log('[PDF] Falling back to getBlob for:', path);
       const blob = await getBlob(fileRef);
+      console.log('[PDF] getBlob success, size:', blob.size);
       const result = await blobToDataUrl(blob);
       if (result) return result;
     } catch (e) {
@@ -151,56 +158,84 @@ function downscaleToJpeg(dataUrl: string, maxWidth: number): Promise<string | nu
 export async function imageUrlToBase64(url: string, maxWidth = 800): Promise<string | null> {
   if (!url || typeof url !== 'string') return null;
 
-  const timeout = (ms: number) => new Promise<null>((resolve) => setTimeout(() => resolve(null), ms));
+  // 1) Already a data URL
+  if (url.startsWith('data:image/')) {
+    return downscaleToJpeg(url, maxWidth);
+  }
 
-  const fetchImage = async (): Promise<string | null> => {
-    // Already a data URL
-    if (url.startsWith('data:image/')) {
-      return downscaleToJpeg(url, maxWidth);
-    }
+  const timeoutMs = 20000;
+  
+  const tryLoadImageElement = async (targetUrl: string, useCors = true): Promise<string | null> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      if (useCors) img.crossOrigin = 'anonymous';
+      
+      const timer = setTimeout(() => {
+        img.src = '';
+        resolve(null);
+      }, timeoutMs);
 
-    let sourceDataUrl: string | null = null;
-
-    // 1) Direct fetch (cheapest – Firebase download URLs support CORS)
-    sourceDataUrl = await fetchAsDataUrl(url);
-
-    // 2) Firebase SDK (fresh URL / getBlob)
-    if (!sourceDataUrl) {
-      sourceDataUrl = await loadImageViaFirebaseStorage(url);
-    }
-
-    // 3) Direct Image load fallback (works for some CORS-enabled CDNs if fetch is picky)
-    if (!sourceDataUrl) {
-      sourceDataUrl = await new Promise<string | null>((resolve) => {
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
-        img.onload = () => {
+      img.onload = () => {
+        clearTimeout(timer);
+        try {
           const canvas = document.createElement('canvas');
           canvas.width = img.width;
           canvas.height = img.height;
           const ctx = canvas.getContext('2d');
           if (!ctx) { resolve(null); return; }
-          try {
-            ctx.drawImage(img, 0, 0);
-            resolve(canvas.toDataURL('image/jpeg', 0.9));
-          } catch {
-            resolve(null);
-          }
-        };
-        img.onerror = () => resolve(null);
-        img.src = url;
-      });
-    }
-
-    if (!sourceDataUrl) {
-      console.warn('[PDF] All strategies failed:', url.slice(0, 120));
-      return null;
-    }
-
-    return downscaleToJpeg(sourceDataUrl, maxWidth);
+          ctx.drawImage(img, 0, 0);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+          resolve(dataUrl);
+        } catch (e) {
+          resolve(null);
+        }
+      };
+      
+      img.onerror = () => {
+        clearTimeout(timer);
+        resolve(null);
+      };
+      
+      img.src = targetUrl;
+    });
   };
 
-  return Promise.race([fetchImage(), timeout(10000)]);
+  // Strategy 1: Firebase SDK getBlob (Primary for Firebase)
+  if (url.includes('firebasestorage') || url.includes('firebase.storage')) {
+    console.log('[PDF] Strategy: Firebase SDK getBlob for', url.slice(0, 50));
+    const path = getStoragePathFromDownloadUrl(url);
+    if (path) {
+      try {
+        const fileRef = ref(storage, path);
+        const blob = await getBlob(fileRef);
+        const dataUrl = await blobToDataUrl(blob);
+        if (dataUrl) return downscaleToJpeg(dataUrl, maxWidth);
+      } catch (e) {
+        console.warn('[PDF] Firebase SDK failed, falling back to CORS/Proxy', e);
+      }
+    }
+  }
+
+  // Strategy 2: Direct CORS load
+  let result = await tryLoadImageElement(url, true);
+  if (result) return downscaleToJpeg(result, maxWidth);
+  
+  // Strategy 3: Proxy fallback
+  const proxyUrl = `https://images.weserv.nl/?url=${encodeURIComponent(url)}&output=jpg&q=80&w=${maxWidth * 2}`;
+  console.log('[PDF] Strategy: Proxy fallback for', url.slice(0, 50));
+  result = await tryLoadImageElement(proxyUrl, false); 
+  
+  if (!result) {
+    const proxyUrl2 = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+    result = await tryLoadImageElement(proxyUrl2, false);
+  }
+
+  if (!result) {
+    console.warn('[PDF] All strategies failed for:', url.slice(0, 100));
+    return null;
+  }
+
+  return downscaleToJpeg(result, maxWidth);
 }
 
 /** Return jsPDF image format from a data URL. */

@@ -51,7 +51,7 @@ export default function LandingPassword({ onUnlock }: LandingPasswordProps) {
         <div className="flex justify-center mb-6">
           <div className="flex items-center gap-3">
             <img src="/img/logo-icon.svg" alt="IMMOSYNC" className="w-10 h-10" />
-            <img src="/img/logo-type-white.svg" alt="IMMOSYNC" className="h-6" />
+            <span className="logo-type text-2xl text-white">IMMOSYNC</span>
           </div>
         </div>
         <div className="bg-white/10 dark:bg-white/5 border border-white/20 dark:border-white/10 rounded-2xl p-8 shadow-[0_20px_60px_rgba(0,0,0,0.35)] backdrop-blur-xl">

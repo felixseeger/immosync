@@ -10,7 +10,7 @@ export type HeatingType =
   | 'Pellet'
   | 'Solar';
 
-export type ContactCategory = 'buyer' | 'tenant' | 'owner' | 'investor';
+export type ContactCategory = 'buyer' | 'tenant' | 'owner' | 'investor' | 'facility_manager' | 'facility_service';
 
 export type LeadStatus =
   | 'new'
@@ -38,7 +38,7 @@ export interface Contact {
   email?: string;
   phone?: string;
   company?: string;
-  /** Real estate role: buyer, tenant, owner, investor */
+  /** Real estate role: buyer, tenant, owner, investor, facility_manager, facility_service */
   category?: ContactCategory;
   leadStatus?: LeadStatus;
   searchProfile?: SearchProfile;
@@ -76,7 +76,7 @@ export interface Property {
   additionalCosts?: number;
   commission?: number;
   // Status
-  status: 'Active' | 'Pending' | 'Sold' | 'Rented';
+  status: 'Active' | 'Pending' | 'Sold' | 'Rented' | 'For Sale' | 'For Rent';
   /** When status is Rented: move-in date (ISO date string). */
   moveInDate?: string;
   /** When status is Rented: move-out date (ISO date string). */
@@ -158,6 +158,15 @@ export interface RentReview {
   /** ISO month string, e.g. '2025-07' */
   month: string;
   reviewedAt: any;
+}
+
+/** Tracks which rental properties have had rent paid for a given month */
+export interface RentPayment {
+  id: string;
+  propertyId: string;
+  /** ISO month string, e.g. '2025-07' */
+  month: string;
+  paidAt: any;
 }
 
 export type DealDocumentCategory = 'lease' | 'credit_check' | 'notary' | 'other';

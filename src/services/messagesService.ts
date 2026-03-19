@@ -8,7 +8,6 @@ import {
   updateDoc,
   query,
   where,
-  orderBy,
   onSnapshot,
   serverTimestamp,
 } from 'firebase/firestore';
@@ -62,12 +61,23 @@ export async function getOrCreateConversation(participantIds: string[], dealId?:
 export function subscribeToConversations(currentUserId: string, callback: (conversations: Conversation[]) => void): () => void {
   const q = query(
     collection(db, CONVERSATIONS_COLLECTION),
-    where('participantIds', 'array-contains', currentUserId),
-    orderBy('updatedAt', 'desc')
+    where('participantIds', 'array-contains', currentUserId)
   );
   return onSnapshot(q, (snapshot) => {
-    const list = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as Conversation));
+    const list = snapshot.docs
+      .map((d) => ({ id: d.id, ...d.data() } as Conversation))
+      .sort((a, b) => {
+        const toMs = (v: unknown): number => {
+          if (!v) return 0;
+          if (typeof (v as { toDate?: () => Date }).toDate === 'function') return (v as { toDate: () => Date }).toDate().getTime();
+          const d = new Date(v as string | number | Date);
+          return isNaN(d.getTime()) ? 0 : d.getTime();
+        };
+        return toMs(b.updatedAt ?? b.createdAt) - toMs(a.updatedAt ?? a.createdAt);
+      });
     callback(list);
+  }, (error) => {
+    console.error('[messagesService] subscribeToConversations error:', error);
   });
 }
 
@@ -132,11 +142,15 @@ export function subscribeToMessages(conversationId: string, callback: (messages:
   const unsubTop = onSnapshot(topLevelQuery, (snapshot) => {
     topLevelList = snapshot.docs.map((d) => toMessage(d.id, d.data() ?? {}));
     mergeAndEmit(topLevelList, subColList);
+  }, (error) => {
+    console.error('[messagesService] subscribeToMessages (top-level) error:', error);
   });
 
   const unsubSub = onSnapshot(subColRef, (snapshot) => {
     subColList = snapshot.docs.map((d) => toMessage(d.id, d.data() ?? {}, conversationId));
     mergeAndEmit(topLevelList, subColList);
+  }, (error) => {
+    console.error('[messagesService] subscribeToMessages (subcollection) error:', error);
   });
 
   return () => {

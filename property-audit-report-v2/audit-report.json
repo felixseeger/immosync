@@ -1,0 +1,37 @@
+{
+  "timestamp": "2026-03-18T22:34:44.953Z",
+  "languages": [
+    "de",
+    "en",
+    "fr",
+    "ja",
+    "zh"
+  ],
+  "results": {
+    "de": {
+      "navigated": false,
+      "error": "Could not find Properties navigation",
+      "consoleLogs": []
+    },
+    "en": {
+      "navigated": false,
+      "error": "Could not find Properties navigation",
+      "consoleLogs": []
+    },
+    "fr": {
+      "navigated": false,
+      "error": "Could not find Properties navigation",
+      "consoleLogs": []
+    },
+    "ja": {
+      "navigated": false,
+      "error": "Could not find Properties navigation",
+      "consoleLogs": []
+    },
+    "zh": {
+      "navigated": false,
+      "error": "Could not find Properties navigation",
+      "consoleLogs": []
+    }
+  }
+}

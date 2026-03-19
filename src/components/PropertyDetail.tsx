@@ -1,13 +1,14 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { Property } from '../types';
+import { Property, Contact } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
-import { X, MapPin, LayoutGrid, Bath, Box, Droplets, UtensilsCrossed, Car, CheckCircle, Image as ImageIcon, ArrowLeft, Pencil, Trash2, Loader2, FileDown, Calendar, ChevronLeft, ChevronRight, GripVertical } from 'lucide-react';
+import { X, MapPin, LayoutGrid, Bath, Box, Droplets, UtensilsCrossed, Car, CheckCircle, Image as ImageIcon, Pencil, Trash2, Loader2, FileDown, Calendar, ChevronLeft, ChevronRight, GripVertical } from 'lucide-react';
 import AddPropertyPanel from './AddPropertyPanel';
 import ScheduleViewingModal from './ScheduleViewingModal';
-import ExposeGenerationModal from './ExposeGenerationModal';
+import MatchingProspects from './MatchingProspects';
 import { deleteProperty, deletePropertyImage, updatePropertyImages } from '../services/propertyService';
-import { useExposeGeneration } from '../hooks/useExposeGeneration';
+import { getLinkedContactIdsForProperty, getContactById } from '../services/contactsService';
+import { exportExposeToPdf } from '../utils/exposeToPdf';
 import { sfx } from '../utils/sfx';
 import { useLanguage } from '../contexts/LanguageContext';
 
@@ -20,7 +21,7 @@ interface PropertyDetailProps {
 }
 
 export default function PropertyDetail({ property, onClose, onDeleted, onPropertyUpdated }: PropertyDetailProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [carouselIndex, setCarouselIndex] = useState(0);
   const [showEditPanel, setShowEditPanel] = useState(false);
@@ -33,9 +34,8 @@ export default function PropertyDetail({ property, onClose, onDeleted, onPropert
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deletingImageUrl, setDeletingImageUrl] = useState<string | null>(null);
-  const [showExposeModal, setShowExposeModal] = useState(false);
   const [showScheduleViewing, setShowScheduleViewing] = useState(false);
-  const { step: exposeStep, error: exposeError, generate: generateExpose, reset: resetExpose } = useExposeGeneration();
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
 
   const handleDelete = async () => {
     setIsDeleting(true);
@@ -51,10 +51,20 @@ export default function PropertyDetail({ property, onClose, onDeleted, onPropert
     }
   };
 
-  const handleGenerateExpose = () => {
-    setShowExposeModal(true);
-    generateExpose(property);
-  };
+  const handleGenerateExpose = useCallback(async () => {
+    sfx.menuSelect();
+    setIsExportingPdf(true);
+    try {
+      const ids = await getLinkedContactIdsForProperty(property.id);
+      const contacts = (await Promise.all(ids.map((id) => getContactById(id)))).filter(Boolean) as Contact[];
+      const locale = language === 'de' ? 'de-DE' : language === 'fr' ? 'fr-FR' : language === 'zh' ? 'zh-CN' : language === 'ja' ? 'ja-JP' : 'en-GB';
+      exportExposeToPdf(property, contacts, { locale });
+    } catch (err) {
+      console.error('Failed to export exposé PDF:', err);
+    } finally {
+      setIsExportingPdf(false);
+    }
+  }, [property, language]);
 
   const handleDeleteImage = useCallback(
     async (imageUrl: string) => {
@@ -142,13 +152,6 @@ export default function PropertyDetail({ property, onClose, onDeleted, onPropert
         {/* Header */}
         <div className="flex flex-wrap items-center justify-between gap-3 p-6 max-[1727px]:p-4 border-b border-gray-200 dark:border-zinc-800 bg-app-light/80 dark:bg-app-dark/80 backdrop-blur-sm sticky top-0 z-10">
           <div className="flex items-center gap-3 max-[1727px]:gap-2 min-w-0 flex-1">
-            <button
-              onClick={handleClose}
-              aria-label={t.propertyDetail.goBack}
-              className="p-2 shrink-0 hover:bg-gray-200 dark:hover:bg-zinc-800 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-accent/50 text-gray-600 dark:text-zinc-400"
-            >
-              <ArrowLeft size={20} className="max-[1727px]:w-5 max-[1727px]:h-5" aria-hidden="true" />
-            </button>
             <div className="min-w-0">
               <h2 className="text-2xl max-[1727px]:text-lg font-bold text-gray-900 dark:text-white truncate">{property.title}</h2>
               <div className="flex items-center text-gray-600 dark:text-zinc-400 text-sm max-[1727px]:text-xs truncate">
@@ -311,33 +314,29 @@ export default function PropertyDetail({ property, onClose, onDeleted, onPropert
                 </div>
               </div>
 
-              {/* Short Description */}
+              {/* Descriptions (merged) */}
               <div className="rounded-xl p-6 bg-app-light dark:bg-app-dark border border-white/40 dark:border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.1)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.4)]">
-                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">{t.propertyDetail.shortDescription}</h3>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3">{t.propertyDetail.shortDescription}</h3>
                 <p className="text-gray-600 dark:text-zinc-400 leading-relaxed whitespace-pre-line">
                   {property.description || t.propertyDetail.noDescription}
                 </p>
+                {property.objectDescription && (
+                  <>
+                    <h4 className="text-sm font-semibold text-gray-700 dark:text-zinc-300 mt-6 mb-2">{t.propertyDetail.objectDescription}</h4>
+                    <p className="text-gray-600 dark:text-zinc-400 leading-relaxed whitespace-pre-line">
+                      {property.objectDescription}
+                    </p>
+                  </>
+                )}
+                {property.locationDescription && (
+                  <>
+                    <h4 className="text-sm font-semibold text-gray-700 dark:text-zinc-300 mt-6 mb-2">{t.propertyDetail.location}</h4>
+                    <p className="text-gray-600 dark:text-zinc-400 leading-relaxed whitespace-pre-line">
+                      {property.locationDescription}
+                    </p>
+                  </>
+                )}
               </div>
-
-              {/* Object Description */}
-              {property.objectDescription && (
-                <div className="rounded-xl p-6 bg-app-light dark:bg-app-dark border border-white/40 dark:border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.1)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.4)]">
-                  <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">{t.propertyDetail.objectDescription}</h3>
-                  <p className="text-gray-600 dark:text-zinc-400 leading-relaxed whitespace-pre-line">
-                    {property.objectDescription}
-                  </p>
-                </div>
-              )}
-
-              {/* Location */}
-              {property.locationDescription && (
-                <div className="rounded-xl p-6 bg-app-light dark:bg-app-dark border border-white/40 dark:border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.1)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.4)]">
-                  <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">{t.propertyDetail.location}</h3>
-                  <p className="text-gray-600 dark:text-zinc-400 leading-relaxed whitespace-pre-line">
-                    {property.locationDescription}
-                  </p>
-                </div>
-              )}
 
               {/* Videos */}
               {property.videos && property.videos.length > 0 && (
@@ -403,46 +402,31 @@ export default function PropertyDetail({ property, onClose, onDeleted, onPropert
                   </div>
                 )}
 
-                <div className="grid grid-cols-3 max-[1727px]:gap-2 gap-3 mb-6 max-[1727px]:mb-4">
-                  <div className="text-center p-3 bg-app-light dark:bg-app-dark rounded-lg border border-white/40 dark:border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.3)] hover:border-accent/50 transition-colors">
-                    <LayoutGrid size={20} className="mx-auto mb-1 text-gray-600 dark:text-zinc-400" />
-                    <div className="text-lg font-bold text-gray-900 dark:text-white">{property.rooms ?? '—'}</div>
-                    <div className="text-[10px] text-gray-600 dark:text-white uppercase">{t.propertyDetail.rooms}</div>
-                  </div>
-                  <div className="text-center p-3 bg-app-light dark:bg-app-dark rounded-lg border border-white/40 dark:border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.3)] hover:border-accent/50 transition-colors">
-                    <Bath size={20} className="mx-auto mb-1 text-gray-600 dark:text-zinc-400" />
-                    <div className="text-lg font-bold text-gray-900 dark:text-white">{property.bathrooms ?? '—'}</div>
-                    <div className="text-[10px] text-gray-600 dark:text-white uppercase">{t.propertyDetail.baths}</div>
-                  </div>
-                  <div className="text-center p-3 bg-app-light dark:bg-app-dark rounded-lg border border-white/40 dark:border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.3)] hover:border-accent/50 transition-colors">
-                    <Box size={20} className="mx-auto mb-1 text-gray-600 dark:text-zinc-400" />
-                    <div className="text-lg font-bold text-gray-900 dark:text-white">{property.balconies ?? '—'}</div>
-                    <div className="text-[10px] text-gray-600 dark:text-white uppercase">{t.propertyDetail.balconies}</div>
-                  </div>
-                  <div className="text-center p-3 bg-app-light dark:bg-app-dark rounded-lg border border-white/40 dark:border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.3)] hover:border-accent/50 transition-colors">
-                    <Droplets size={20} className="mx-auto mb-1 text-gray-600 dark:text-zinc-400" />
-                    <div className="text-lg font-bold text-gray-900 dark:text-white">{property.bathtubs ?? '—'}</div>
-                    <div className="text-[10px] text-gray-600 dark:text-white uppercase">{t.propertyDetail.bathtubs}</div>
-                  </div>
-                  <div className="text-center p-3 bg-app-light dark:bg-app-dark rounded-lg border border-white/40 dark:border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.3)] hover:border-accent/50 transition-colors">
-                    <UtensilsCrossed size={20} className="mx-auto mb-1 text-gray-600 dark:text-zinc-400" />
-                    <div className="text-lg font-bold text-gray-900 dark:text-white">{property.kitchens ?? '—'}</div>
-                    <div className="text-[10px] text-gray-600 dark:text-white uppercase">{t.propertyDetail.kitchens}</div>
-                  </div>
-                  <div className="text-center p-3 bg-app-light dark:bg-app-dark rounded-lg border border-white/40 dark:border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.3)] hover:border-accent/50 transition-colors">
-                    <Car size={20} className="mx-auto mb-1 text-gray-600 dark:text-zinc-400" />
-                    <div className="text-lg font-bold text-gray-900 dark:text-white">{property.garage ?? '—'}</div>
-                    <div className="text-[10px] text-gray-600 dark:text-white uppercase">{t.propertyDetail.garage}</div>
-                  </div>
+                <div className="grid grid-cols-3 gap-y-4 gap-x-2 mb-6 max-[1727px]:mb-4 py-4 border-y border-gray-200 dark:border-zinc-800">
+                  {[
+                    { icon: LayoutGrid, value: property.rooms, label: t.propertyDetail.rooms },
+                    { icon: Bath, value: property.bathrooms, label: t.propertyDetail.baths },
+                    { icon: Box, value: property.balconies, label: t.propertyDetail.balconies },
+                    { icon: Droplets, value: property.bathtubs, label: t.propertyDetail.bathtubs },
+                    { icon: UtensilsCrossed, value: property.kitchens, label: t.propertyDetail.kitchens },
+                    { icon: Car, value: property.garage, label: t.propertyDetail.garage },
+                  ].map(({ icon: Icon, value, label }) => (
+                    <div key={label} className="flex flex-col items-center text-center gap-0.5">
+                      <Icon size={14} className="text-gray-400 dark:text-zinc-500" />
+                      <span className="text-base font-bold text-gray-900 dark:text-white leading-none">{value ?? '—'}</span>
+                      <span className="text-[10px] text-gray-400 dark:text-zinc-600 uppercase tracking-wide">{label}</span>
+                    </div>
+                  ))}
                 </div>
 
                 <button
                   type="button"
-                  onClick={() => { sfx.menuSelect(); handleGenerateExpose(); }}
-                  className="w-full bg-gray-200 dark:bg-zinc-800 text-gray-900 dark:text-white font-medium py-3 rounded-xl border-2 border-gray-300 dark:border-zinc-700 hover:border-accent/50 focus:outline-none focus:ring-2 focus:ring-accent/50 transition-colors mb-3 flex items-center justify-center gap-2"
+                  onClick={handleGenerateExpose}
+                  disabled={isExportingPdf}
+                  className="w-full bg-gray-200 dark:bg-zinc-800 text-gray-900 dark:text-white font-medium py-3 rounded-xl border-2 border-gray-300 dark:border-zinc-700 hover:border-accent/50 focus:outline-none focus:ring-2 focus:ring-accent/50 transition-colors mb-3 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
                 >
-                  <FileDown size={18} />
-                  {t.propertyDetail.generateBrochure}
+                  {isExportingPdf ? <Loader2 size={18} className="animate-spin" /> : <FileDown size={18} />}
+                  {isExportingPdf ? t.propertyDetail.generating : t.propertyDetail.generateBrochure}
                 </button>
                 <button
                   type="button"
@@ -452,6 +436,11 @@ export default function PropertyDetail({ property, onClose, onDeleted, onPropert
                   <Calendar size={18} />
                   {t.propertyDetail.scheduleViewing}
                 </button>
+              </div>
+
+              {/* Linked contacts */}
+              <div className="rounded-xl p-6 max-[1727px]:p-4 bg-app-light dark:bg-app-dark border border-white/40 dark:border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.1)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.4)]">
+                <MatchingProspects property={property} />
               </div>
 
               {/* Features */}
@@ -492,7 +481,7 @@ export default function PropertyDetail({ property, onClose, onDeleted, onPropert
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-[10001] bg-black/95 flex items-center justify-center p-4"
+              className="fixed inset-0 z-[10001] bg-black flex flex-col h-[100dvh] w-full"
               onClick={() => { sfx.menuSelect(); setSelectedImage(null); }}
             >
               <button
@@ -504,16 +493,17 @@ export default function PropertyDetail({ property, onClose, onDeleted, onPropert
                 <X size={24} />
               </button>
               <div
-                className="flex flex-col items-center gap-4"
+                className="flex-1 min-h-0 min-w-0 flex items-center justify-center p-4"
                 onClick={(e) => e.stopPropagation()}
               >
                 <img
                   src={selectedImage}
                   alt={`Full screen ${lightboxIndex + 1} of ${allImages.length}`}
-                  className="max-w-[55vw] max-h-[60vh] w-auto h-auto object-contain rounded-lg shadow-2xl"
+                  className="max-w-full max-h-full w-auto h-auto object-contain rounded-lg shadow-2xl"
                 />
-                {allImages.length > 1 && (
-                  <div className="flex items-center gap-3">
+              </div>
+              {allImages.length > 1 && (
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-3 z-10">
                     <button
                       type="button"
                       onClick={goPrev}
@@ -532,7 +522,6 @@ export default function PropertyDetail({ property, onClose, onDeleted, onPropert
                     </button>
                   </div>
                 )}
-              </div>
             </motion.div>
           );
         })()}
@@ -613,14 +602,6 @@ export default function PropertyDetail({ property, onClose, onDeleted, onPropert
         )}
       </AnimatePresence>
 
-      {/* Expose Generation Modal */}
-      <ExposeGenerationModal
-        open={showExposeModal}
-        step={exposeStep}
-        error={exposeError}
-        onClose={() => { setShowExposeModal(false); resetExpose(); }}
-        onRetry={() => generateExpose(property)}
-      />
     </motion.div>
   );
 }

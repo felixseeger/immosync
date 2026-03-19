@@ -13,7 +13,6 @@ import {
   ExternalLink,
   Activity,
   FolderOpen,
-  CheckSquare,
 } from 'lucide-react';
 import AnimatedLink from './AnimatedLink';
 import { formatDistanceToNow } from 'date-fns';
@@ -97,8 +96,8 @@ export default function DealDetailSlideOver({
     setUploadProgress(0);
     try {
       await uploadDealDocument(deal.id, file, uploadCategory, (p) => setUploadProgress(p));
-    } catch (err) {
-      console.error('Upload failed', err);
+    } catch {
+      // upload failed silently — user can retry
     } finally {
       setUploading(false);
       setUploadProgress(0);
@@ -162,10 +161,7 @@ export default function DealDetailSlideOver({
           aria-labelledby="deal-panel-title"
         >
           <div className="p-4 border-b border-gray-200 dark:border-zinc-800 flex items-center justify-between shrink-0">
-            <div className="flex items-center gap-2">
-              <span className="p-2 rounded-lg bg-accent/15 border-2 border-accent/40">
-                <CheckSquare size={18} className="text-accent" />
-              </span>
+            <div>
               <h2 id="deal-panel-title" className="text-lg font-bold text-gray-900 dark:text-white">
                 {t.dealsPage.dealDetails}
               </h2>
@@ -186,7 +182,7 @@ export default function DealDetailSlideOver({
               <h3 className="text-xs font-bold text-gray-500 dark:text-zinc-500 uppercase tracking-wider mb-3">
                 {t.dealsPage.dealSection}
               </h3>
-              <div className="space-y-2 rounded-xl border border-gray-200 dark:border-zinc-800 p-4 bg-gray-50/50 dark:bg-zinc-800/30">
+              <div className="space-y-3">
                 <div className="flex items-center gap-2 flex-wrap">
                   <User size={16} className="text-gray-500 dark:text-zinc-500 shrink-0" />
                   <span className="text-sm font-medium text-gray-900 dark:text-white truncate">{contactName || '—'}</span>
@@ -338,11 +334,11 @@ export default function DealDetailSlideOver({
                   {t.contact.add}
                 </button>
               </div>
-              <ul className="space-y-2">
+              <ul>
                 {activities.map((item) => (
                   <li
                     key={item.id}
-                    className="flex gap-3 py-2 px-3 rounded-lg bg-gray-50 dark:bg-zinc-800/30 border border-gray-100 dark:border-zinc-800"
+                    className="flex gap-3 py-2.5 border-b border-gray-100 dark:border-zinc-800 last:border-0"
                   >
                     <div className="shrink-0 mt-0.5">
                       {item.type === 'stage_change' && <Activity size={14} className="text-accent" />}

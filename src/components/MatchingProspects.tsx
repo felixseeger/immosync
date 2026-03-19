@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Users, Mail, CheckCircle, Loader2, Zap, Search, ChevronRight, Link2, Unlink, UserPlus, X } from 'lucide-react';
+import { CheckCircle, Loader2, Search, ChevronRight, Link2, Unlink, UserPlus, X } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
 import {
   subscribeToMatchingContacts,
   subscribeToLinkedContactIds,
@@ -51,31 +52,26 @@ function formatBudget(sp: Contact['searchProfile']): string | null {
 
 type ProspectSource = 'linked' | 'matched';
 
-function ContactCard({
+function ContactRow({
   contact,
   source,
   propertyId,
   onUnlink,
+  onExclude,
 }: {
   contact: Contact;
   source: ProspectSource;
   propertyId: string;
   onUnlink: () => void;
+  onExclude: () => void;
 }) {
-  const [dealSent, setDealSent] = useState(false);
+  const { t } = useLanguage();
   const [unlinking, setUnlinking] = useState(false);
-
-  const openDeal = () => {
-    setDealSent(true);
-    setTimeout(() => setDealSent(false), 2200);
-  };
-
-  const message = () => {
-    if (contact.email) window.open(`mailto:${contact.email}?subject=Property%20Match`, '_blank');
-  };
 
   const budget = formatBudget(contact.searchProfile);
   const rooms = contact.searchProfile?.minRooms;
+
+  const categoryLabel = contact.category ? (t.contactRole as any)[contact.category] || contact.category : null;
 
   const handleUnlink = async () => {
     setUnlinking(true);
@@ -89,94 +85,56 @@ function ContactCard({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 8 }}
+      initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-zinc-900 border border-zinc-800 hover:border-zinc-700 rounded-xl p-4 transition-colors"
+      className="flex items-center gap-3 py-2.5 border-b border-zinc-800 last:border-0"
     >
-      <div className="flex items-start gap-3">
-        <div
-          className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-xs font-bold text-white select-none ${avatarColor(contact.name)}`}
-        >
-          {getInitials(contact.name)}
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <p className="text-sm font-semibold text-white truncate">{contact.name}</p>
-            <span
-              className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider shrink-0 ${
-                source === 'linked'
-                  ? 'bg-accent/15 text-accent border border-accent/20'
-                  : 'bg-blue-500/15 text-blue-400 border border-blue-500/20'
-              }`}
-            >
-              {source === 'linked' ? 'Linked' : 'Matched'}
-            </span>
-            {contact.searchProfile?.marketingType && (
-              <span className="text-[10px] text-zinc-500 uppercase">{contact.searchProfile.marketingType}</span>
-            )}
-          </div>
-          {contact.company && <p className="text-xs text-zinc-500 mt-0.5 truncate">{contact.company}</p>}
-          <div className="flex items-center gap-2 mt-2 flex-wrap">
-            {budget && (
-              <span className="text-[11px] text-zinc-400 bg-zinc-800 px-2 py-0.5 rounded-md border border-zinc-700">
-                {budget}
-              </span>
-            )}
-            {rooms != null && (
-              <span className="text-[11px] text-zinc-400 bg-zinc-800 px-2 py-0.5 rounded-md border border-zinc-700">
-                {rooms}+ rooms
-              </span>
-            )}
-          </div>
-        </div>
+      <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-xs font-bold text-white select-none ${avatarColor(contact.name)}`}>
+        {getInitials(contact.name)}
       </div>
-      <div className="flex items-center gap-2 mt-4 pt-3 border-t border-zinc-800">
-        <button
-          onClick={openDeal}
-          className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-bold transition-all ${
-            dealSent
-              ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
-              : 'bg-accent/10 hover:bg-accent/20 text-accent border border-accent/25 hover:border-accent/50'
-          }`}
-        >
-          <AnimatePresence mode="wait">
-            {dealSent ? (
-              <motion.span key="done" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center gap-1.5">
-                <CheckCircle size={13} /> Deal opened!
-              </motion.span>
-            ) : (
-              <motion.span key="idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center gap-1.5">
-                <Zap size={13} /> Open Deal
-              </motion.span>
-            )}
-          </AnimatePresence>
-        </button>
-        <button
-          onClick={message}
-          disabled={!contact.email}
-          className="flex items-center justify-center gap-1.5 py-2 px-4 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-medium rounded-lg transition-colors border border-zinc-700 disabled:opacity-30 disabled:cursor-not-allowed"
-        >
-          <Mail size={13} /> Message
-        </button>
-        {source === 'linked' && (
-          <button
-            onClick={handleUnlink}
-            disabled={unlinking}
-            className="flex items-center justify-center gap-1.5 py-2 px-3 bg-zinc-800 hover:bg-red-500/10 text-zinc-400 hover:text-red-400 text-xs font-medium rounded-lg transition-colors border border-zinc-700 hover:border-red-500/30 disabled:opacity-50"
-            title="Unlink from property"
-          >
-            {unlinking ? <Loader2 size={13} className="animate-spin" /> : <Unlink size={13} />}
-          </button>
-        )}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 flex-wrap">
+          <p className="text-sm font-semibold text-white truncate">{contact.name}</p>
+          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider shrink-0 ${
+            source === 'linked'
+              ? 'bg-accent/15 text-accent border border-accent/20'
+              : 'bg-blue-500/15 text-blue-400 border border-blue-500/20'
+          }`}>
+            {source === 'linked' ? (categoryLabel || 'Linked') : 'Matched'}
+          </span>
+        </div>
+        {contact.company && <p className="text-xs text-zinc-500 truncate">{contact.company}</p>}
       </div>
+      {source === 'linked' ? (
+        <button
+          onClick={handleUnlink}
+          disabled={unlinking}
+          className="p-1.5 text-zinc-600 hover:text-red-400 transition-colors rounded disabled:opacity-50 shrink-0"
+          title="Unlink"
+          aria-label="Unlink contact from property"
+        >
+          {unlinking ? <Loader2 size={14} className="animate-spin" /> : <Unlink size={14} />}
+        </button>
+      ) : (
+        <button
+          onClick={onExclude}
+          className="p-1.5 text-zinc-600 hover:text-zinc-400 transition-colors rounded shrink-0"
+          title="Exclude match"
+          aria-label="Exclude matched contact"
+        >
+          <X size={14} />
+        </button>
+      )}
     </motion.div>
   );
 }
 
 export default function MatchingProspects({ property }: { property: Property }) {
+  const { t } = useLanguage();
   const [matchedContacts, setMatchedContacts] = useState<Contact[]>([]);
   const [linkedContactIds, setLinkedContactIds] = useState<string[]>([]);
   const [linkedContacts, setLinkedContacts] = useState<Contact[]>([]);
+  const [excludedContactIds, setExcludedContactIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [seeding, setSeeding] = useState(false);
   const [justSeeded, setJustSeeded] = useState(false);
@@ -226,15 +184,12 @@ export default function MatchingProspects({ property }: { property: Property }) 
 
   const mergedProspects = useMemo(() => {
     const linkedSet = new Set(linkedContactIds);
-    const byId = new Map<string, { contact: Contact; source: ProspectSource }>();
-    linkedContacts.forEach((c) => byId.set(c.id, { contact: c, source: 'linked' }));
-    matchedContacts.forEach((c) => {
-      if (!byId.has(c.id)) byId.set(c.id, { contact: c, source: 'matched' });
-    });
     const linkedFirst = linkedContacts.map((c) => ({ contact: c, source: 'linked' as const }));
-    const matchedOnly = matchedContacts.filter((c) => !linkedSet.has(c.id)).map((c) => ({ contact: c, source: 'matched' as const }));
+    const matchedOnly = matchedContacts
+      .filter((c) => !linkedSet.has(c.id) && !excludedContactIds.has(c.id))
+      .map((c) => ({ contact: c, source: 'matched' as const }));
     return [...linkedFirst, ...matchedOnly];
-  }, [linkedContacts, matchedContacts, linkedContactIds]);
+  }, [linkedContacts, matchedContacts, linkedContactIds, excludedContactIds]);
 
   const handleSeedDemo = async () => {
     setSeeding(true);
@@ -270,101 +225,74 @@ export default function MatchingProspects({ property }: { property: Property }) 
   };
 
   return (
-    <section className="mt-8">
-      <div className="flex items-center gap-3 mb-5">
-        <div className="p-2 rounded-lg bg-accent/10 border border-accent/20">
-          <Users size={16} className="text-accent" />
-        </div>
-        <div>
-          <h3 className="text-sm font-bold text-white tracking-tight">Prospects</h3>
-          <p className="text-[11px] text-zinc-500">
-            Matched by criteria + manually linked contacts
-          </p>
-        </div>
-        <div className="ml-auto flex items-center gap-2">
-          {!loading && mergedProspects.length > 0 && (
-            <span className="bg-accent/10 border border-accent/25 text-accent text-xs font-bold px-2.5 py-0.5 rounded-full">
-              {mergedProspects.length}
-            </span>
-          )}
-          <button
-            type="button"
-            onClick={openLinkPicker}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 hover:border-accent/30 text-zinc-300 hover:text-accent text-xs font-medium rounded-lg transition-colors"
-          >
-            <Link2 size={14} />
-            Link contact
-          </button>
-          <div className="flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
-            <span className="text-[11px] text-zinc-500 font-mono">live</span>
-          </div>
-        </div>
+    <section>
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-sm font-semibold text-gray-700 dark:text-zinc-300">{t.propertyDetail.matchingProspects ?? 'Contacts'}</h3>
+        <button
+          type="button"
+          onClick={openLinkPicker}
+          className="flex items-center gap-1 text-xs text-accent hover:opacity-80 transition-opacity font-medium"
+        >
+          <UserPlus size={13} />
+          {t.propertyDetail.linkAContact}
+        </button>
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center py-12 text-zinc-600">
-          <Loader2 className="animate-spin mr-2" size={18} />
-          <span className="text-sm">Searching contacts…</span>
+        <div className="flex items-center gap-2 text-zinc-600 py-6">
+          <Loader2 className="animate-spin" size={16} />
+          <span className="text-sm">{t.propertyDetail.searchingContacts}</span>
         </div>
       ) : mergedProspects.length === 0 ? (
-        <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-8 text-center">
-          <div className="w-12 h-12 rounded-full bg-zinc-800 flex items-center justify-center mx-auto mb-4">
-            <Search size={20} className="text-zinc-600" />
-          </div>
-          <p className="text-sm font-semibold text-zinc-300 mb-1">No prospects yet</p>
-          <p className="text-xs text-zinc-600 mb-5 max-w-xs mx-auto">
-            No contacts match this property, and none are linked. Add search criteria to contacts or link one manually.
-          </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-            <button
-              type="button"
-              onClick={openLinkPicker}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-accent/15 border border-accent/25 text-accent text-xs font-semibold rounded-lg hover:bg-accent/25 transition-colors"
-            >
-              <UserPlus size={14} />
-              Link a contact
-            </button>
+        <div className="py-6 text-center">
+          <Search size={18} className="text-zinc-600 mx-auto mb-2" />
+          <p className="text-xs text-zinc-500 mb-3">No contacts linked or matched yet.</p>
+          <div className="flex items-center justify-center gap-2">
             {!justSeeded && (
               <button
                 type="button"
                 onClick={handleSeedDemo}
                 disabled={seeding}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-zinc-300 text-xs font-semibold rounded-lg disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-zinc-400 text-xs rounded-lg disabled:opacity-50 transition-colors"
               >
-                {seeding ? <Loader2 size={14} className="animate-spin" /> : <ChevronRight size={14} />}
-                Load demo contacts
+                {seeding ? <Loader2 size={12} className="animate-spin" /> : <ChevronRight size={12} />}
+                {t.propertyDetail.loadDemoContacts}
               </button>
             )}
+            <AnimatePresence>
+              {justSeeded && (
+                <motion.span
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="text-emerald-400 text-xs flex items-center gap-1"
+                >
+                  <CheckCircle size={13} /> Demo contacts added!
+                </motion.span>
+              )}
+            </AnimatePresence>
           </div>
-          <AnimatePresence>
-            {justSeeded && (
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="text-emerald-400 text-sm font-semibold mt-3 flex items-center justify-center gap-2"
-              >
-                <CheckCircle size={15} />
-                Demo contacts added!
-              </motion.p>
-            )}
-          </AnimatePresence>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div>
           {mergedProspects.map(({ contact, source }) => (
-            <ContactCard
+            <ContactRow
               key={contact.id}
               contact={contact}
               source={source}
               propertyId={property.id}
               onUnlink={() => {}}
+              onExclude={() => setExcludedContactIds(prev => {
+                const next = new Set(prev);
+                next.add(contact.id);
+                return next;
+              })}
             />
           ))}
         </div>
       )}
 
+      {/* Link picker modal */}
       <AnimatePresence>
         {showLinkPicker && (
           <motion.div
@@ -382,13 +310,13 @@ export default function MatchingProspects({ property }: { property: Property }) 
               className="bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl w-full max-w-md max-h-[70vh] flex flex-col"
             >
               <div className="p-4 border-b border-zinc-800 flex items-center justify-between">
-                <h3 className="font-bold text-white">Link contact to property</h3>
+                <h3 className="font-bold text-white">{t.propertyDetail.linkContactToProperty}</h3>
                 <button
                   type="button"
                   onClick={() => setShowLinkPicker(false)}
                   className="p-2 rounded-lg hover:bg-zinc-800 text-zinc-400"
+                  aria-label="Close"
                 >
-                  <span className="sr-only">Close</span>
                   <X size={18} />
                 </button>
               </div>
@@ -399,7 +327,7 @@ export default function MatchingProspects({ property }: { property: Property }) 
                   </div>
                 ) : allContacts.length === 0 ? (
                   <p className="text-sm text-zinc-500 text-center py-6">
-                    No other contacts to link, or all are already linked.
+                    {t.propertyDetail.noOtherContactsToLink}
                   </p>
                 ) : (
                   <ul className="space-y-2">
