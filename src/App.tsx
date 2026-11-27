@@ -122,7 +122,9 @@ export default function App() {
   });
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showUserSettings, setShowUserSettings] = useState(false);
-  const [gateUnlocked, setGateUnlocked] = useState(() => isGateUnlocked());
+  // Demo-Schranke vor dem Login: standardmäßig aus, mit VITE_LANDING_GATE=true wieder aktivierbar
+  const gateEnabled = import.meta.env.VITE_LANDING_GATE === 'true';
+  const [gateUnlocked, setGateUnlocked] = useState(() => !gateEnabled || isGateUnlocked());
   const [showPasswordReset, setShowPasswordReset] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
